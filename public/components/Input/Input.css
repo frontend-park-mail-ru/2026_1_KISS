@@ -1,0 +1,69 @@
+@import '../../styles/variables.css';
+
+:root {
+    --input-border: var(--grey);
+    --input-background: var(--white);
+    --input-focus-border: var(--accent);
+    --input-error-border: #E74C3C;
+    --input-disabled-background: var(--light-grey);
+    --input-placeholder: var(--grey);
+
+    /* Размеры и отступы */
+    --input-padding: 5px 5px;
+    --input-border-radius: 10px;
+    --input-font-size: 16px;
+    --input-label-font-size: 14px;
+    --input-gap: 24px;
+}
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    /*max-width: 400px;*/
+    /*margin-bottom: var(--input-gap);*/
+}
+
+
+.input-field {
+    padding: var(--input-padding);
+    font-size: var(--input-font-size);
+    border: 2px solid var(--input-border);
+    border-radius: var(--input-border-radius);
+    background-color: var(--input-background);
+    transition: all 0.3s ease;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Стили при фокусе */
+.input-field:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Placeholder */
+.input-field::placeholder {
+    color: var(--input-placeholder);
+    opacity: 0.8;
+}
+
+/* Состояние ошибки */
+.input-wrapper_error .input-field {
+    border-color: var(--input-error-border);
+    background-color: rgba(231, 76, 60, 0.02);
+}
+
+.input-wrapper_error .input-field:focus {
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+/* Сообщение об ошибке */
+.input-error-message {
+    color: var(--input-error-border);
+    font-size: 13px;
+    margin-top: 4px;
+    margin-left: 4px;
+}

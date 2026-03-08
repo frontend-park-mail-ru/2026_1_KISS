@@ -1,0 +1,23 @@
+{
+    "name": "KISS-colab",
+    "version": "0.0.1",
+    "description": "Платформа для написания и выполнения кода на языке Python прямо в браузере",
+    "main": "test_server/index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "prestart": "npm run compile:templates",
+        "start": "DEBUG=* && node test_server/index.js",
+        "compile:templates": "npx handlebars public/components/Input/Input.hbs -f public/components/Input/Input.precompiled.js"
+    },
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^2.2.0",
+        "cookie-parser": "^1.4.7",
+        "debug": "^4.3.7",
+        "express": "5.1.0",
+        "handlebars": "^4.7.8",
+        "morgan": "^1.10.1",
+        "prettier": "^3.5.1",
+        "uuid": "^13.0.0"
+    }
+}
