@@ -3,8 +3,20 @@
 @import '../shared/components/input/Input.css';
 @import '../widgets/register-form/Register.css';
 @import '../widgets/green-header/GreenHeader.css';
+@import '../pages/sign/RegisterPage.css';
 
-body {
+html, body {
     margin: 0;
     padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
 }
