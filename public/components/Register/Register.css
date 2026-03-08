@@ -1,10 +1,24 @@
 .form-field {
-    margin-bottom: 16px;     /* Отступ между полями */
+    margin-bottom: 10px;     /* Отступ между полями */
     width: 100%;              /* Занимает всю ширину */
     position: relative;       /* Для абсолютного позиционирования ошибок */
 }
 
-/* Через этот класс можно стилизовать все поля одинаково */
+
 .form-field:last-child {
-    margin-bottom: 0;         /* У последнего поля нет отступа */
+    margin-bottom: 0;
+}
+
+.registration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;  /* Расстояние между всеми элементами */
+    width: 100%;
+}
+
+.form-title {
+    text-align: center;     /* Выравнивание по центру */
+    width: 100%;            /* На всякий случай */
+    margin: 0 auto;         /* Центрирование блока (дополнительно) */
+    margin-bottom: 0px;    /* Отступ снизу (по желанию) */
 }

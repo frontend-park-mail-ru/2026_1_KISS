@@ -11,7 +11,7 @@ export class Register {
     render() {
         const template = Handlebars.templates['Register.hbs'];
         const data = {
-            title: 'Регистрация'
+            title: 'Colab'
         };
         this.#parent.innerHTML = template(data);
 
@@ -42,7 +42,7 @@ export class Register {
     }
 
     #attachEvents() {
-        let btn = this.#parent.querySelector('.submit-btn');
+        let btn = this.#parent.querySelector('#register-btn');
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             this.submit();

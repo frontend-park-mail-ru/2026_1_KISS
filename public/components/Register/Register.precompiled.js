@@ -10,6 +10,6 @@ templates['Register.hbs'] = template({"compiler":[8,">= 4.3.0"],"main":function(
 
   return "<form class=\"registration-form\">\r\n    <h2 class=\"form-title\">"
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"title") || (depth0 != null ? lookupProperty(depth0,"title") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"title","hash":{},"data":data,"loc":{"start":{"line":2,"column":27},"end":{"line":2,"column":38}}}) : helper)))
-    + "</h2>\r\n\r\n    <div class=\"form-fields\">\r\n    </div>\r\n\r\n    <button type=\"submit\" class=\"submit-btn\">Зарегистрироваться</button>\r\n</form>";
+    + "</h2>\r\n\r\n    <div class=\"form-fields\">\r\n    </div>\r\n\r\n    <button type=\"submit\" class=\"accent-btn\" id=\"register-btn\">Зарегистрироваться</button>\r\n    <a class=\"simple-btn\" href=\"\" id=\"go-out-btn\">Войти</a>\r\n</form>";
 },"useData":true});
 })();

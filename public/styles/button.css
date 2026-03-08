@@ -1,0 +1,33 @@
+:root {
+    --btn-padding: 5px 5px;
+}
+.accent-btn,
+.simple-btn,
+.base-btn {
+    width: 100%;
+    padding: var(--btn-padding);
+    border-radius: 8px;
+
+    font-size: 16px;
+    font-weight: 100;
+
+    text-align: center;        /* Текст по центру */
+    cursor: pointer;           /* Курсор-рука для кнопок */
+    text-decoration: none;     /* Убирает подчёркивание у ссылок */
+
+    display: inline-block;  /* или inline-flex в некоторых браузерах */
+    box-sizing: border-box;
+    border: none;
+}
+
+.accent-btn {
+    background-color: var(--teal-green);
+    color: var(--white);
+}
+
+.simple-btn  {
+    background-color: var(--white);
+    color: var(--teal-green);
+    outline: 1px solid var(--teal-green);
+    outline-offset: -1px;  /* чтобы был внутри */
+}
