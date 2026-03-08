@@ -1,4 +1,4 @@
-import { Input, TYPE_INPUT_CONFIG } from '../../shared/input/Input.js';
+import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 
 export class Register {
     #parent;
