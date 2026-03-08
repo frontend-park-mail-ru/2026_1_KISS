@@ -56,8 +56,17 @@ export class Input {
 
     #attachEvents() {
         this.#input.addEventListener('input', (e) => {
-            this.#state.value = e.target.value;
-            // this.validate();
+            const rawValue = e.target.value;
+            const cleanValue = DOMPurify.sanitize(rawValue);
+            if (cleanValue !== rawValue) {
+                this.#input.value = cleanValue;
+            }
+            this.#state.value = cleanValue;
+            this.validate();
+        });
+
+        this.#input.addEventListener('blur', () => {
+            this.validate();
         });
     }
 
