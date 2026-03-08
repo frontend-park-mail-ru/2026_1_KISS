@@ -35,13 +35,14 @@ export class Input {
     #parent;
     #input;
     #config;
+    #state;
 
     constructor(parent, config) {
         this.#parent = parent;
         this.#config = config;
-        this.state = {
+        this.#state = {
             isValid: true,
-            value: this.#config.value || ''
+            value: ''
         };
     }
 
@@ -55,52 +56,60 @@ export class Input {
 
     #attachEvents() {
         this.#input.addEventListener('input', (e) => {
-            console.log('event input');
-            this.state.value = e.target.value;
-            this.validate();
-        });
-
-        this.#input.addEventListener('blur', () => {
-            console.log('event blur');
-            this.validate();
+            this.#state.value = e.target.value;
+            // this.validate();
         });
     }
 
+    getValue() {
+        return this.#state.value;
+    }
+
     validate() {
+        console.log('Validate input');
         let isValid = true;
         let errorMessage = '';
 
-        if (this.#config.required && !this.state.value) {
+        if (this.#config.required && !this.#state.value) {
             isValid = false;
             errorMessage = 'Это поле обязательно';
         }
 
         if (isValid && this.#config.pattern) {
             const regex = new RegExp(this.#config.pattern);
-            if (!regex.test(this.state.value)) {
+            if (!regex.test(this.#state.value)) {
                 isValid = false;
                 errorMessage = this.#config.error_by_pattern;
             }
         }
 
-        if (isValid && this.#config.minlength && this.state.value.length < this.#config.minlength) {
+        if (
+            isValid &&
+            this.#config.minlength &&
+            this.#state.value.length < this.#config.minlength
+        ) {
             isValid = false;
             errorMessage = `Минимум ${this.#config.minlength} символов`;
         }
 
-        if (isValid && this.#config.maxlength && this.state.value.length > this.#config.maxlength) {
+        if (
+            isValid &&
+            this.#config.maxlength &&
+            this.#state.value.length > this.#config.maxlength
+        ) {
             isValid = false;
             errorMessage = `Максимум ${this.#config.maxlength} символов`;
         }
 
-        this.state.isValid = isValid;
-        this.updateUI(errorMessage);
+        this.#state.isValid = isValid;
+        this.#updateUI(errorMessage);
+        return this.#state.isValid;
     }
 
-    updateUI(errorMessage) {
+    #updateUI(errorMessage) {
         const wrapper = this.#parent.querySelector('.input-wrapper');
         const errorElement = this.#parent.querySelector('.input-error-message');
-        if (!this.state.isValid) {
+        if (!this.#state.isValid) {
             console.log('Not valid');
             wrapper.classList.add('input-wrapper_error');
             if (errorElement) {

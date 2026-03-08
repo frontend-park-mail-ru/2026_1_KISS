@@ -1,5 +1,5 @@
 {
-    "name": "KISS-colab",
+    "name": "KISS Сolab",
     "version": "0.0.1",
     "description": "Платформа для написания и выполнения кода на языке Python прямо в браузере",
     "main": "test_server/index.js",
@@ -7,7 +7,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "prestart": "npm run compile:templates",
         "start": "DEBUG=* && node test_server/index.js",
-        "compile:templates": "npx handlebars public/components/Input/Input.hbs -f public/components/Input/Input.precompiled.js"
+        "compile:templates": "for file in public/components/**/*.hbs; do npx handlebars \"$file\" -f \"${file%.hbs}.precompiled.js\"; done"
     },
     "license": "ISC",
     "dependencies": {

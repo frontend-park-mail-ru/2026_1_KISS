@@ -5,14 +5,18 @@ const clean = DOMPurify.sanitize(dirty);
 console.log(clean);
 */
 import { Input, TYPE_INPUT_CONFIG } from './components/Input/Input.js';
+import { Register } from './components/Register/Register.js';
 
 const rootElement = document.getElementById('root');
 const pageElement = document.createElement('main');
 
 rootElement.appendChild(pageElement);
 
-const inputField = new Input(pageElement, TYPE_INPUT_CONFIG.EMAIL);
-inputField.render();
+// const inputField = new Input(pageElement, TYPE_INPUT_CONFIG.EMAIL);
+// inputField.render();
+
+const register = new Register(pageElement);
+register.render();
 
 // function createLoginForm() {
 //     const form = document.createElement('form');
