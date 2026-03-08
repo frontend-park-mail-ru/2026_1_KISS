@@ -1,0 +1,16 @@
+<header class="green-header">
+    <div class="header-container">
+        <!-- Логотип с ссылкой на главную -->
+        <a href="/" class="logo-link">
+            <img src="{{logo}}" alt="{{title}} Logo" class="logo-image">
+        </a>
+
+        <div class="header-buttons">
+            {{#each buttons}}
+                <button class="base-btn  {{this.class}}" data-action="{{this.action}}">
+                    {{this.text}}
+                </button>
+            {{/each}}
+        </div>
+    </div>
+</header>

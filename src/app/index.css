@@ -2,3 +2,9 @@
 @import 'styles/button.css';
 @import '../shared/components/input/Input.css';
 @import '../widgets/register-form/Register.css';
+@import '../widgets/green-header/GreenHeader.css';
+
+body {
+    margin: 0;
+    padding: 0;
+}

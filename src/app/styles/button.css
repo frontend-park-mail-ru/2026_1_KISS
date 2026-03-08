@@ -1,5 +1,5 @@
 :root {
-    --btn-padding: 5px 5px;
+    --btn-padding: 0.5rem 0.5rem;
 }
 .accent-btn,
 .simple-btn,
@@ -30,4 +30,15 @@
     color: var(--teal-green);
     outline: 1px solid var(--teal-green);
     outline-offset: -1px;  /* чтобы был внутри */
+}
+
+.base-btn.just-text {
+    background-color: transparent;
+    color: var(--white);
+}
+
+.base-btn.just-text:hover {
+    background-color: transparent;
+    outline: 1px solid var(--white);
+    outline-offset: -1px;
 }

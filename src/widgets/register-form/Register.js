@@ -13,7 +13,7 @@ export class Register {
         const data = {
             title: 'Colab'
         };
-        this.#parent.innerHTML = template(data);
+        this.#parent.insertAdjacentHTML('beforeend', template(data));
 
         this.#formElement = this.#parent.querySelector('.registration-form');
         this.#createInputs();
