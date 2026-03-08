@@ -9,30 +9,37 @@ const app = express();
 
 app.use(morgan('dev')); // логирование http запросов в консоль
 // Раздача статических файлов (это типо nginx должен делать на беке?)
-app.use(express.static(path.resolve(__dirname, '..', 'public')));
+app.use(express.static(path.resolve(__dirname, '..', 'src')));
 app.use(express.static(path.resolve(__dirname, '..', 'node_modules'))); // доступ ко всем пакетам
 app.use(express.static(path.resolve(__dirname, 'images')));
 app.use(body.json());
 app.use(cookie());
 
+app.get('/', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../src/app/index.html'));
+});
+
 const images = [
     {
         src: '/image-1.jpeg'
-    }, {
-        src: '/image-1378.jpeg'
-    }, {
-        src: '/image-1379.jpeg'
-    }, {
-        src: '/image-1380.jpeg'
     },
-]
+    {
+        src: '/image-1378.jpeg'
+    },
+    {
+        src: '/image-1379.jpeg'
+    },
+    {
+        src: '/image-1380.jpeg'
+    }
+];
 
 const users = {
-    'q': {
+    q: {
         email: 'q@mail.ru',
         password: 'q'
     }
-}
+};
 
 const port = process.env.PORT || 3000;
 

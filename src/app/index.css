@@ -1,0 +1,4 @@
+@import 'styles/variables.css';
+@import 'styles/button.css';
+@import '../shared/input/Input.css';
+@import '../widgets/register-form/Register.css';
