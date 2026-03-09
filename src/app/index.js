@@ -1,11 +1,11 @@
 import { RegisterPage } from '../pages/sign/RegisterPage.js';
+import { FilesPage } from '../pages/files/FilesPage.js';
+import { Router } from '../shared/router/Router.js';
 
 const rootElement = document.getElementById('root');
-const pageElement = document.createElement('main');
 
-rootElement.appendChild(pageElement);
-
-const registerPage = new RegisterPage(rootElement);
-registerPage.render();
-
-window.app = { registerPage };
+const router = new Router(rootElement);
+router.addRoute('/sign', RegisterPage);
+router.addRoute('/files', FilesPage);
+router.setDefault('/sign');
+router.start();

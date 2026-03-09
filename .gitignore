@@ -57,4 +57,5 @@ docs/package.json
 /node_modules/
 .Identifier
 *all-templates.precompiled.js
+.playwright-mcp/
 
