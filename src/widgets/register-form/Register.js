@@ -1,5 +1,6 @@
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { HttpClient } from '../../shared/http_client/HttpClient.js';
 
 const FIELD_NAMES = {
     login: 'login',
@@ -78,21 +79,37 @@ export class Register extends BaseComponent {
         });
     }
 
-    #submit() {
-        if (this.validateFields()) {
-            const formData = {
-                login: this.#inputs[0].getValue(),
-                email: this.#inputs[1].getValue(),
-                password: this.#inputs[2].getValue(),
-                repeat_password: this.#inputs[3].getValue()
-            };
+    async #submit() {
+        if (!this.validateFields()) return;
 
-            console.log('Форма отправлена:', formData);
-            this.#inputs.forEach((input) => {
-                input.clear();
-            });
-            // TODO отправка на сервер
+        const formData = {
+            username: this.#inputs[0].getValue(),
+            email: this.#inputs[1].getValue(),
+            password: this.#inputs[2].getValue()
+        };
+
+        console.log('Форма:', formData);
+
+        const http_client = new HttpClient();
+        const response = await http_client.post('/auth/register', formData);
+        let responseData;
+        try {
+            responseData = await response.json();
+        } catch (e) {
+            responseData = await response.text();
         }
+        console.log('responseData:', responseData);
+        if (!response.ok) {
+            console.log('Error:', response);
+            alert('Error: ' + responseData.error);
+            return;
+        }
+
+        console.log('Успех!', response);
+        this.#inputs.forEach((input) => {
+            input.clear();
+        });
+        // TODO переход на страницу авторизоавнного пользователя
     }
 
     validateFields() {

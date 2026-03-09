@@ -18,7 +18,7 @@ export const TYPE_INPUT_CONFIG = {
         required: true,
         pattern: null, // Регулярное выражение для проверки ввода
         error_by_pattern: '',
-        minlength: 4,
+        minlength: 8,
         maxlength: 50
     },
     EMAIL: {
