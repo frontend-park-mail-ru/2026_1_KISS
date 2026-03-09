@@ -52,7 +52,7 @@ export class Register extends BaseComponent {
     }
 
     #createInputs() {
-        let fieldsContainer = this._element.querySelector('.form-fields');
+        const fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
             { name: FIELD_NAMES.login, type: TYPE_INPUT_CONFIG.LOGIN },
             { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
@@ -72,7 +72,7 @@ export class Register extends BaseComponent {
     }
 
     #attachEvents() {
-        let btn = this._element.querySelector('#register-btn');
+        const btn = this._element.querySelector('#register-btn');
         this._addListener(btn, 'click', (e) => {
             e.preventDefault();
             this.#submit();
@@ -95,7 +95,7 @@ export class Register extends BaseComponent {
         let responseData;
         try {
             responseData = await response.json();
-        } catch (e) {
+        } catch (_e) {
             responseData = await response.text();
         }
         console.log('responseData:', responseData);
