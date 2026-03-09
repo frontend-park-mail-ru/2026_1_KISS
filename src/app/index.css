@@ -10,6 +10,13 @@
 @import '../widgets/files-table/FilesTable.css';
 @import '../shared/components/pagination/Pagination.css';
 @import '../shared/components/kebab-menu/KebabMenu.css';
+@import '../shared/components/code-cell/CodeCell.css';
+@import '../shared/components/text-cell/TextCell.css';
+@import '../pages/blocks/BlocksPage.css';
+@import '../widgets/notebook-header/NotebookHeader.css';
+@import '../widgets/notebook-toolbar/NotebookToolbar.css';
+@import '../widgets/notebook-sidebar/NotebookSidebar.css';
+@import '../widgets/cell-list/CellList.css';
 
 html, body {
     margin: 0;

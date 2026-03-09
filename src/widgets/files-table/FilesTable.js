@@ -4,6 +4,7 @@ import { KebabMenu } from '../../shared/components/kebab-menu/KebabMenu.js';
 export class FilesTable extends BaseComponent {
     #onDelete;
     #onRename;
+    #onOpen;
     #kebabMenus = [];
     #notebooks = [];
     #ownerName = '';
@@ -11,10 +12,11 @@ export class FilesTable extends BaseComponent {
     #sortDir = 'asc';
     #sortOpen = false;
 
-    constructor(parent, { onDelete, onRename }) {
+    constructor(parent, { onDelete, onRename, onOpen }) {
         super(null, parent);
         this.#onDelete = onDelete;
         this.#onRename = onRename;
+        this.#onOpen = onOpen;
         this.#render();
     }
 
@@ -114,6 +116,11 @@ export class FilesTable extends BaseComponent {
             tr.appendChild(ownerCell);
             tr.appendChild(kebabCell);
             tbody.appendChild(tr);
+
+            if (this.#onOpen) {
+                nameCell.style.cursor = 'pointer';
+                nameCell.addEventListener('click', () => this.#onOpen(nb.id));
+            }
 
             const actions = [];
             if (this.#onRename) {
