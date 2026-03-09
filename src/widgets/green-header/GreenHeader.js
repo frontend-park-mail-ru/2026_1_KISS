@@ -1,6 +1,7 @@
 export class GreenHeader {
     #parent;
     #config;
+    #header;
     constructor(parent) {
         this.#parent = parent;
 
@@ -17,14 +18,21 @@ export class GreenHeader {
         console.log(Handlebars.templates);
         const template = Handlebars.templates['GreenHeader.hbs'];
         this.#parent.insertAdjacentHTML('afterbegin', template(this.#config));
-        this.#attachEvents();
+        this.#header = this.#parent.querySelector('.green-header');
+        // this.#attachEvents();
+    }
+
+    get loginBtn() {
+        return this.#header.querySelector('[data-action="login"]');
+    }
+
+    get registerBtn() {
+        return this.#header.querySelector('[data-action="register"]');
     }
 
     #attachEvents() {
-        const header = this.#parent.querySelector('.green-header');
-
-        const loginBtn = header.querySelector('[data-action="login"]');
-        const registerBtn = header.querySelector('[data-action="register"]');
+        const loginBtn = this.#header.querySelector('[data-action="login"]');
+        const registerBtn = this.#header.querySelector('[data-action="register"]');
 
         if (loginBtn) {
             loginBtn.addEventListener('click', () => {

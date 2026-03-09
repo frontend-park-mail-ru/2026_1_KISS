@@ -41,6 +41,10 @@ export class Register {
         });
     }
 
+    get goOutBtn() {
+        return this.#parent.querySelector('#go-out-btn');
+    }
+
     #attachEvents() {
         let btn = this.#parent.querySelector('#register-btn');
         btn.addEventListener('click', (e) => {
