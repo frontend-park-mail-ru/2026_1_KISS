@@ -2,4 +2,5 @@
 .DS_Store
 .idea/
 .Identifier
+src/all-templates.precompiled.js
 

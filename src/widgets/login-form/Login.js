@@ -1,8 +1,9 @@
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { HttpClient } from '../../shared/http_client/HttpClient.js';
 
 const FIELD_NAMES = {
-    login: 'login',
+    email: 'email',
     password: 'password'
 };
 
@@ -50,7 +51,7 @@ export class Login extends BaseComponent {
     #createInputs() {
         let fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
-            { name: FIELD_NAMES.login, type: TYPE_INPUT_CONFIG.LOGIN },
+            { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
             { name: FIELD_NAMES.password, type: TYPE_INPUT_CONFIG.PASSWORD }
         ];
 
@@ -73,18 +74,25 @@ export class Login extends BaseComponent {
         });
     }
 
-    #submit() {
-        if (this.validateFields()) {
-            const formData = {
-                login: this.#inputs[0].getValue(),
-                password: this.#inputs[1].getValue()
-            };
+    async #submit() {
+        if (!this.validateFields()) return;
 
-            console.log('Форма отправлена:', formData);
-            this.#inputs.forEach((input) => {
-                input.clear();
-            });
-            // TODO отправка на сервер
+        const formData = {
+            email: this.#inputs[0].getValue(),
+            password: this.#inputs[1].getValue()
+        };
+
+        const httpClient = new HttpClient();
+        try {
+            const response = await httpClient.post('/auth/login', formData);
+            if (!response.ok) {
+                const data = await response.json();
+                this.#inputs[0].showError(data.error || 'Ошибка авторизации');
+                return;
+            }
+            window.location.hash = '#/files';
+        } catch (e) {
+            this.#inputs[0].showError('Сервер недоступен');
         }
     }
 
