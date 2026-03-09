@@ -1,6 +1,7 @@
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
+import { Router } from '../../shared/router/Router.js';
 
 const FIELD_NAMES = {
     email: 'email',
@@ -86,11 +87,16 @@ export class Login extends BaseComponent {
         try {
             const response = await httpClient.post('/auth/login', formData);
             if (!response.ok) {
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (_e) {
+                    data = { error: 'Ошибка авторизации' };
+                }
                 this.#inputs[0].showError(data.error || 'Ошибка авторизации');
                 return;
             }
-            window.location.hash = '#/files';
+            Router.getInstance().navigate('/files');
         } catch (_e) {
             this.#inputs[0].showError('Сервер недоступен');
         }

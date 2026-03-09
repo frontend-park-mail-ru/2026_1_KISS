@@ -8,6 +8,16 @@ const path = require('path');
 const app = express();
 
 app.use(morgan('dev')); // логирование http запросов в консоль
+
+const { createProxyMiddleware } = require('http-proxy-middleware');
+app.use(
+    createProxyMiddleware({
+        target: 'http://212.233.96.54:8080',
+        changeOrigin: true,
+        pathFilter: '/api'
+    })
+);
+
 // Раздача статических файлов (это типо nginx должен делать на беке?)
 app.use(express.static(path.resolve(__dirname, '..', 'src')));
 app.use(express.static(path.resolve(__dirname, '..', 'node_modules'))); // доступ ко всем пакетам
@@ -15,7 +25,7 @@ app.use(express.static(path.resolve(__dirname, 'images')));
 app.use(body.json());
 app.use(cookie());
 
-app.get('/', (req, res) => {
+app.get('/{*path}', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../src/app/index.html'));
 });
 

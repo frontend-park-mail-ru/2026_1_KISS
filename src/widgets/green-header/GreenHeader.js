@@ -2,16 +2,21 @@ export class GreenHeader {
     #parent;
     #config;
     #header;
-    constructor(parent) {
-        this.#parent = parent;
 
+    constructor(parent, config = {}) {
+        this.#parent = parent;
         this.#config = {
-            logo: '/images/NewLogoTransparentWhite.svg',
-            buttons: [
+            logo: '/images/NewLogoTransparentWhite.svg'
+        };
+
+        if (config.user) {
+            this.#config.user = config.user;
+        } else {
+            this.#config.buttons = [
                 { text: 'Войти', class: 'just-text', action: 'login' },
                 { text: 'Регистрация', class: 'just-text', action: 'register' }
-            ]
-        };
+            ];
+        }
     }
 
     render() {

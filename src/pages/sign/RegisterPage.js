@@ -103,4 +103,10 @@ export class RegisterPage {
             return this.#register;
         }
     }
+
+    destroy() {
+        if (this.#login) this.#login.unmount();
+        if (this.#register) this.#register.unmount();
+        this.#root.innerHTML = '';
+    }
 }

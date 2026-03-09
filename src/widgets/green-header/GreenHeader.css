@@ -34,4 +34,23 @@
     gap: 1rem;
 }
 
+.header-user-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border: 1.5px solid var(--white);
+    border-radius: 20px;
+}
 
+.header-user-pill__icon {
+    color: var(--white);
+    width: 20px;
+    height: 20px;
+}
+
+.header-user-pill__name {
+    color: var(--white);
+    font-size: 14px;
+    white-space: nowrap;
+}

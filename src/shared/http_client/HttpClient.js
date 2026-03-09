@@ -1,5 +1,5 @@
 export class HttpClient {
-    baseUrl = 'http://212.233.96.54:8080/api/v1';
+    baseUrl = `${window.location.origin}/api/v1`;
     headers = {
         'Content-Type': 'application/json'
     };

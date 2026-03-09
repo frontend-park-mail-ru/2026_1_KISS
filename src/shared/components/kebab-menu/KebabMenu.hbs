@@ -1,0 +1,8 @@
+<div class="kebab-menu">
+    <button class="kebab-menu__trigger">&#8942;</button>
+    <div class="kebab-menu__dropdown">
+        {{#each actions}}
+            <button class="kebab-menu__item" data-action="{{this.name}}">{{this.label}}</button>
+        {{/each}}
+    </div>
+</div>
