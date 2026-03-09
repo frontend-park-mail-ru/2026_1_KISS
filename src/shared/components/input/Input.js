@@ -16,9 +16,9 @@ export const TYPE_INPUT_CONFIG = {
         id: `input-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         placeholder: 'Пароль (повторно)',
         required: true,
-        pattern: null, // Регулярное выражение для проверки ввода
+        pattern: null,
         error_by_pattern: '',
-        minlength: 8,
+        minlength: 4,
         maxlength: 50
     },
     EMAIL: {
@@ -38,8 +38,8 @@ export const TYPE_INPUT_CONFIG = {
         required: true,
         pattern: '^[a-zA-Z0-9_]{3,20}$',
         error_by_pattern: 'От 3 до 20 символов: только латиница, цифры и _',
-        minlength: 1,
-        maxlength: 10
+        minlength: 3,
+        maxlength: 20
     }
 };
 
