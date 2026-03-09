@@ -82,6 +82,10 @@
     flex-shrink: 0;
 }
 
+.notebook-header__user-pill-wrapper {
+    position: relative;
+}
+
 .notebook-header__user-pill {
     display: flex;
     align-items: center;
@@ -91,6 +95,7 @@
     border-radius: 20px;
     font-size: 13px;
     color: var(--teal-green);
+    cursor: pointer;
 }
 
 .notebook-header__menu-bar {

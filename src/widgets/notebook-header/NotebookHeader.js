@@ -6,6 +6,7 @@ export class NotebookHeader extends BaseComponent {
     #onRename;
     #originalText = '';
     #isEditing = false;
+    #isDropdownOpen = false;
 
     constructor(parent, config = {}) {
         super(null, parent);
@@ -47,6 +48,34 @@ export class NotebookHeader extends BaseComponent {
         this._addListener(editBtn, 'click', () => {
             this.#startRename();
         });
+
+        const pill = this._element.querySelector('.notebook-header__user-pill');
+        if (pill) {
+            this._addListener(pill, 'click', (e) => {
+                e.stopPropagation();
+                this.#toggleDropdown();
+            });
+
+            this._addListener(document, 'click', () => {
+                if (this.#isDropdownOpen) this.#closeDropdown();
+            });
+
+            const dropdown = this._element.querySelector('.notebook-header__user-dropdown');
+            if (dropdown) {
+                this._addListener(dropdown, 'click', (e) => {
+                    e.stopPropagation();
+                    const item = e.target.closest('[data-action]');
+                    if (!item) return;
+                    const action = item.dataset.action;
+                    if (action === 'profile' && this.#config.onProfile) {
+                        this.#config.onProfile();
+                    } else if (action === 'logout' && this.#config.onLogout) {
+                        this.#config.onLogout();
+                    }
+                    this.#closeDropdown();
+                });
+            }
+        }
     }
 
     async #finishEditing() {
@@ -63,6 +92,24 @@ export class NotebookHeader extends BaseComponent {
         } else if (newTitle !== this.#originalText && this.#onRename) {
             await this.#onRename(newTitle);
         }
+    }
+
+    #toggleDropdown() {
+        this.#isDropdownOpen ? this.#closeDropdown() : this.#openDropdown();
+    }
+
+    #openDropdown() {
+        this.#isDropdownOpen = true;
+        this._element
+            .querySelector('.notebook-header__user-dropdown')
+            .classList.add('header-user-dropdown_visible');
+    }
+
+    #closeDropdown() {
+        this.#isDropdownOpen = false;
+        this._element
+            .querySelector('.notebook-header__user-dropdown')
+            .classList.remove('header-user-dropdown_visible');
     }
 
     #startRename() {
