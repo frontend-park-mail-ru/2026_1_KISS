@@ -49,7 +49,7 @@ export class Login extends BaseComponent {
     }
 
     #createInputs() {
-        let fieldsContainer = this._element.querySelector('.form-fields');
+        const fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
             { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
             { name: FIELD_NAMES.password, type: TYPE_INPUT_CONFIG.PASSWORD }
@@ -67,7 +67,7 @@ export class Login extends BaseComponent {
     }
 
     #attachEvents() {
-        let btn = this._element.querySelector('#login-btn');
+        const btn = this._element.querySelector('#login-btn');
         this._addListener(btn, 'click', (e) => {
             e.preventDefault();
             this.#submit();
@@ -91,7 +91,7 @@ export class Login extends BaseComponent {
                 return;
             }
             window.location.hash = '#/files';
-        } catch (e) {
+        } catch (_e) {
             this.#inputs[0].showError('Сервер недоступен');
         }
     }

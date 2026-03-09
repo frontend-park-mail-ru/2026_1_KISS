@@ -34,7 +34,7 @@ export class RegisterPage {
         this.#elements.main.className = 'sign-page__main';
         this.#root.appendChild(this.#elements.main);
 
-        let containerMain = document.createElement('div');
+        const containerMain = document.createElement('div');
         containerMain.className = 'sign-page__container';
         containerMain.id = 'sign-page__container__id';
         this.#elements.main.appendChild(containerMain);
@@ -96,7 +96,7 @@ export class RegisterPage {
             try {
                 const { activeView } = JSON.parse(savedState);
                 return activeView === LOGIN_STATE ? this.#login : this.#register;
-            } catch (e) {
+            } catch (_e) {
                 return this.#register;
             }
         } else {

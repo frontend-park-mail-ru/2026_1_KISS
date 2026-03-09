@@ -27,23 +27,4 @@ export class GreenHeader {
     get registerBtn() {
         return this.#header.querySelector('[data-action="register"]');
     }
-
-    #attachEvents() {
-        const loginBtn = this.#header.querySelector('[data-action="login"]');
-        const registerBtn = this.#header.querySelector('[data-action="register"]');
-
-        if (loginBtn) {
-            loginBtn.addEventListener('click', () => {
-                console.log('Переход на страницу входа');
-                window.location.href = '/login';
-            });
-        }
-
-        if (registerBtn) {
-            registerBtn.addEventListener('click', () => {
-                console.log('Переход на страницу регистрации');
-                window.location.href = '/register';
-            });
-        }
-    }
 }

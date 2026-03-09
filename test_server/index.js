@@ -19,6 +19,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../src/app/index.html'));
 });
 
+// eslint-disable-next-line no-unused-vars
 const images = [
     {
         src: '/image-1.jpeg'
@@ -34,6 +35,7 @@ const images = [
     }
 ];
 
+// eslint-disable-next-line no-unused-vars
 const users = {
     q: {
         email: 'q@mail.ru',
