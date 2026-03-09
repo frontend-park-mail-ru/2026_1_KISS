@@ -73,7 +73,9 @@ export class BlocksPage {
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');
-                } catch (_e) { /* ignore */ }
+                } catch (_e) {
+                    /* ignore */
+                }
                 Router.getInstance().navigate('/sign');
             }
         });
