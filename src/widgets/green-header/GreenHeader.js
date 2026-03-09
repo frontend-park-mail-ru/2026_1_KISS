@@ -15,7 +15,7 @@ export class GreenHeader {
     }
 
     render() {
-        const template = Handlebars.templates['GreenHeader.hbs'];
+        const template = Handlebars.templates['GreenHeader'];
         this.#parent.insertAdjacentHTML('afterbegin', template(this.#config));
         this.#header = this.#parent.querySelector('.green-header');
     }

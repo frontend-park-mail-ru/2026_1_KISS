@@ -23,6 +23,7 @@ export class RegisterPage {
     }
 
     render() {
+        console.log(Handlebars.templates);
         this.#root.innerHTML = '';
 
         this.#header = new GreenHeader(this.#root);
@@ -60,16 +61,19 @@ export class RegisterPage {
         this.#header.loginBtn.addEventListener('click', moveToLogin);
 
         this.#header.registerBtn.addEventListener('click', moveToRegister);
-
-        this.#register.goOutBtn.addEventListener('click', moveToLogin);
-
-        this.#login.goToRegisterBtn.addEventListener('click', moveToRegister);
     }
 
     update() {
         if (this.#activeElement) {
             this.#container.innerHTML = '';
             this.#activeElement.render();
+
+            if (this.#register) {
+                this.#register.goOutBtn.addEventListener('click', moveToLogin);
+            }
+            if (this.#login) {
+                this.#login.goToRegisterBtn.addEventListener('click', moveToRegister);
+            }
         }
     }
 

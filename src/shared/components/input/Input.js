@@ -57,7 +57,7 @@ export class Input {
     }
 
     render() {
-        const template = Handlebars.templates['Input.hbs'];
+        const template = Handlebars.templates['Input'];
         this.#parent.innerHTML = template(this.#config);
 
         this.#input = this.#parent.querySelector('.input-field');

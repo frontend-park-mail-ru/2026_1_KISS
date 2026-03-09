@@ -16,7 +16,7 @@ export class Register {
     }
 
     render() {
-        const template = Handlebars.templates['Register.hbs'];
+        const template = Handlebars.templates['Register'];
         const data = {
             title: 'Colab'
         };

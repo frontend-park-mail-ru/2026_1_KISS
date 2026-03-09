@@ -14,7 +14,7 @@ export class Login {
     }
 
     render() {
-        const template = Handlebars.templates['Login.hbs'];
+        const template = Handlebars.templates['Login'];
         const data = {
             title: 'Colab'
         };
