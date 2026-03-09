@@ -66,7 +66,16 @@ export class BlocksPage {
         this.#header = new NotebookHeader(headerArea, {
             filename: this.#notebook.title || 'Untitled',
             user: { username: this.#username, initials },
-            onRename: (newTitle) => this.#renameNotebook(newTitle)
+            onRename: (newTitle) => this.#renameNotebook(newTitle),
+            onProfile: () => {
+                // TODO: navigate to profile page
+            },
+            onLogout: async () => {
+                try {
+                    await this.#httpClient.post('/auth/logout');
+                } catch (_e) { /* ignore */ }
+                Router.getInstance().navigate('/sign');
+            }
         });
         this.#header.mount();
 

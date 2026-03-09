@@ -46,7 +46,16 @@ export class FilesPage {
         const initials = this.#state.username.substring(0, 2).toUpperCase();
 
         this.#header = new GreenHeader(this.#root, {
-            user: { username: this.#state.username, initials }
+            user: { username: this.#state.username, initials },
+            onProfile: () => {
+                // TODO: navigate to profile page
+            },
+            onLogout: async () => {
+                try {
+                    await this.#httpClient.post('/auth/logout');
+                } catch (_e) { /* ignore */ }
+                Router.getInstance().navigate('/sign');
+            }
         });
         this.#header.render();
 
