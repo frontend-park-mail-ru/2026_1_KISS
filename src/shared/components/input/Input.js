@@ -1,3 +1,5 @@
+import { BaseComponent } from '../base-component/BaseComponent.js';
+
 export const TYPE_INPUT_CONFIG = {
     PASSWORD: {
         type: 'password',
@@ -41,49 +43,70 @@ export const TYPE_INPUT_CONFIG = {
     }
 };
 
-export class Input {
-    #parent;
+export class Input extends BaseComponent {
     #input;
     #config;
     #state;
 
     constructor(parent, config) {
-        this.#parent = parent;
+        super(null, parent);
         this.#config = config;
+        this.#state = {
+            isValid: true,
+            value: ''
+        };
+        this.#render();
+    }
+
+    #render() {
+        const template = Handlebars.templates['Input'];
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = template(this.#config);
+        this._element = tempContainer.firstElementChild;
+    }
+
+    mount() {
+        if (this._isMounted) return;
+        super.mount();
+
+        this.#input = this._element.querySelector('.input-field');
+        this.#attachEvents();
+    }
+
+    unmount() {
+        if (!this._isMounted) return;
+        super.unmount();
+        this.#input = null;
         this.#state = {
             isValid: true,
             value: ''
         };
     }
 
-    render() {
-        const template = Handlebars.templates['Input'];
-        this.#parent.innerHTML = template(this.#config);
-
-        this.#input = this.#parent.querySelector('.input-field');
-        this.#attachEvents();
+    update() {
+        if (!this._isMounted) return;
+        this.#state.value = '';
+        this.#calmDown();
     }
 
     #attachEvents() {
-        this.#input.addEventListener('input', (e) => {
+        this._addListener(this.#input, 'input', (e) => {
             const rawValue = e.target.value;
             const cleanValue = DOMPurify.sanitize(rawValue);
             if (cleanValue !== rawValue) {
                 this.#input.value = cleanValue;
             }
             this.#state.value = cleanValue;
-            // this.validate();
             this.#calmDown();
         });
     }
 
     #calmDown() {
         this.#state.isValid = true;
-        const wrapper = this.#parent.querySelector('.input-wrapper');
-        const errorElement = this.#parent.querySelector('.input-error-message');
-        wrapper.classList.remove('input-wrapper_error');
+        const errorElement = this._element.querySelector('.input-error-message');
+        this._element.classList.remove('input-wrapper_error');
         if (errorElement) {
-            errorElement.remove();
+            errorElement.value = ' ';
         }
     }
 
@@ -128,23 +151,22 @@ export class Input {
     }
 
     #updateUI(errorMessage) {
-        const wrapper = this.#parent.querySelector('.input-wrapper');
-        const errorElement = this.#parent.querySelector('.input-error-message');
+        const errorElement = this._element.querySelector('.input-error-message');
         if (!this.#state.isValid) {
             console.log('Not valid: ', errorMessage);
-            wrapper.classList.add('input-wrapper_error');
+            this._element.classList.add('input-wrapper_error');
             if (errorElement) {
                 errorElement.textContent = errorMessage;
             } else {
                 const newError = document.createElement('span');
                 newError.className = 'input-error-message';
                 newError.textContent = errorMessage;
-                this.#parent.appendChild(newError);
+                this._element.appendChild(newError);
             }
         } else {
-            wrapper.classList.remove('input-wrapper_error');
+            this._element.classList.remove('input-wrapper_error');
             if (errorElement) {
-                errorElement.remove();
+                errorElement.value = ' ';
             }
         }
     }

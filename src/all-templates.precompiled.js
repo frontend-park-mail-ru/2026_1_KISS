@@ -41,7 +41,7 @@ templates['Login'] = template({"compiler":[8,">= 4.3.0"],"main":function(contain
 
   return "<form class=\"login-form\">\r\n    <h2 class=\"form-title\">"
     + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"title") || (depth0 != null ? lookupProperty(depth0,"title") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"title","hash":{},"data":data,"loc":{"start":{"line":2,"column":27},"end":{"line":2,"column":38}}}) : helper)))
-    + "</h2>\r\n\r\n    <div class=\"form-fields\">\r\n    </div>\r\n\r\n    <button type=\"submit\" class=\"accent-btn\" id=\"login-btn\">Зарегистрироваться</button>\r\n    <a class=\"simple-btn\" href=\"\" id=\"register-from-login-btn\">Войти</a>\r\n</form>";
+    + "</h2>\r\n\r\n    <div class=\"form-fields\">\r\n    </div>\r\n\r\n    <button type=\"submit\" class=\"accent-btn\" id=\"login-btn\">Войти</button>\r\n    <a class=\"simple-btn\" href=\"\" id=\"register-from-login-btn\">Зарегистрироваться</a>\r\n</form>";
 },"useData":true});
 templates['Register'] = template({"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -102,19 +102,8 @@ templates['Input'] = template({"1":function(container,depth0,helpers,partials,da
         return undefined
     };
 
-  return "        <span class=\"input-error-message\">"
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"error") || (depth0 != null ? lookupProperty(depth0,"error") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"error","hash":{},"data":data,"loc":{"start":{"line":15,"column":42},"end":{"line":15,"column":51}}}) : helper)))
-    + "</span>\r\n";
-},"15":function(container,depth0,helpers,partials,data) {
-    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
   return "-->\r\n<!--        <span class=\"input-hint\">"
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"hint") || (depth0 != null ? lookupProperty(depth0,"hint") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"hint","hash":{},"data":data,"loc":{"start":{"line":19,"column":37},"end":{"line":19,"column":45}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"hint") || (depth0 != null ? lookupProperty(depth0,"hint") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"hint","hash":{},"data":data,"loc":{"start":{"line":17,"column":37},"end":{"line":17,"column":45}}}) : helper)))
     + "</span>-->\r\n<!--    ";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -144,10 +133,10 @@ templates['Input'] = template({"1":function(container,depth0,helpers,partials,da
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"minlength") : depth0),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":10,"column":8},"end":{"line":10,"column":57}}})) != null ? stack1 : "")
     + "\r\n        "
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"maxlength") : depth0),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":11,"column":8},"end":{"line":11,"column":57}}})) != null ? stack1 : "")
-    + "\r\n    />\r\n\r\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"error") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":14,"column":4},"end":{"line":16,"column":11}}})) != null ? stack1 : "")
-    + "\r\n<!--    "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hint") : depth0),{"name":"if","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":8},"end":{"line":20,"column":15}}})) != null ? stack1 : "")
+    + "\r\n    />\r\n\r\n    <span class=\"input-error-message\">"
+    + alias4(((helper = (helper = lookupProperty(helpers,"error") || (depth0 != null ? lookupProperty(depth0,"error") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"error","hash":{},"data":data,"loc":{"start":{"line":14,"column":38},"end":{"line":14,"column":47}}}) : helper)))
+    + "</span>\r\n\r\n<!--    "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hint") : depth0),{"name":"if","hash":{},"fn":container.program(13, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":16,"column":8},"end":{"line":18,"column":15}}})) != null ? stack1 : "")
     + "-->\r\n</div>";
 },"useData":true});
 })();

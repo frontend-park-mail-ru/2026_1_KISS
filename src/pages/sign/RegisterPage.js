@@ -1,7 +1,6 @@
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { Register } from '../../widgets/register-form/Register.js';
 import { Login } from '../../widgets/login-form/Login.js';
-import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 
 const SESSION_ACTIVE_STATE = 'registerPageState';
 const LOGIN_STATE = 'login';
@@ -9,72 +8,73 @@ const REGISTER_STATE = 'register';
 
 export class RegisterPage {
     #root;
-    #header;
-    #container;
+    #elements;
+    #activeElement;
     #register;
     #login;
-    #activeElement;
 
     constructor(root) {
         this.#root = root;
-        this.#header = null;
-        this.#register = null;
+        this.#elements = {
+            header: null,
+            main: null
+        };
         this.#activeElement = null;
+        this.#register = null;
+        this.#login = null;
     }
 
     render() {
-        console.log(Handlebars.templates);
         this.#root.innerHTML = '';
 
-        this.#header = new GreenHeader(this.#root);
-        this.#header.render();
+        this.#elements.header = new GreenHeader(this.#root);
+        this.#elements.header.render();
 
-        const mainElement = document.createElement('main');
-        mainElement.className = 'sign-page__main';
-        this.#root.appendChild(mainElement);
+        this.#elements.main = document.createElement('main');
+        this.#elements.main.className = 'sign-page__main';
+        this.#root.appendChild(this.#elements.main);
 
-        this.#container = document.createElement('div');
-        this.#container.className = 'sign-page__container';
-        this.#container.id = 'sign-page__container__id';
-        mainElement.appendChild(this.#container);
+        let containerMain = document.createElement('div');
+        containerMain.className = 'sign-page__container';
+        containerMain.id = 'sign-page__container__id';
+        this.#elements.main.appendChild(containerMain);
 
-        this.#register = new Register(this.#container);
-        this.#login = new Login(this.#container);
-
-        this.#restoreState();
+        this.#register = new Register(containerMain);
+        this.#login = new Login(containerMain);
+        this.#activeElement = this.#restoreState();
+        this.#activeElement.mount();
         this.#attachEvents();
     }
 
     #attachEvents() {
         const moveToRegister = (e) => {
             e.preventDefault();
+            this.#register.mount();
+            this.#login.unmount();
             this.#activeElement = this.#register;
             this.#saveState();
             this.update();
         };
         const moveToLogin = (e) => {
             e.preventDefault();
+            this.#register.unmount();
+            this.#login.mount();
             this.#activeElement = this.#login;
             this.#saveState();
             this.update();
         };
-        this.#header.loginBtn.addEventListener('click', moveToLogin);
-
-        this.#header.registerBtn.addEventListener('click', moveToRegister);
+        this.#elements.header.loginBtn.addEventListener('click', moveToLogin);
+        this.#elements.header.registerBtn.addEventListener('click', moveToRegister);
+        if (this.#register) {
+            this.#register.goOutBtn.addEventListener('click', moveToLogin);
+        }
+        if (this.#login) {
+            this.#login.goToRegisterBtn.addEventListener('click', moveToRegister);
+        }
     }
 
     update() {
-        if (this.#activeElement) {
-            this.#container.innerHTML = '';
-            this.#activeElement.render();
-
-            if (this.#register) {
-                this.#register.goOutBtn.addEventListener('click', moveToLogin);
-            }
-            if (this.#login) {
-                this.#login.goToRegisterBtn.addEventListener('click', moveToRegister);
-            }
-        }
+        this.#activeElement.update();
     }
 
     #saveState() {
@@ -82,7 +82,6 @@ export class RegisterPage {
         if (this.#activeElement === this.#login) {
             activeView = LOGIN_STATE;
         }
-
         sessionStorage.setItem(
             SESSION_ACTIVE_STATE,
             JSON.stringify({
@@ -93,18 +92,15 @@ export class RegisterPage {
 
     #restoreState() {
         const savedState = sessionStorage.getItem(SESSION_ACTIVE_STATE);
-
         if (savedState) {
             try {
                 const { activeView } = JSON.parse(savedState);
-                this.#activeElement = activeView === LOGIN_STATE ? this.#login : this.#register;
+                return activeView === LOGIN_STATE ? this.#login : this.#register;
             } catch (e) {
-                this.#activeElement = this.#register;
+                return this.#register;
             }
         } else {
-            this.#activeElement = this.#register;
+            return this.#register;
         }
-
-        this.update();
     }
 }
