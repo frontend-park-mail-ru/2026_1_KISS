@@ -2,6 +2,7 @@
 @import 'styles/button.css';
 @import '../shared/components/input/Input.css';
 @import '../widgets/register-form/Register.css';
+@import '../widgets/login-form/Login.css';
 @import '../widgets/green-header/GreenHeader.css';
 @import '../pages/sign/RegisterPage.css';
 

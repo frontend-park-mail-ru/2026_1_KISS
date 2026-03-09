@@ -1,5 +1,6 @@
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { Register } from '../../widgets/register-form/Register.js';
+import { Login } from '../../widgets/login-form/Login.js';
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 
 const SESSION_ACTIVE_STATE = 'registerPageState';
@@ -37,33 +38,32 @@ export class RegisterPage {
         mainElement.appendChild(this.#container);
 
         this.#register = new Register(this.#container);
-        this.#login = new Input(this.#container, TYPE_INPUT_CONFIG.EMAIL); // TODO переписать на login
+        this.#login = new Login(this.#container);
 
         this.#restoreState();
         this.#attachEvents();
     }
 
     #attachEvents() {
-        this.#header.loginBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            this.#activeElement = this.#login;
-            this.#saveState();
-            this.update();
-        });
-
-        this.#header.registerBtn.addEventListener('click', (e) => {
+        const moveToRegister = (e) => {
             e.preventDefault();
             this.#activeElement = this.#register;
             this.#saveState();
             this.update();
-        });
-
-        this.#register.goOutBtn.addEventListener('click', (e) => {
+        };
+        const moveToLogin = (e) => {
             e.preventDefault();
             this.#activeElement = this.#login;
             this.#saveState();
             this.update();
-        });
+        };
+        this.#header.loginBtn.addEventListener('click', moveToLogin);
+
+        this.#header.registerBtn.addEventListener('click', moveToRegister);
+
+        this.#register.goOutBtn.addEventListener('click', moveToLogin);
+
+        this.#login.goToRegisterBtn.addEventListener('click', moveToRegister);
     }
 
     update() {
