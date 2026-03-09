@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: nginx:alpine
+    container_name: myapp-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/conf.d/00-logging.conf:/etc/nginx/conf.d/00-logging.conf:ro
+      - ./node_modules:/app/node_modules:ro
+      - ./compile-templates.sh:/app/compile-templates.sh
+      - ./src:/app/src:ro
+    restart: unless-stopped
