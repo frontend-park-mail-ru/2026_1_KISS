@@ -7,5 +7,9 @@
     --light-grey: #F2F2F2;
     --white: #FFFFFF;
 
-
+    --error-red: #D32F2F;
+    --error-bg: #FFEBEE;
+    --cell-border: #E0E0E0;
+    --code-bg: #F8F9FA;
+    --line-number-color: #B0B0B0;
 }

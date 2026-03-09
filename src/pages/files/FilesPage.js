@@ -66,7 +66,8 @@ export class FilesPage {
 
         this.#filesTable = new FilesTable(container, {
             onDelete: (id) => this.#deleteNotebook(id),
-            onRename: (id, newTitle) => this.#renameNotebook(id, newTitle)
+            onRename: (id, newTitle) => this.#renameNotebook(id, newTitle),
+            onOpen: (id) => Router.getInstance().navigate(`/notebooks/${id}`)
         });
         this.#filesTable.mount();
 
