@@ -15,11 +15,9 @@ export class GreenHeader {
     }
 
     render() {
-        console.log(Handlebars.templates);
         const template = Handlebars.templates['GreenHeader.hbs'];
         this.#parent.insertAdjacentHTML('afterbegin', template(this.#config));
         this.#header = this.#parent.querySelector('.green-header');
-        // this.#attachEvents();
     }
 
     get loginBtn() {

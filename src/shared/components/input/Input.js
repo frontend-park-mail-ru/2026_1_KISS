@@ -9,6 +9,16 @@ export const TYPE_INPUT_CONFIG = {
         minlength: 4,
         maxlength: 50
     },
+    REPEAT_PASSWORD: {
+        type: 'password',
+        id: `input-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        placeholder: 'Пароль (повторно)',
+        required: true,
+        pattern: null, // Регулярное выражение для проверки ввода
+        error_by_pattern: '',
+        minlength: 4,
+        maxlength: 50
+    },
     EMAIL: {
         type: 'email',
         id: `input-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -62,20 +72,22 @@ export class Input {
                 this.#input.value = cleanValue;
             }
             this.#state.value = cleanValue;
-            this.validate();
-        });
-
-        this.#input.addEventListener('blur', () => {
-            this.validate();
+            // this.validate();
+            this.#calmDown();
         });
     }
 
-    getValue() {
-        return this.#state.value;
+    #calmDown() {
+        this.#state.isValid = true;
+        const wrapper = this.#parent.querySelector('.input-wrapper');
+        const errorElement = this.#parent.querySelector('.input-error-message');
+        wrapper.classList.remove('input-wrapper_error');
+        if (errorElement) {
+            errorElement.remove();
+        }
     }
 
     validate() {
-        console.log('Validate input');
         let isValid = true;
         let errorMessage = '';
 
@@ -119,12 +131,11 @@ export class Input {
         const wrapper = this.#parent.querySelector('.input-wrapper');
         const errorElement = this.#parent.querySelector('.input-error-message');
         if (!this.#state.isValid) {
-            console.log('Not valid');
+            console.log('Not valid: ', errorMessage);
             wrapper.classList.add('input-wrapper_error');
             if (errorElement) {
                 errorElement.textContent = errorMessage;
             } else {
-                // Создаём элемент ошибки если его нет
                 const newError = document.createElement('span');
                 newError.className = 'input-error-message';
                 newError.textContent = errorMessage;
@@ -136,5 +147,22 @@ export class Input {
                 errorElement.remove();
             }
         }
+    }
+
+    showError(errorMessage) {
+        this.#state.isValid = false;
+        this.#updateUI(errorMessage);
+    }
+
+    getValue() {
+        return this.#state.value;
+    }
+
+    clear() {
+        this.#state = {
+            isValid: true,
+            value: ''
+        };
+        this.#input.value = '';
     }
 }
