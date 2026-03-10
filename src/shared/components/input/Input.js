@@ -111,6 +111,10 @@ export class Input extends BaseComponent {
     }
 
     validate() {
+        if (this.#input) {
+            this.#state.value = DOMPurify.sanitize(this.#input.value);
+        }
+
         let isValid = true;
         let errorMessage = '';
 
