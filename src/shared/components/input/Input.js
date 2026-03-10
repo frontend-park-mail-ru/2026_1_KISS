@@ -6,9 +6,9 @@ export const TYPE_INPUT_CONFIG = {
         id: `input-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         placeholder: 'Пароль',
         required: true,
-        pattern: null, // Регулярное выражение для проверки ввода
+        pattern: null,
         error_by_pattern: '',
-        minlength: 4,
+        minlength: 8,
         maxlength: 50
     },
     REPEAT_PASSWORD: {
@@ -18,7 +18,7 @@ export const TYPE_INPUT_CONFIG = {
         required: true,
         pattern: null,
         error_by_pattern: '',
-        minlength: 4,
+        minlength: 8,
         maxlength: 50
     },
     EMAIL: {
