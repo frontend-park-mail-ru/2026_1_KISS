@@ -101,7 +101,7 @@ export class Register extends BaseComponent {
         console.log('responseData:', responseData);
         if (!response.ok) {
             console.log('Error:', response);
-            alert('Error: ' + responseData.error);
+            this.#inputs[2].showError(responseData.error);
             return;
         }
 
