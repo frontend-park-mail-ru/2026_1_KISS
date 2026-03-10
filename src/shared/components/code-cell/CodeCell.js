@@ -86,7 +86,9 @@ export class CodeCell extends BaseComponent {
     #autoResize() {
         const textarea = this._element.querySelector('.code-cell__textarea');
         textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
+        const scrollH = textarea.scrollHeight;
+        const editorH = this._element.querySelector('.code-cell__editor').clientHeight;
+        textarea.style.height = Math.max(scrollH, editorH) + 'px';
     }
 
     getContent() {
