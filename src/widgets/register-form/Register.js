@@ -1,6 +1,7 @@
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
+import { Router } from '../../shared/router/Router.js';
 
 const FIELD_NAMES = {
     login: 'login',
@@ -105,11 +106,22 @@ export class Register extends BaseComponent {
             return;
         }
 
-        console.log('Успех!', response);
-        this.#inputs.forEach((input) => {
-            input.clear();
-        });
-        // TODO переход на страницу авторизоавнного пользователя
+        const email = this.#inputs[1].getValue();
+        const password = this.#inputs[2].getValue();
+
+        const loginResponse = await http_client.post('/auth/login', { email, password });
+        if (!loginResponse.ok) {
+            let loginData;
+            try {
+                loginData = await loginResponse.json();
+            } catch (_e) {
+                loginData = { error: 'Ошибка авторизации' };
+            }
+            this.#inputs[1].showError(loginData.error || 'Ошибка авторизации');
+            return;
+        }
+
+        Router.getInstance().navigate('/files');
     }
 
     validateFields() {
