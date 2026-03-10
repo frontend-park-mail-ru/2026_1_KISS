@@ -2,6 +2,7 @@ import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
+import { translateError } from '../../shared/utils/serverErrors.js';
 
 const FIELD_NAMES = {
     login: 'login',
@@ -101,8 +102,7 @@ export class Register extends BaseComponent {
         }
         console.log('responseData:', responseData);
         if (!response.ok) {
-            console.log('Error:', response);
-            this.#inputs[2].showError(responseData.error);
+            this.#inputs[2].showError(translateError(responseData.error));
             return;
         }
 
@@ -115,9 +115,9 @@ export class Register extends BaseComponent {
             try {
                 loginData = await loginResponse.json();
             } catch (_e) {
-                loginData = { error: 'Ошибка авторизации' };
+                loginData = {};
             }
-            this.#inputs[1].showError(loginData.error || 'Ошибка авторизации');
+            this.#inputs[1].showError(translateError(loginData.error));
             return;
         }
 

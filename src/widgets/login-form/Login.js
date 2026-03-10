@@ -2,6 +2,7 @@ import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
+import { translateError } from '../../shared/utils/serverErrors.js';
 
 const FIELD_NAMES = {
     email: 'email',
@@ -91,9 +92,9 @@ export class Login extends BaseComponent {
                 try {
                     data = await response.json();
                 } catch (_e) {
-                    data = { error: 'Ошибка авторизации' };
+                    data = {};
                 }
-                this.#inputs[0].showError(data.error || 'Ошибка авторизации');
+                this.#inputs[0].showError(translateError(data.error));
                 return;
             }
             Router.getInstance().navigate('/files');
