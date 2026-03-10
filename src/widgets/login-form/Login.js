@@ -10,9 +10,11 @@ const FIELD_NAMES = {
 };
 
 export class Login extends BaseComponent {
+    #http_client;
     #inputs = [];
     constructor(parent) {
         super(null, parent);
+        this.#http_client = new HttpClient();
         this.#render();
     }
 
@@ -84,9 +86,8 @@ export class Login extends BaseComponent {
             password: this.#inputs[1].getValue()
         };
 
-        const httpClient = new HttpClient();
         try {
-            const response = await httpClient.post('/auth/login', formData);
+            const response = await this.#http_client.post('/auth/login', formData);
             if (!response.ok) {
                 let data;
                 try {
@@ -94,7 +95,10 @@ export class Login extends BaseComponent {
                 } catch (_e) {
                     data = {};
                 }
-                this.#inputs[0].showError(translateError(data.error));
+                const errorElement = this._element.querySelector('.sign-error-message');
+                if (errorElement) {
+                    errorElement.textContent = translateError(data.error);
+                }
                 return;
             }
             Router.getInstance().navigate('/files');

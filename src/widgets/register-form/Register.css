@@ -22,3 +22,11 @@
     width: 100%;
     margin: 0 auto 5px;
 }
+
+.sign-error-message {
+    color: var(--input-error-border);
+    font-size: 16px;
+    margin-top: 1px;
+    margin-left: 4px;
+    min-height: 1rem;
+}
