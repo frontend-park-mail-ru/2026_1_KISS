@@ -99,6 +99,9 @@ export class Input extends BaseComponent {
             this.#state.value = cleanValue;
             this.#calmDown();
         });
+        this.#input.addEventListener('blur', () => {
+            this.validate();
+        });
     }
 
     #calmDown() {
@@ -106,7 +109,7 @@ export class Input extends BaseComponent {
         const errorElement = this._element.querySelector('.input-error-message');
         this._element.classList.remove('input-wrapper_error');
         if (errorElement) {
-            errorElement.value = ' ';
+            errorElement.textContent = ' ';
         }
     }
 
@@ -161,16 +164,11 @@ export class Input extends BaseComponent {
             this._element.classList.add('input-wrapper_error');
             if (errorElement) {
                 errorElement.textContent = errorMessage;
-            } else {
-                const newError = document.createElement('span');
-                newError.className = 'input-error-message';
-                newError.textContent = errorMessage;
-                this._element.appendChild(newError);
             }
         } else {
             this._element.classList.remove('input-wrapper_error');
             if (errorElement) {
-                errorElement.value = ' ';
+                errorElement.textContent = ' ';
             }
         }
     }
