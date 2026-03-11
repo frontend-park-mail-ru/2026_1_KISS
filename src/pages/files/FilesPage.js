@@ -17,7 +17,6 @@ export class FilesPage {
     #state = {
         notebooks: [],
         currentPage: 1,
-        hasNextPage: false,
         limit: 7,
         username: ''
     };
@@ -101,39 +100,18 @@ export class FilesPage {
 
         try {
             const response = await this.#httpClient.get(
-                `/notebooks?limit=${this.#state.limit + 1}&offset=${offset}`
+                `/notebooks?limit=${this.#state.limit}&offset=${offset}`
             );
 
             if (!response.ok) return;
 
             const { data } = await response.json();
-            const notebooks = Array.isArray(data) ? data : data.notebooks;
-            const total = Array.isArray(data) ? null : data.total;
+            const notebooks = data.notebooks;
+            const total = data.total;
+            const totalPages = Math.ceil(total / this.#state.limit);
 
-            const hasNextPage = notebooks.length > this.#state.limit;
-
-            let displayNotebooks = notebooks;
-            if (hasNextPage) {
-                displayNotebooks = notebooks.slice(0, this.#state.limit);
-            }
-
-            this.#state.notebooks = displayNotebooks;
-            this.#allNotebooks = [...displayNotebooks];
-            this.#state.hasNextPage = hasNextPage;
-            const totalPages =
-                total !== null
-                    ? Math.ceil(total / this.#state.limit)
-                    : hasNextPage
-                      ? page + 1
-                      : page;
-
-            // console.log('=== Pagination Debug ===');
-            // console.log('Current page (1-index):', page);
-            // console.log('Current page (0-index):', page - 1);
-            // console.log('Has next page:', hasNextPage);
-            // console.log('Total pages (estimated):', totalPages);
-            // console.log('Notebooks received:', notebooks.length);
-            // console.log('Notebooks displayed:', displayNotebooks.length);
+            this.#state.notebooks = notebooks;
+            this.#allNotebooks = [...notebooks];
 
             const uniqueOwners = [...new Set([this.#state.username])];
             this.#filterBar.setOwners(uniqueOwners);
@@ -141,12 +119,6 @@ export class FilesPage {
             this.#applyFilters();
 
             this.#pagination.update(page - 1, totalPages);
-
-            if (hasNextPage || page > 1) {
-                this.#pagination.show();
-            } else {
-                this.#pagination.hide();
-            }
         } catch (e) {
             console.error('Failed to load notebooks:', e);
         }

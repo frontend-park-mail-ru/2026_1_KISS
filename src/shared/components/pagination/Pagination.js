@@ -31,41 +31,42 @@ export class Pagination extends BaseComponent {
     #generateHTML() {
         const hasPrev = this.#currentPage > 0;
         const hasNext = this.#currentPage < this.#totalPages - 1;
-        const prevPage = this.#currentPage - 1;
-        const nextPage = this.#currentPage + 1;
         const lastPage = this.#totalPages - 1;
 
-        let html = '';
+        let html = '<span class="pagination__label">for</span>';
 
-        html += `<button class="pagination__btn" data-page="first" ${!hasPrev ? 'disabled' : ''}>&lt;&lt;</button>`;
-
-        html += `<button class="pagination__btn" data-page="${prevPage}" ${!hasPrev ? 'disabled' : ''}>&lt;</button>`;
+        if (hasPrev) {
+            html += '<button class="pagination__btn" data-page="prev">--i</button>';
+        }
 
         const visiblePages = this.#getVisiblePages();
+        let hasEllipsisEnd = false;
+
         visiblePages.forEach((page) => {
             if (page === 'ellipsis-start') {
                 html += '<span class="pagination__ellipsis">....</span>';
             } else if (page === 'ellipsis-end') {
+                hasEllipsisEnd = true;
                 html += '<span class="pagination__ellipsis">....</span>';
             } else {
                 const isActive = page === this.#currentPage;
                 let buttonText;
 
-                if (page === 0) {
-                    buttonText = 'for (--i) (i = 0)';
-                } else if (page === lastPage) {
-                    buttonText = `(n=${lastPage}) (i++)`;
+                if (isActive) {
+                    buttonText = `i=${page}`;
+                } else if (page === lastPage && hasEllipsisEnd) {
+                    buttonText = `n=${lastPage}`;
                 } else {
-                    buttonText = `(i = ${page})`;
+                    buttonText = `${page}`;
                 }
 
                 html += `<button class="pagination__btn ${isActive ? 'pagination__btn_active' : ''}" data-page="${page}">${buttonText}</button>`;
             }
         });
 
-        html += `<button class="pagination__btn" data-page="${nextPage}" ${!hasNext ? 'disabled' : ''}>&gt;</button>`;
-
-        html += `<button class="pagination__btn" data-page="last" ${!hasNext ? 'disabled' : ''}>&gt;&gt;</button>`;
+        if (hasNext) {
+            html += '<button class="pagination__btn" data-page="next">i++</button>';
+        }
 
         return html;
     }
@@ -125,7 +126,7 @@ export class Pagination extends BaseComponent {
         }
         this.#currentPage = currentPage;
         this.#totalPages = totalPages;
-        this.#clearListeners();
+        this._clearListeners();
         this.#updateElementContent();
         this.#attachEvents();
         if (totalPages <= 1) {
@@ -166,36 +167,25 @@ export class Pagination extends BaseComponent {
             if (!btn || btn.disabled) return;
 
             const pageAttr = btn.dataset.page;
-            if (pageAttr === 'first') {
-                if (this.#currentPage !== 0) {
-                    this.#onPageChange(0);
-                }
-            } else if (pageAttr === 'last') {
-                const lastPage = this.#totalPages - 1;
-                if (this.#currentPage !== lastPage) {
-                    this.#onPageChange(lastPage);
-                }
+            let targetPage;
+
+            if (pageAttr === 'prev') {
+                targetPage = this.#currentPage - 1;
+            } else if (pageAttr === 'next') {
+                targetPage = this.#currentPage + 1;
             } else {
-                const page = parseInt(pageAttr);
-                if (
-                    !isNaN(page) &&
-                    page !== this.#currentPage &&
-                    page >= 0 &&
-                    page < this.#totalPages
-                ) {
-                    this.#onPageChange(page);
-                }
+                targetPage = parseInt(pageAttr);
+            }
+
+            if (
+                !isNaN(targetPage) &&
+                targetPage !== this.#currentPage &&
+                targetPage >= 0 &&
+                targetPage < this.#totalPages
+            ) {
+                this.#onPageChange(targetPage);
             }
         });
     }
 
-    #clearListeners() {
-        if (this._element) {
-            const newElement = this._element.cloneNode(false);
-            if (this._element.parentNode) {
-                this._element.parentNode.replaceChild(newElement, this._element);
-            }
-            this._element = newElement;
-        }
-    }
 }
