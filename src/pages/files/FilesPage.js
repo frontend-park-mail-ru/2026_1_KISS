@@ -156,7 +156,8 @@ export class FilesPage {
                 title: 'Untitled'
             });
             if (response.ok) {
-                await this.#loadNotebooks(this.#state.currentPage);
+                const { data: notebook } = await response.json();
+                Router.getInstance().navigate(`/notebooks/${notebook.id}`);
             }
         } catch (e) {
             console.error('Failed to create notebook:', e);

@@ -187,5 +187,4 @@ export class Pagination extends BaseComponent {
             }
         });
     }
-
 }
