@@ -149,13 +149,23 @@ export class FilterBar extends BaseComponent {
 
         if (dateFrom || dateTo) {
             dateBtn.classList.add('filter-bar__dropdown-btn_active');
+            const parts = [];
+            if (dateFrom) parts.push(`с ${this.#formatDate(dateFrom)}`);
+            if (dateTo) parts.push(`по ${this.#formatDate(dateTo)}`);
+            dateBtn.textContent = parts.join(' ');
         } else {
             dateBtn.classList.remove('filter-bar__dropdown-btn_active');
+            dateBtn.textContent = 'Изменено';
         }
 
         if (this.#onFilterChange) {
             this.#onFilterChange({ dateFrom, dateTo });
         }
+    }
+
+    #formatDate(isoDate) {
+        const [y, m, d] = isoDate.split('-');
+        return `${d}.${m}.${y}`;
     }
 
     #clearFilters() {
@@ -165,6 +175,7 @@ export class FilterBar extends BaseComponent {
 
         const dateBtn = this._element.querySelector('.filter-bar__date-btn');
         dateBtn.classList.remove('filter-bar__dropdown-btn_active');
+        dateBtn.textContent = 'Изменено';
 
         this._element.querySelector('.filter-bar__date-from').value = '';
         this._element.querySelector('.filter-bar__date-to').value = '';

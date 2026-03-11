@@ -22,6 +22,12 @@
     color: var(--dark-primary);
 }
 
+.filter-bar__dropdown-btn::after {
+    content: ' \25BE';
+    font-size: 12px;
+    margin-left: 4px;
+}
+
 .filter-bar__dropdown-btn:hover {
     background: var(--grey);
 }
