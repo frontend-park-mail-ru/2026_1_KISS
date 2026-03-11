@@ -34,16 +34,15 @@ export class Pagination extends BaseComponent {
         const prevPage = this.#currentPage - 1;
         const nextPage = this.#currentPage + 1;
         const lastPage = this.#totalPages - 1;
-        
+
         let html = '';
-        
+
         html += `<button class="pagination__btn" data-page="first" ${!hasPrev ? 'disabled' : ''}>&lt;&lt;</button>`;
-        
- 
+
         html += `<button class="pagination__btn" data-page="${prevPage}" ${!hasPrev ? 'disabled' : ''}>&lt;</button>`;
-        
+
         const visiblePages = this.#getVisiblePages();
-        visiblePages.forEach(page => {
+        visiblePages.forEach((page) => {
             if (page === 'ellipsis-start') {
                 html += '<span class="pagination__ellipsis">....</span>';
             } else if (page === 'ellipsis-end') {
@@ -51,7 +50,7 @@ export class Pagination extends BaseComponent {
             } else {
                 const isActive = page === this.#currentPage;
                 let buttonText;
-                
+
                 if (page === 0) {
                     buttonText = 'for (--i) (i = 0)';
                 } else if (page === lastPage) {
@@ -59,15 +58,15 @@ export class Pagination extends BaseComponent {
                 } else {
                     buttonText = `(i = ${page})`;
                 }
-                
+
                 html += `<button class="pagination__btn ${isActive ? 'pagination__btn_active' : ''}" data-page="${page}">${buttonText}</button>`;
             }
         });
-        
+
         html += `<button class="pagination__btn" data-page="${nextPage}" ${!hasNext ? 'disabled' : ''}>&gt;</button>`;
-        
+
         html += `<button class="pagination__btn" data-page="last" ${!hasNext ? 'disabled' : ''}>&gt;&gt;</button>`;
-        
+
         return html;
     }
 
@@ -76,7 +75,7 @@ export class Pagination extends BaseComponent {
         const total = this.#totalPages;
         const current = this.#currentPage;
         const visibleCount = this.#visiblePagesCount;
-        
+
         if (total <= visibleCount) {
             for (let i = 0; i < total; i++) {
                 pages.push(i);
@@ -84,10 +83,10 @@ export class Pagination extends BaseComponent {
         } else {
             const firstPage = 0;
             const lastPage = total - 1;
-       
+
             let startPage = Math.max(0, current - Math.floor(visibleCount / 2));
             let endPage = Math.min(total - 1, startPage + visibleCount - 1);
-            
+
             if (endPage === total - 1) {
                 startPage = Math.max(0, total - visibleCount);
             }
@@ -95,18 +94,18 @@ export class Pagination extends BaseComponent {
             if (startPage === 0) {
                 endPage = Math.min(total - 1, visibleCount - 1);
             }
-            
+
             if (startPage > firstPage + 1) {
                 pages.push(firstPage);
                 pages.push('ellipsis-start');
             } else if (startPage === firstPage + 1) {
                 pages.push(firstPage);
             }
-            
+
             for (let i = startPage; i <= endPage; i++) {
                 pages.push(i);
             }
-            
+
             if (endPage < lastPage - 1) {
                 pages.push('ellipsis-end');
                 pages.push(lastPage);
@@ -114,7 +113,7 @@ export class Pagination extends BaseComponent {
                 pages.push(lastPage);
             }
         }
-        
+
         return pages;
     }
 
@@ -165,7 +164,7 @@ export class Pagination extends BaseComponent {
         this._addListener(this._element, 'click', (e) => {
             const btn = e.target.closest('[data-page]');
             if (!btn || btn.disabled) return;
-            
+
             const pageAttr = btn.dataset.page;
             if (pageAttr === 'first') {
                 if (this.#currentPage !== 0) {
@@ -178,7 +177,12 @@ export class Pagination extends BaseComponent {
                 }
             } else {
                 const page = parseInt(pageAttr);
-                if (!isNaN(page) && page !== this.#currentPage && page >= 0 && page < this.#totalPages) {
+                if (
+                    !isNaN(page) &&
+                    page !== this.#currentPage &&
+                    page >= 0 &&
+                    page < this.#totalPages
+                ) {
                     this.#onPageChange(page);
                 }
             }
