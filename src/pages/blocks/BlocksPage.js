@@ -140,7 +140,8 @@ export class BlocksPage {
                 title: newTitle
             });
             if (response.ok) {
-                this.#notebook.title = newTitle;
+                const { data: notebook } = await response.json();
+                Object.assign(this.#notebook, notebook);
             }
         } catch (e) {
             console.error('Failed to rename notebook:', e);

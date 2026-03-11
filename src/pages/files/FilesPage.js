@@ -106,7 +106,9 @@ export class FilesPage {
 
             if (!response.ok) return;
 
-            const { data: notebooks } = await response.json();
+            const { data } = await response.json();
+            const notebooks = Array.isArray(data) ? data : data.notebooks;
+            const total = Array.isArray(data) ? null : data.total;
 
             const hasNextPage = notebooks.length > this.#state.limit;
 
@@ -118,7 +120,12 @@ export class FilesPage {
             this.#state.notebooks = displayNotebooks;
             this.#allNotebooks = [...displayNotebooks];
             this.#state.hasNextPage = hasNextPage;
-            const totalPages = hasNextPage ? page + 1 : page;
+            const totalPages =
+                total !== null
+                    ? Math.ceil(total / this.#state.limit)
+                    : hasNextPage
+                      ? page + 1
+                      : page;
 
             // console.log('=== Pagination Debug ===');
             // console.log('Current page (1-index):', page);
