@@ -96,6 +96,7 @@ export class FilesTable extends BaseComponent {
             icon.className = 'files-table__icon';
             icon.textContent = 'K';
             const titleSpan = document.createElement('span');
+            titleSpan.className = 'files-table__title';
             titleSpan.textContent = nb.title || 'Untitled';
             nameCell.appendChild(icon);
             nameCell.appendChild(titleSpan);
@@ -118,8 +119,12 @@ export class FilesTable extends BaseComponent {
             tbody.appendChild(tr);
 
             if (this.#onOpen) {
-                nameCell.style.cursor = 'pointer';
-                nameCell.addEventListener('click', () => this.#onOpen(nb.id));
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', (e) => {
+                    if (e.target.closest('.files-table__kebab-cell')) return;
+                    if (e.target.closest('.files-table__rename-active')) return;
+                    this.#onOpen(nb.id);
+                });
             }
 
             const actions = [];
@@ -154,13 +159,19 @@ export class FilesTable extends BaseComponent {
         sel.removeAllRanges();
         sel.addRange(range);
 
+        nameSpan.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+
         let saved = false;
         const save = () => {
             if (saved) return;
             saved = true;
             nameSpan.contentEditable = 'false';
             nameSpan.classList.remove('files-table__rename-active');
-            const newTitle = nameSpan.textContent.trim();
+            const newTitle = nameSpan.textContent.trim().slice(0, 54);
             if (!newTitle) {
                 nameSpan.textContent = originalText;
             } else if (newTitle !== originalText && this.#onRename) {
