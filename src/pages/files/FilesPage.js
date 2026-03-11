@@ -47,8 +47,7 @@ export class FilesPage {
 
         this.#header = new GreenHeader(this.#root, {
             user: { username: this.#state.username, initials },
-            onProfile: () => {
-            },
+            onProfile: () => {},
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');
@@ -104,23 +103,23 @@ export class FilesPage {
             const response = await this.#httpClient.get(
                 `/notebooks?limit=${this.#state.limit + 1}&offset=${offset}`
             );
-            
+
             if (!response.ok) return;
 
             const { data: notebooks } = await response.json();
-            
+
             const hasNextPage = notebooks.length > this.#state.limit;
-            
+
             let displayNotebooks = notebooks;
             if (hasNextPage) {
                 displayNotebooks = notebooks.slice(0, this.#state.limit);
             }
-            
+
             this.#state.notebooks = displayNotebooks;
             this.#allNotebooks = [...displayNotebooks];
             this.#state.hasNextPage = hasNextPage;
             const totalPages = hasNextPage ? page + 1 : page;
-            
+
             // console.log('=== Pagination Debug ===');
             // console.log('Current page (1-index):', page);
             // console.log('Current page (0-index):', page - 1);
@@ -133,7 +132,7 @@ export class FilesPage {
             this.#filterBar.setOwners(uniqueOwners);
 
             this.#applyFilters();
-            
+
             this.#pagination.update(page - 1, totalPages);
 
             if (hasNextPage || page > 1) {
@@ -141,7 +140,6 @@ export class FilesPage {
             } else {
                 this.#pagination.hide();
             }
-            
         } catch (e) {
             console.error('Failed to load notebooks:', e);
         }
