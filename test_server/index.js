@@ -12,7 +12,7 @@ app.use(morgan('dev')); // логирование http запросов в ко�
 const { createProxyMiddleware } = require('http-proxy-middleware');
 app.use(
     createProxyMiddleware({
-        target: 'http://212.233.96.54:8080',
+        target: process.env.API_TARGET || 'http://localhost:8080',
         changeOrigin: true,
         pathFilter: '/api'
     })
