@@ -79,6 +79,7 @@ export class Login extends BaseComponent {
     }
 
     async #submit() {
+        this._element.querySelector('.sign-error-message').textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {
