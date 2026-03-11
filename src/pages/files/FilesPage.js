@@ -48,13 +48,11 @@ export class FilesPage {
         this.#header = new GreenHeader(this.#root, {
             user: { username: this.#state.username, initials },
             onProfile: () => {
-                // TODO: navigate to profile page
             },
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');
                 } catch (_e) {
-                    /* ignore */
                 }
                 Router.getInstance().navigate('/sign');
             }
@@ -83,7 +81,7 @@ export class FilesPage {
         this.#filesTable.mount();
 
         this.#pagination = new Pagination(container, (page) => {
-            this.#loadNotebooks(page);
+            this.#loadNotebooks(page + 1);
         });
         this.#pagination.mount();
 
@@ -103,24 +101,46 @@ export class FilesPage {
 
         try {
             const response = await this.#httpClient.get(
-                `/notebooks?limit=${this.#state.limit}&offset=${offset}`
+                `/notebooks?limit=${this.#state.limit + 1}&offset=${offset}`
             );
+            
             if (!response.ok) return;
 
             const { data: notebooks } = await response.json();
-            this.#state.notebooks = notebooks;
-            this.#allNotebooks = [...notebooks];
-            this.#state.hasNextPage = notebooks.length === this.#state.limit;
-
-            const totalPages = this.#state.hasNextPage ? page + 1 : page;
-            const shouldShowPagination = this.#state.hasNextPage || page > 1;
+            
+            const hasNextPage = notebooks.length > this.#state.limit;
+            
+            let displayNotebooks = notebooks;
+            if (hasNextPage) {
+                displayNotebooks = notebooks.slice(0, this.#state.limit);
+            }
+            
+            this.#state.notebooks = displayNotebooks;
+            this.#allNotebooks = [...displayNotebooks];
+            this.#state.hasNextPage = hasNextPage;
+            const totalPages = hasNextPage ? page + 1 : page;
+            
+            console.log('=== Pagination Debug ===');
+            console.log('Current page (1-index):', page);
+            console.log('Current page (0-index):', page - 1);
+            console.log('Has next page:', hasNextPage);
+            console.log('Total pages (estimated):', totalPages);
+            console.log('Notebooks received:', notebooks.length);
+            console.log('Notebooks displayed:', displayNotebooks.length);
 
             const uniqueOwners = [...new Set([this.#state.username])];
             this.#filterBar.setOwners(uniqueOwners);
 
             this.#applyFilters();
-            this.#pagination.update(page, totalPages);
-            shouldShowPagination ? this.#pagination.show() : this.#pagination.hide();
+            
+            this.#pagination.update(page - 1, totalPages);
+
+            if (hasNextPage || page > 1) {
+                this.#pagination.show();
+            } else {
+                this.#pagination.hide();
+            }
+            
         } catch (e) {
             console.error('Failed to load notebooks:', e);
         }

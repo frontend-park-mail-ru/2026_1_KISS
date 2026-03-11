@@ -1,9 +1,18 @@
 <div class="pagination">
-    <button class="pagination__btn" data-page="1" {{#unless hasPrev}}disabled{{/unless}}>|&lt;</button>
+    <button class="pagination__btn" data-page="first" {{#unless hasPrev}}disabled{{/unless}}>|&lt;</button>
+
     <button class="pagination__btn" data-page="{{prevPage}}" {{#unless hasPrev}}disabled{{/unless}}>&lt;</button>
+
     {{#each pages}}
-        <button class="pagination__btn {{#if isActive}}pagination__btn_active{{/if}}" data-page="{{this.number}}">{{this.number}}</button>
+        {{#if (eq this.type 'ellipsis')}}
+            <span class="pagination__ellipsis">...</span>
+        {{else}}
+            <button class="pagination__btn {{#if this.isActive}}pagination__btn_active{{/if}}" 
+                    data-page="{{this.number}}">{{this.number}}</button>
+        {{/if}}
     {{/each}}
+    
     <button class="pagination__btn" data-page="{{nextPage}}" {{#unless hasNext}}disabled{{/unless}}>&gt;</button>
-    <button class="pagination__btn" data-page="{{totalPages}}" {{#unless hasNext}}disabled{{/unless}}>&gt;|</button>
+    
+    <button class="pagination__btn" data-page="last" {{#unless hasNext}}disabled{{/unless}}>&gt;|</button>
 </div>
