@@ -53,6 +53,7 @@ export class FilesPage {
                 try {
                     await this.#httpClient.post('/auth/logout');
                 } catch (_e) {
+                    /* ignore */
                 }
                 Router.getInstance().navigate('/sign');
             }
@@ -120,13 +121,13 @@ export class FilesPage {
             this.#state.hasNextPage = hasNextPage;
             const totalPages = hasNextPage ? page + 1 : page;
             
-            console.log('=== Pagination Debug ===');
-            console.log('Current page (1-index):', page);
-            console.log('Current page (0-index):', page - 1);
-            console.log('Has next page:', hasNextPage);
-            console.log('Total pages (estimated):', totalPages);
-            console.log('Notebooks received:', notebooks.length);
-            console.log('Notebooks displayed:', displayNotebooks.length);
+            // console.log('=== Pagination Debug ===');
+            // console.log('Current page (1-index):', page);
+            // console.log('Current page (0-index):', page - 1);
+            // console.log('Has next page:', hasNextPage);
+            // console.log('Total pages (estimated):', totalPages);
+            // console.log('Notebooks received:', notebooks.length);
+            // console.log('Notebooks displayed:', displayNotebooks.length);
 
             const uniqueOwners = [...new Set([this.#state.username])];
             this.#filterBar.setOwners(uniqueOwners);

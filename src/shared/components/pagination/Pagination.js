@@ -119,7 +119,7 @@ export class Pagination extends BaseComponent {
     }
 
     update(currentPage, totalPages) {
-        console.log('Pagination update:', { currentPage, totalPages });
+        // console.log('Pagination update:', { currentPage, totalPages });
         if (typeof totalPages !== 'number' || totalPages <= 0) {
             console.warn('Invalid totalPages:', totalPages);
             return;
