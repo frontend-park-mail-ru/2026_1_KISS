@@ -60,8 +60,12 @@ export class Input extends BaseComponent {
 
     #render() {
         const template = Handlebars.templates['Input'];
+        const templateData = {
+            ...this.#config,
+            isPassword: this.#config.type === 'password'
+        };
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template(this.#config);
+        tempContainer.innerHTML = template(templateData);
         this._element = tempContainer.firstElementChild;
     }
 
@@ -71,6 +75,20 @@ export class Input extends BaseComponent {
 
         this.#input = this._element.querySelector('.input-field');
         this.#attachEvents();
+
+        const toggleBtn = this._element.querySelector('.toggle-password-btn');
+        if (toggleBtn) {
+            this.#input.classList.add('input-field_has-toggle');
+            this._addListener(toggleBtn, 'click', () => {
+                const isPassword = this.#input.type === 'password';
+                this.#input.type = isPassword ? 'text' : 'password';
+
+                const openIcon = toggleBtn.querySelector('.eye-icon_open');
+                const closedIcon = toggleBtn.querySelector('.eye-icon_closed');
+                openIcon.classList.toggle('eye-icon_hidden');
+                closedIcon.classList.toggle('eye-icon_hidden');
+            });
+        }
     }
 
     unmount() {
