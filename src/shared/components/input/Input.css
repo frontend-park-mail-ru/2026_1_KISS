@@ -9,7 +9,7 @@
     --input-placeholder: var(--grey);
 
     /* Размеры и отступы */
-    --input-padding: 5px 10px;
+    --input-padding: 7px 10px;
     --input-border-radius: 10px;
     --input-font-size: 16px;
     --input-label-font-size: 14px;
@@ -19,6 +19,13 @@
 .input-wrapper {
     display: flex;
     flex-direction: column;
+    width: 100%;
+}
+
+.input-field-container {
+    position: relative;
+    display: flex;
+    align-items: center;
     width: 100%;
 }
 
@@ -61,3 +68,38 @@
     margin-left: 4px;
     min-height: 1rem;
 }
+
+/* Password toggle button */
+.input-field-container .input-field_has-toggle {
+    padding-right: 40px;
+}
+
+.toggle-password-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--grey);
+    transition: color 0.2s ease;
+}
+
+.toggle-password-btn:hover {
+    color: var(--accent);
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.eye-icon_hidden {
+    display: none;
+}
+
