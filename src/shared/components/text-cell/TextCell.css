@@ -14,6 +14,7 @@
 
 .text-cell:hover .text-cell__actions {
     opacity: 1;
+    visibility: visible;
 }
 
 .text-cell__content {
@@ -25,6 +26,9 @@
     color: var(--dark-primary);
     outline: none;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    overflow: hidden;
 }
 
 .text-cell__content:empty::before {
@@ -33,12 +37,19 @@
 }
 
 .text-cell__actions {
+    position: absolute;
+    right: 4px;
+    top: 4px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 6px 4px;
+    padding: 2px;
     opacity: 0;
-    transition: opacity 0.15s;
+    visibility: hidden;
+    transition: opacity 0.15s, visibility 0.15s;
+    z-index: 1;
+    background: var(--white);
+    border-radius: 4px;
 }
 
 .text-cell__action-btn {
