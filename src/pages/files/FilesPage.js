@@ -95,8 +95,8 @@ export class FilesPage {
     }
 
     async #loadNotebooks(page) {
-        this.#state.currentPage = page;
-        const offset = (page - 1) * this.#state.limit;
+        const requestedPage = Math.max(1, page);
+        const offset = (requestedPage - 1) * this.#state.limit;
 
         try {
             const response = await this.#httpClient.get(
@@ -110,6 +110,16 @@ export class FilesPage {
             const total = data.total;
             const totalPages = Math.ceil(total / this.#state.limit);
 
+            if (total > 0) {
+                const lastPage = Math.max(1, totalPages);
+                if (requestedPage > lastPage) {
+                    await this.#loadNotebooks(lastPage);
+                    return;
+                }
+            }
+
+            this.#state.currentPage = requestedPage;
+
             this.#state.notebooks = notebooks;
             this.#allNotebooks = [...notebooks];
 
@@ -118,7 +128,7 @@ export class FilesPage {
 
             this.#applyFilters();
 
-            this.#pagination.update(page - 1, totalPages);
+            this.#pagination.update(requestedPage - 1, totalPages);
         } catch (e) {
             console.error('Failed to load notebooks:', e);
         }
