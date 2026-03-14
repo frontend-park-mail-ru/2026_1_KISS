@@ -13,24 +13,24 @@ router.addRoute('/files', FilesPage);
 router.addRoute('/notebooks/:id', BlocksPage);
 
 async function getDefaultPath() {
-	try {
-		const response = await httpClient.get('/auth/me');
-		return response.ok ? '/files' : '/sign';
-	} catch (_e) {
-		return '/sign';
-	}
+    try {
+        const response = await httpClient.get('/auth/me');
+        return response.ok ? '/files' : '/sign';
+    } catch (_e) {
+        return '/sign';
+    }
 }
 
 async function bootstrap() {
-	const defaultPath = await getDefaultPath();
+    const defaultPath = await getDefaultPath();
 
-	if (defaultPath === '/files' && window.location.pathname === '/sign') {
-		// Keep history clean on startup redirect from auth page.
-		history.replaceState(null, '', '/files');
-	}
+    if (defaultPath === '/files' && window.location.pathname === '/sign') {
+        // Keep history clean on startup redirect from auth page.
+        history.replaceState(null, '', '/files');
+    }
 
-	router.setDefault(defaultPath);
-	router.start();
+    router.setDefault(defaultPath);
+    router.start();
 }
 
 bootstrap();
