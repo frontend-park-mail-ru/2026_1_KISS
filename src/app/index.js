@@ -1,3 +1,10 @@
+/**
+ * @module app/index
+ *
+ * Точка входа приложения KISS Colab.
+ * Создаёт роутер, регистрирует маршруты и запускает навигацию.
+ */
+
 import { RegisterPage } from '../pages/sign/RegisterPage.js';
 import { FilesPage } from '../pages/files/FilesPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
