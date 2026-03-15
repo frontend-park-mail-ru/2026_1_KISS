@@ -1,9 +1,24 @@
 export class HttpClient {
+    static #instance = null;
+
     baseUrl = `${window.location.origin}/api/v1`;
     headers = {
         'Content-Type': 'application/json'
     };
-    constructor() {}
+
+    constructor() {
+        if (HttpClient.#instance) {
+            throw new Error('Use HttpClient.getInstance() instead of new HttpClient()');
+        }
+        HttpClient.#instance = this;
+    }
+
+    static getInstance() {
+        if (!HttpClient.#instance) {
+            new HttpClient();
+        }
+        return HttpClient.#instance;
+    }
 
     get(url) {
         return this.request('GET', url);

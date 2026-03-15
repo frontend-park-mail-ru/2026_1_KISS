@@ -8,18 +8,18 @@ import { Router } from '../../shared/router/Router.js';
 export class BlocksPage {
     #root;
     #notebookId;
-    #httpClient;
     #header;
     #toolbar;
     #sidebar;
     #cellList;
     #notebook = null;
     #username = '';
+    #httpClient;
 
     constructor(root, params) {
         this.#root = root;
         this.#notebookId = params.id;
-        this.#httpClient = new HttpClient();
+        this.#httpClient = HttpClient.getInstance();
     }
 
     async render() {
