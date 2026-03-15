@@ -1,7 +1,22 @@
+/**
+ * @module shared/http_client/HttpClient
+ *
+ * Обёртка над fetch для работы с JSON API.
+ * Все запросы уходят на `/api/v1` текущего origin с credentials: 'include'.
+ */
+
+/**
+ * HTTP-клиент для JSON API бэкенда.
+ * Автоматически добавляет Content-Type и credentials к каждому запросу.
+ */
 export class HttpClient {
+    /** @type {?HttpClient} */
     static #instance = null;
 
+    /** @type {string} */
     baseUrl = `${window.location.origin}/api/v1`;
+
+    /** @type {Object<string, string>} */
     headers = {
         'Content-Type': 'application/json'
     };
@@ -13,6 +28,9 @@ export class HttpClient {
         HttpClient.#instance = this;
     }
 
+    /**
+     * @returns {HttpClient}
+     */
     static getInstance() {
         if (!HttpClient.#instance) {
             new HttpClient();
@@ -20,18 +38,36 @@ export class HttpClient {
         return HttpClient.#instance;
     }
 
+    /**
+     * @param {string} url -- путь относительно baseUrl
+     * @returns {Promise<Response>}
+     */
     get(url) {
         return this.request('GET', url);
     }
 
+    /**
+     * @param {string} url -- путь относительно baseUrl
+     * @param {Object} data -- тело запроса (будет сериализовано в JSON)
+     * @returns {Promise<Response>}
+     */
     post(url, data) {
         return this.request('POST', url, data);
     }
 
+    /**
+     * @param {string} url -- путь относительно baseUrl
+     * @param {Object} data -- тело запроса
+     * @returns {Promise<Response>}
+     */
     put(url, data) {
         return this.request('PUT', url, data);
     }
 
+    /**
+     * @param {string} url -- путь относительно baseUrl
+     * @returns {Promise<Response>}
+     */
     delete(url) {
         return this.request('DELETE', url);
     }
@@ -61,6 +97,14 @@ export class HttpClient {
         });
     }
 
+    /**
+     * Общий метод запроса. Сериализует data в JSON, если передан.
+     *
+     * @param {string} method -- HTTP-метод (GET, POST, PUT, DELETE)
+     * @param {string} url -- путь относительно baseUrl
+     * @param {?Object} [data=null] -- тело запроса
+     * @returns {Promise<Response>}
+     */
     request(method, url, data = null) {
         return fetch(this.baseUrl + url, {
             method: method,
