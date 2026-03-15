@@ -1,18 +1,47 @@
+/**
+ * @module pages/sign/RegisterPage
+ *
+ * Страница авторизации: переключение между формами Login и Register.
+ * Состояние (какая форма активна) сохраняется в sessionStorage.
+ */
+
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { Register } from '../../widgets/register-form/Register.js';
 import { Login } from '../../widgets/login-form/Login.js';
 
+/** @type {string} */
 const SESSION_ACTIVE_STATE = 'registerPageState';
+
+/** @type {string} */
 const LOGIN_STATE = 'login';
+
+/** @type {string} */
 const REGISTER_STATE = 'register';
 
+/**
+ * Страница /sign -- авторизация и регистрация.
+ * Хранит две формы (Login, Register) и переключается между ними
+ * по кнопкам в header и внутри форм.
+ */
 export class RegisterPage {
+    /** @type {HTMLElement} */
     #root;
+
+    /** @type {{header: ?GreenHeader, main: ?HTMLElement}} */
     #elements;
+
+    /** @type {Login|Register} */
     #activeElement;
+
+    /** @type {?Register} */
     #register;
+
+    /** @type {?Login} */
     #login;
 
+    /**
+     * @param {HTMLElement} root -- корневой элемент для рендера
+     */
     constructor(root) {
         this.#root = root;
         this.#elements = {
@@ -24,6 +53,9 @@ export class RegisterPage {
         this.#login = null;
     }
 
+    /**
+     * Рендерит header, создаёт формы и восстанавливает последнее активное состояние.
+     */
     render() {
         this.#root.innerHTML = '';
 
@@ -46,6 +78,7 @@ export class RegisterPage {
         this.#attachEvents();
     }
 
+    /** @private */
     #attachEvents() {
         const moveToRegister = (e) => {
             e.preventDefault();
@@ -73,10 +106,14 @@ export class RegisterPage {
         }
     }
 
+    /**
+     * Сбрасывает состояние полей активной формы.
+     */
     update() {
         this.#activeElement.update();
     }
 
+    /** @private */
     #saveState() {
         let activeView = REGISTER_STATE;
         if (this.#activeElement === this.#login) {
@@ -90,6 +127,12 @@ export class RegisterPage {
         );
     }
 
+    /**
+     * Восстанавливает активную форму из sessionStorage.
+     *
+     * @private
+     * @returns {Login|Register} форма для отображения
+     */
     #restoreState() {
         const savedState = sessionStorage.getItem(SESSION_ACTIVE_STATE);
         if (savedState) {
@@ -104,6 +147,9 @@ export class RegisterPage {
         }
     }
 
+    /**
+     * Размонтирует обе формы и очищает DOM.
+     */
     destroy() {
         if (this.#login) this.#login.unmount();
         if (this.#register) this.#register.unmount();

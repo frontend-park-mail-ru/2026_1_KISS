@@ -1,3 +1,11 @@
+/**
+ * @module pages/blocks/BlocksPage
+ *
+ * Страница редактора ноутбука (/notebooks/:id).
+ * Загружает данные ноутбука и пользователя, рендерит header, toolbar,
+ * sidebar и список ячеек.
+ */
+
 import { NotebookHeader } from '../../widgets/notebook-header/NotebookHeader.js';
 import { NotebookToolbar } from '../../widgets/notebook-toolbar/NotebookToolbar.js';
 import { NotebookSidebar } from '../../widgets/notebook-sidebar/NotebookSidebar.js';
@@ -5,24 +13,57 @@ import { CellList } from '../../widgets/cell-list/CellList.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 
+/** @typedef {import('../../shared/types.js').Notebook} Notebook */
+
+/**
+ * Страница /notebooks/:id -- редактор ноутбука с code/text ячейками.
+ * При отсутствии авторизации редиректит на /sign,
+ * при ошибке загрузки ноутбука -- на /files.
+ */
 export class BlocksPage {
+    /** @type {HTMLElement} */
     #root;
+
+    /** @type {string} */
     #notebookId;
+
+    /** @type {NotebookHeader} */
     #header;
+
+    /** @type {NotebookToolbar} */
     #toolbar;
+
+    /** @type {NotebookSidebar} */
     #sidebar;
+
+    /** @type {CellList} */
     #cellList;
+
+    /** @type {?Notebook} */
     #notebook = null;
+
+    /** @type {string} */
     #username = '';
     #avatarUrl = '';
     #httpClient;
 
+    /**
+     * @param {HTMLElement} root -- корневой элемент
+     * @param {Object} params -- параметры маршрута
+     * @param {string} params.id -- идентификатор ноутбука
+     */
     constructor(root, params) {
         this.#root = root;
         this.#notebookId = params.id;
         this.#httpClient = HttpClient.getInstance();
     }
 
+    /**
+     * Загружает данные пользователя и ноутбука, затем строит layout.
+     *
+     * @async
+     * @returns {Promise<void>}
+     */
     async render() {
         this.#root.innerHTML = '';
 
@@ -56,6 +97,7 @@ export class BlocksPage {
         this.#buildLayout();
     }
 
+    /** @private */
     #buildLayout() {
         const page = document.createElement('div');
         page.className = 'blocks-page';
@@ -112,6 +154,13 @@ export class BlocksPage {
         this.#cellList.updateBlocks(blocks);
     }
 
+    /**
+     * Создаёт новый блок через API и перезагружает список ячеек.
+     *
+     * @private
+     * @async
+     * @param {string} type -- 'code' или 'text'
+     */
     async #createBlock(type) {
         try {
             const body = { type, content: '' };
@@ -134,6 +183,13 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Переименовывает ноутбук через PUT /notebooks/:id.
+     *
+     * @private
+     * @async
+     * @param {string} newTitle -- новое название
+     */
     async #renameNotebook(newTitle) {
         try {
             const response = await this.#httpClient.put(`/notebooks/${this.#notebookId}`, {
@@ -148,6 +204,9 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Размонтирует все виджеты и очищает DOM.
+     */
     destroy() {
         if (this.#cellList) this.#cellList.unmount();
         if (this.#sidebar) this.#sidebar.unmount();
