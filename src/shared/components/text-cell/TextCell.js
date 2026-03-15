@@ -41,7 +41,11 @@ export class TextCell extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон TextCell с идентификатором и содержимым блока.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['TextCell'];
         const tempContainer = document.createElement('div');
@@ -63,7 +67,11 @@ export class TextCell extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики кнопок действий: move-up, move-down, copy по data-action атрибуту.
+     *
+     * @private
+     */
     #attachEvents() {
         this._element.querySelectorAll('.text-cell__action-btn').forEach((btn) => {
             const action = btn.dataset.action;

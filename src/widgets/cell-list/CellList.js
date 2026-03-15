@@ -29,6 +29,11 @@ export class CellList extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Компилирует Handlebars-шаблон CellList и создаёт корневой DOM-элемент контейнера ячеек.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['CellList'];
         const tempContainer = document.createElement('div');
@@ -140,7 +145,11 @@ export class CellList extends BaseComponent {
         navigator.clipboard.writeText(content).catch(() => {});
     }
 
-    /** @private */
+    /**
+     * Размонтирует все ячейки (CodeCell/TextCell) и очищает внутренний массив.
+     *
+     * @private
+     */
     #clearCells() {
         this.#cells.forEach((cell) => cell.unmount());
         this.#cells = [];

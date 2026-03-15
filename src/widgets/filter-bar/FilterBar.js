@@ -38,7 +38,11 @@ export class FilterBar extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон FilterBar и создаёт корневой DOM-элемент компонента.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['FilterBar'];
         const tempContainer = document.createElement('div');
@@ -74,7 +78,11 @@ export class FilterBar extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики: создание ноутбука, toggle dropdown-ов фильтров, выбор владельца, изменение дат и сброс.
+     *
+     * @private
+     */
     #attachEvents() {
         const createBtn = this._element.querySelector('.filter-bar__create-btn');
         this._addListener(createBtn, 'click', () => {
@@ -129,12 +137,20 @@ export class FilterBar extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Переключает видимость dropdown фильтра по дате.
+     *
+     * @private
+     */
     #toggleDateDropdown() {
         this.#dateOpen ? this.#closeDateDropdown() : this.#openDateDropdown();
     }
 
-    /** @private */
+    /**
+     * Показывает dropdown фильтра по дате, добавляя CSS-модификатор видимости.
+     *
+     * @private
+     */
     #openDateDropdown() {
         this.#dateOpen = true;
         this._element
@@ -142,7 +158,11 @@ export class FilterBar extends BaseComponent {
             .classList.add('filter-bar__date-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Скрывает dropdown фильтра по дате, убирая CSS-модификатор видимости.
+     *
+     * @private
+     */
     #closeDateDropdown() {
         this.#dateOpen = false;
         this._element
@@ -150,12 +170,20 @@ export class FilterBar extends BaseComponent {
             .classList.remove('filter-bar__date-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Переключает видимость dropdown фильтра по владельцу.
+     *
+     * @private
+     */
     #toggleOwnerDropdown() {
         this.#ownerOpen ? this.#closeOwnerDropdown() : this.#openOwnerDropdown();
     }
 
-    /** @private */
+    /**
+     * Показывает dropdown фильтра по владельцу, добавляя CSS-модификатор видимости.
+     *
+     * @private
+     */
     #openOwnerDropdown() {
         this.#ownerOpen = true;
         this._element
@@ -163,7 +191,11 @@ export class FilterBar extends BaseComponent {
             .classList.add('filter-bar__owner-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Скрывает dropdown фильтра по владельцу, убирая CSS-модификатор видимости.
+     *
+     * @private
+     */
     #closeOwnerDropdown() {
         this.#ownerOpen = false;
         this._element
@@ -184,7 +216,11 @@ export class FilterBar extends BaseComponent {
         }
     }
 
-    /** @private */
+    /**
+     * Обрабатывает изменение полей "дата с"/"дата по": обновляет текст кнопки и вызывает onFilterChange.
+     *
+     * @private
+     */
     #onDateChange() {
         const dateFrom = this._element.querySelector('.filter-bar__date-from').value || null;
         const dateTo = this._element.querySelector('.filter-bar__date-to').value || null;
@@ -218,7 +254,11 @@ export class FilterBar extends BaseComponent {
         return `${d}.${m}.${y}`;
     }
 
-    /** @private */
+    /**
+     * Сбрасывает все фильтры (владелец + даты) в исходное состояние и уведомляет через onFilterChange.
+     *
+     * @private
+     */
     #clearFilters() {
         const ownerBtn = this._element.querySelector('.filter-bar__owner-btn');
         ownerBtn.textContent = 'Владелец';

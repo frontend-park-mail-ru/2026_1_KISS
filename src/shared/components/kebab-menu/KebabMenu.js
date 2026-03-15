@@ -29,7 +29,11 @@ export class KebabMenu extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон KebabMenu со списком действий.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['KebabMenu'];
         const tempContainer = document.createElement('div');
@@ -49,7 +53,11 @@ export class KebabMenu extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики: toggle по trigger-кнопке, закрытие по клику вне, вызов handler при выборе пункта по data-action.
+     *
+     * @private
+     */
     #attachEvents() {
         const trigger = this._element.querySelector('.kebab-menu__trigger');
         this._addListener(trigger, 'click', (e) => {
@@ -71,12 +79,20 @@ export class KebabMenu extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Переключает видимость dropdown меню.
+     *
+     * @private
+     */
     #toggle() {
         this.#isOpen ? this.#close() : this.#open();
     }
 
-    /** @private */
+    /**
+     * Показывает dropdown меню, добавляя CSS-модификатор видимости.
+     *
+     * @private
+     */
     #open() {
         this.#isOpen = true;
         this._element
@@ -84,7 +100,11 @@ export class KebabMenu extends BaseComponent {
             .classList.add('kebab-menu__dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Скрывает dropdown меню, убирая CSS-модификатор видимости.
+     *
+     * @private
+     */
     #close() {
         this.#isOpen = false;
         this._element

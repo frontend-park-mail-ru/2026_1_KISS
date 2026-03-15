@@ -58,7 +58,11 @@ export class GreenHeader {
         this.#attachDropdownEvents();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики user-pill dropdown: toggle по клику на pill, закрытие по клику вне, действия профиль/выход.
+     *
+     * @private
+     */
     #attachDropdownEvents() {
         const pill = this.#header.querySelector('.header-user-pill');
         if (!pill) return;
@@ -89,12 +93,20 @@ export class GreenHeader {
         });
     }
 
-    /** @private */
+    /**
+     * Переключает видимость user dropdown.
+     *
+     * @private
+     */
     #toggleDropdown() {
         this.#isDropdownOpen ? this.#closeDropdown() : this.#openDropdown();
     }
 
-    /** @private */
+    /**
+     * Показывает user dropdown, добавляя CSS-модификатор видимости.
+     *
+     * @private
+     */
     #openDropdown() {
         this.#isDropdownOpen = true;
         this.#header
@@ -102,7 +114,11 @@ export class GreenHeader {
             .classList.add('header-user-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Скрывает user dropdown, убирая CSS-модификатор видимости.
+     *
+     * @private
+     */
     #closeDropdown() {
         this.#isDropdownOpen = false;
         this.#header

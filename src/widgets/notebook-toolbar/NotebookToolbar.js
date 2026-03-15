@@ -34,7 +34,11 @@ export class NotebookToolbar extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон NotebookToolbar и создаёт корневой DOM-элемент панели инструментов.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['NotebookToolbar'];
         const tempContainer = document.createElement('div');
@@ -53,7 +57,11 @@ export class NotebookToolbar extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики клика на кнопки toolbar по data-action: add-code, add-text, run-all.
+     *
+     * @private
+     */
     #attachEvents() {
         this._element.querySelectorAll('.notebook-toolbar__btn').forEach((btn) => {
             const action = btn.dataset.action;

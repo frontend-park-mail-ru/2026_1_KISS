@@ -46,7 +46,11 @@ export class CodeCell extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон CodeCell с идентификатором и содержимым блока.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['CodeCell'];
         const tempContainer = document.createElement('div');
@@ -70,7 +74,11 @@ export class CodeCell extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики: ввод текста (обновление нумерации + авторесайз), Tab (вставка 4 пробелов), Run и кнопки move/copy.
+     *
+     * @private
+     */
     #attachEvents() {
         const textarea = this._element.querySelector('.code-cell__textarea');
 
@@ -107,7 +115,11 @@ export class CodeCell extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Перестраивает нумерацию строк слева от textarea по количеству строк в содержимом.
+     *
+     * @private
+     */
     #updateLineNumbers() {
         const textarea = this._element.querySelector('.code-cell__textarea');
         const lineNumbers = this._element.querySelector('.code-cell__line-numbers');
@@ -115,7 +127,11 @@ export class CodeCell extends BaseComponent {
         lineNumbers.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
     }
 
-    /** @private */
+    /**
+     * Подгоняет высоту textarea под содержимое, учитывая минимальную высоту блока редактора.
+     *
+     * @private
+     */
     #autoResize() {
         const textarea = this._element.querySelector('.code-cell__textarea');
         textarea.style.height = 'auto';

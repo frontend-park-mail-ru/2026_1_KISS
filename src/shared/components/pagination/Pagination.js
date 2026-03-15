@@ -37,14 +37,22 @@ export class Pagination extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Создаёт корневой div.pagination и наполняет его HTML-содержимым кнопок.
+     *
+     * @private
+     */
     #render() {
         this._element = document.createElement('div');
         this._element.className = 'pagination';
         this.#updateElementContent();
     }
 
-    /** @private */
+    /**
+     * Перестраивает innerHTML пагинатора: если страниц <= 1, очищает; иначе генерирует разметку кнопок.
+     *
+     * @private
+     */
     #updateElementContent() {
         if (this.#totalPages === null || this.#totalPages <= 1) {
             this._element.innerHTML = '';
@@ -213,7 +221,11 @@ export class Pagination extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает делегированный обработчик клика: обрабатывает prev, next и переход по номеру страницы.
+     *
+     * @private
+     */
     #attachEvents() {
         if (!this._element) return;
         this._addListener(this._element, 'click', (e) => {

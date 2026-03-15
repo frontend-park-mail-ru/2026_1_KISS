@@ -78,7 +78,11 @@ export class RegisterPage {
         this.#attachEvents();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики переключения форм: кнопки header (Войти/Регистрация) и ссылки внутри форм.
+     *
+     * @private
+     */
     #attachEvents() {
         const moveToRegister = (e) => {
             e.preventDefault();
@@ -113,7 +117,11 @@ export class RegisterPage {
         this.#activeElement.update();
     }
 
-    /** @private */
+    /**
+     * Сохраняет имя активной формы (login/register) в sessionStorage для восстановления при повторном визите.
+     *
+     * @private
+     */
     #saveState() {
         let activeView = REGISTER_STATE;
         if (this.#activeElement === this.#login) {
