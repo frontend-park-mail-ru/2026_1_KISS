@@ -1,9 +1,14 @@
+/**
+ * @module widgets/register-form/Register
+ */
+
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 
+/** @type {Object<string, string>} */
 const FIELD_NAMES = {
     login: 'login',
     email: 'email',
@@ -11,15 +16,29 @@ const FIELD_NAMES = {
     repeat_password: 'repeat_password'
 };
 
+/**
+ * Форма регистрации (логин, email, пароль, повтор пароля).
+ * После успешной регистрации автоматически логинит и навигирует на /files.
+ *
+ * @extends BaseComponent
+ */
 export class Register extends BaseComponent {
+    /** @type {Input[]} */
     #inputs = [];
+
+    /** @type {HttpClient} */
     #httpClient;
+
+    /**
+     * @param {HTMLElement} parent
+     */
     constructor(parent) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['Register'];
         const data = {
@@ -49,12 +68,16 @@ export class Register extends BaseComponent {
         });
     }
 
+    /**
+     * Сбрасывает состояние всех полей ввода.
+     */
     update() {
         this.#inputs.forEach((input) => {
             input.update();
         });
     }
 
+    /** @private */
     #createInputs() {
         const fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
@@ -75,6 +98,7 @@ export class Register extends BaseComponent {
         });
     }
 
+    /** @private */
     #attachEvents() {
         const btn = this._element.querySelector('#register-btn');
         this._addListener(btn, 'click', (e) => {
@@ -83,6 +107,13 @@ export class Register extends BaseComponent {
         });
     }
 
+    /**
+     * Валидирует поля, отправляет POST /auth/register, затем авто-логин.
+     * При ошибке -- показывает переведённое сообщение.
+     *
+     * @private
+     * @async
+     */
     async #submit() {
         this._element.querySelector('.sign-error-message').textContent = '';
         if (!this.validateFields()) return;
@@ -131,6 +162,11 @@ export class Register extends BaseComponent {
         Router.getInstance().navigate('/files');
     }
 
+    /**
+     * Валидирует все поля и дополнительно проверяет совпадение паролей.
+     *
+     * @returns {boolean} true если все поля валидны и пароли совпадают
+     */
     validateFields() {
         let allValid = true;
         this.#inputs.forEach((input) => {
@@ -146,6 +182,7 @@ export class Register extends BaseComponent {
         return allValid;
     }
 
+    /** @type {?HTMLElement} @readonly */
     get goOutBtn() {
         return this._element.querySelector('#go-out-btn');
     }

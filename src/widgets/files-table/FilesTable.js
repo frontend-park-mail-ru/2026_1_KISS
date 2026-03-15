@@ -1,17 +1,53 @@
+/**
+ * @module widgets/files-table/FilesTable
+ */
+
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { KebabMenu } from '../../shared/components/kebab-menu/KebabMenu.js';
 
+/** @typedef {import('../../shared/types.js').Notebook} Notebook */
+
+/**
+ * Таблица ноутбуков с сортировкой (по названию, дате), inline-переименованием
+ * и kebab-меню (переименовать, удалить) для каждой строки.
+ *
+ * @extends BaseComponent
+ */
 export class FilesTable extends BaseComponent {
+    /** @type {Function} */
     #onDelete;
+
+    /** @type {Function} */
     #onRename;
+
+    /** @type {Function} */
     #onOpen;
+
+    /** @type {KebabMenu[]} */
     #kebabMenus = [];
+
+    /** @type {Notebook[]} */
     #notebooks = [];
+
+    /** @type {string} */
     #ownerName = '';
+
+    /** @type {?string} */
     #sortField = null;
+
+    /** @type {string} */
     #sortDir = 'asc';
+
+    /** @type {boolean} */
     #sortOpen = false;
 
+    /**
+     * @param {HTMLElement} parent
+     * @param {Object} callbacks
+     * @param {Function} callbacks.onDelete -- удаление ноутбука (id)
+     * @param {Function} callbacks.onRename -- переименование (id, newTitle)
+     * @param {Function} callbacks.onOpen -- открытие ноутбука (id)
+     */
     constructor(parent, { onDelete, onRename, onOpen }) {
         super(null, parent);
         this.#onDelete = onDelete;
@@ -20,6 +56,7 @@ export class FilesTable extends BaseComponent {
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['FilesTable'];
         const tempContainer = document.createElement('div');
@@ -40,6 +77,13 @@ export class FilesTable extends BaseComponent {
         super.unmount();
     }
 
+    /**
+     * Устанавливает данные таблицы и перерисовывает строки.
+     * При пустом массиве показывает empty-state.
+     *
+     * @param {Notebook[]} notebooks -- массив ноутбуков для отображения
+     * @param {string} ownerName -- имя владельца для столбца «Владелец»
+     */
     setData(notebooks, ownerName) {
         this.#notebooks = [...notebooks];
         this.#ownerName = ownerName;
@@ -58,6 +102,7 @@ export class FilesTable extends BaseComponent {
         this.#renderRows();
     }
 
+    /** @private */
     #renderRows() {
         this.#kebabMenus.forEach((m) => m.unmount());
         this.#kebabMenus = [];
@@ -147,6 +192,14 @@ export class FilesTable extends BaseComponent {
         });
     }
 
+    /**
+     * Включает inline-редактирование названия в строке таблицы.
+     *
+     * @private
+     * @param {HTMLTableRowElement} row
+     * @param {HTMLElement} nameSpan -- элемент с названием
+     * @param {Notebook} notebook -- данные ноутбука
+     */
     #startRename(row, nameSpan, notebook) {
         const originalText = nameSpan.textContent;
         nameSpan.contentEditable = 'true';
@@ -199,6 +252,7 @@ export class FilesTable extends BaseComponent {
         nameSpan.addEventListener('blur', save);
     }
 
+    /** @private */
     #attachSortEvents() {
         const trigger = this._element.querySelector('.files-table__sort-trigger');
         if (!trigger) return;
@@ -230,10 +284,12 @@ export class FilesTable extends BaseComponent {
         });
     }
 
+    /** @private */
     #toggleSortDropdown() {
         this.#sortOpen ? this.#closeSortDropdown() : this.#openSortDropdown();
     }
 
+    /** @private */
     #openSortDropdown() {
         this.#sortOpen = true;
         this._element
@@ -241,6 +297,7 @@ export class FilesTable extends BaseComponent {
             .classList.add('files-table__sort-dropdown_visible');
     }
 
+    /** @private */
     #closeSortDropdown() {
         this.#sortOpen = false;
         this._element
@@ -248,6 +305,7 @@ export class FilesTable extends BaseComponent {
             .classList.remove('files-table__sort-dropdown_visible');
     }
 
+    /** @private */
     #updateSortArrows() {
         this._element.querySelectorAll('.files-table__sort-arrow').forEach((el) => {
             el.classList.remove('files-table__sort-arrow_active');

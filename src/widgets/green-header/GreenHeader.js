@@ -1,10 +1,34 @@
+/**
+ * @module widgets/green-header/GreenHeader
+ */
+
+/** @typedef {import('../../shared/types.js').GreenHeaderConfig} GreenHeaderConfig */
+/** @typedef {import('../../shared/types.js').EventListenerRecord} EventListenerRecord */
+
+/**
+ * Зелёный header приложения с логотипом и кнопками auth/user-pill.
+ * Не наследует BaseComponent -- собственная система управления listeners.
+ */
 export class GreenHeader {
+    /** @type {HTMLElement} */
     #parent;
+
+    /** @type {Object} */
     #config;
+
+    /** @type {HTMLElement} */
     #header;
+
+    /** @type {boolean} */
     #isDropdownOpen = false;
+
+    /** @type {EventListenerRecord[]} */
     #listeners = [];
 
+    /**
+     * @param {HTMLElement} parent -- корневой элемент для вставки header
+     * @param {GreenHeaderConfig} [config={}]
+     */
     constructor(parent, config = {}) {
         this.#parent = parent;
         this.#config = {
@@ -24,6 +48,9 @@ export class GreenHeader {
         this.#config.onLogout = config.onLogout || null;
     }
 
+    /**
+     * Рендерит header в начало parent и подключает события dropdown.
+     */
     render() {
         const template = Handlebars.templates['GreenHeader'];
         this.#parent.insertAdjacentHTML('afterbegin', template(this.#config));
@@ -31,6 +58,7 @@ export class GreenHeader {
         this.#attachDropdownEvents();
     }
 
+    /** @private */
     #attachDropdownEvents() {
         const pill = this.#header.querySelector('.header-user-pill');
         if (!pill) return;
@@ -61,10 +89,12 @@ export class GreenHeader {
         });
     }
 
+    /** @private */
     #toggleDropdown() {
         this.#isDropdownOpen ? this.#closeDropdown() : this.#openDropdown();
     }
 
+    /** @private */
     #openDropdown() {
         this.#isDropdownOpen = true;
         this.#header
@@ -72,6 +102,7 @@ export class GreenHeader {
             .classList.add('header-user-dropdown_visible');
     }
 
+    /** @private */
     #closeDropdown() {
         this.#isDropdownOpen = false;
         this.#header
@@ -79,11 +110,20 @@ export class GreenHeader {
             .classList.remove('header-user-dropdown_visible');
     }
 
+    /**
+     * @private
+     * @param {EventTarget} element
+     * @param {string} event
+     * @param {Function} handler
+     */
     #addListener(element, event, handler) {
         element.addEventListener(event, handler);
         this.#listeners.push({ element, event, handler });
     }
 
+    /**
+     * Снимает все подписки на события.
+     */
     destroy() {
         this.#listeners.forEach(({ element, event, handler }) => {
             element.removeEventListener(event, handler);
@@ -91,10 +131,12 @@ export class GreenHeader {
         this.#listeners = [];
     }
 
+    /** @type {?HTMLElement} @readonly */
     get loginBtn() {
         return this.#header.querySelector('[data-action="login"]');
     }
 
+    /** @type {?HTMLElement} @readonly */
     get registerBtn() {
         return this.#header.querySelector('[data-action="register"]');
     }

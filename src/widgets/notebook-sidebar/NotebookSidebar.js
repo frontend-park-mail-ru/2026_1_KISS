@@ -1,13 +1,28 @@
+/**
+ * @module widgets/notebook-sidebar/NotebookSidebar
+ */
+
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 
+/**
+ * Боковая панель ноутбука с иконками-кнопками.
+ * Открывает/закрывает панели по клику (toggle-логика).
+ *
+ * @extends BaseComponent
+ */
 export class NotebookSidebar extends BaseComponent {
+    /** @type {?string} */
     #activePanel = null;
 
+    /**
+     * @param {HTMLElement} parent
+     */
     constructor(parent) {
         super(null, parent);
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['NotebookSidebar'];
         const tempContainer = document.createElement('div');
@@ -26,6 +41,7 @@ export class NotebookSidebar extends BaseComponent {
         super.unmount();
     }
 
+    /** @private */
     #attachEvents() {
         this._element.querySelectorAll('.notebook-sidebar__icon-btn').forEach((btn) => {
             this._addListener(btn, 'click', () => {
@@ -45,6 +61,10 @@ export class NotebookSidebar extends BaseComponent {
         });
     }
 
+    /**
+     * @private
+     * @param {string} panelName -- имя панели из data-panel
+     */
     #openPanel(panelName) {
         this.#closePanel();
         this.#activePanel = panelName;
@@ -56,6 +76,7 @@ export class NotebookSidebar extends BaseComponent {
         if (panel) panel.classList.add('notebook-sidebar__panel--visible');
     }
 
+    /** @private */
     #closePanel() {
         if (!this.#activePanel) return;
 

@@ -1,13 +1,38 @@
+/**
+ * @module widgets/notebook-header/NotebookHeader
+ */
+
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { Router } from '../../shared/router/Router.js';
 
+/** @typedef {import('../../shared/types.js').NotebookHeaderConfig} NotebookHeaderConfig */
+
+/**
+ * Header страницы ноутбука: логотип-ссылка на /files, редактируемое название,
+ * user-pill с dropdown (профиль, выход).
+ *
+ * @extends BaseComponent
+ */
 export class NotebookHeader extends BaseComponent {
+    /** @type {NotebookHeaderConfig} */
     #config;
+
+    /** @type {?Function} */
     #onRename;
+
+    /** @type {string} */
     #originalText = '';
+
+    /** @type {boolean} */
     #isEditing = false;
+
+    /** @type {boolean} */
     #isDropdownOpen = false;
 
+    /**
+     * @param {HTMLElement} parent
+     * @param {NotebookHeaderConfig} [config={}]
+     */
     constructor(parent, config = {}) {
         super(null, parent);
         this.#config = config;
@@ -15,6 +40,7 @@ export class NotebookHeader extends BaseComponent {
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['NotebookHeader'];
         const tempContainer = document.createElement('div');
@@ -36,6 +62,7 @@ export class NotebookHeader extends BaseComponent {
         super.unmount();
     }
 
+    /** @private */
     #attachEvents() {
         const logoLink = this._element.querySelector('.notebook-header__logo-link');
         this._addListener(logoLink, 'click', async (e) => {
@@ -78,6 +105,12 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
+    /**
+     * Завершает inline-редактирование: если название изменилось, вызывает onRename.
+     *
+     * @private
+     * @async
+     */
     async #finishEditing() {
         if (!this.#isEditing) return;
 
@@ -94,10 +127,12 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
+    /** @private */
     #toggleDropdown() {
         this.#isDropdownOpen ? this.#closeDropdown() : this.#openDropdown();
     }
 
+    /** @private */
     #openDropdown() {
         this.#isDropdownOpen = true;
         this._element
@@ -105,6 +140,7 @@ export class NotebookHeader extends BaseComponent {
             .classList.add('header-user-dropdown_visible');
     }
 
+    /** @private */
     #closeDropdown() {
         this.#isDropdownOpen = false;
         this._element
@@ -112,6 +148,12 @@ export class NotebookHeader extends BaseComponent {
             .classList.remove('header-user-dropdown_visible');
     }
 
+    /**
+     * Включает inline-редактирование названия: делает span contentEditable,
+     * выделяет текст и навешивает разовые обработчики Enter/Escape/blur.
+     *
+     * @private
+     */
     #startRename() {
         const filenameSpan = this._element.querySelector('.notebook-header__filename');
         this.#originalText = filenameSpan.textContent;

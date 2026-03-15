@@ -1,11 +1,36 @@
+/**
+ * @module widgets/filter-bar/FilterBar
+ */
+
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 
+/** @typedef {import('../../shared/types.js').FilterChangeCallback} FilterChangeCallback */
+
+/**
+ * Панель фильтров списка ноутбуков: кнопка создания, фильтр по дате,
+ * фильтр по владельцу, кнопка сброса.
+ *
+ * @extends BaseComponent
+ */
 export class FilterBar extends BaseComponent {
+    /** @type {Function} */
     #onCreate;
+
+    /** @type {FilterChangeCallback} */
     #onFilterChange;
+
+    /** @type {boolean} */
     #dateOpen = false;
+
+    /** @type {boolean} */
     #ownerOpen = false;
 
+    /**
+     * @param {HTMLElement} parent
+     * @param {Object} callbacks
+     * @param {Function} callbacks.onCreate -- создание нового ноутбука
+     * @param {FilterChangeCallback} callbacks.onFilterChange -- изменение фильтров
+     */
     constructor(parent, { onCreate, onFilterChange }) {
         super(null, parent);
         this.#onCreate = onCreate;
@@ -13,6 +38,7 @@ export class FilterBar extends BaseComponent {
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['FilterBar'];
         const tempContainer = document.createElement('div');
@@ -31,6 +57,11 @@ export class FilterBar extends BaseComponent {
         super.unmount();
     }
 
+    /**
+     * Заполняет dropdown владельцев кнопками.
+     *
+     * @param {string[]} owners -- список имён владельцев
+     */
     setOwners(owners) {
         const dropdown = this._element.querySelector('.filter-bar__owner-dropdown');
         dropdown.innerHTML = '';
@@ -43,6 +74,7 @@ export class FilterBar extends BaseComponent {
         });
     }
 
+    /** @private */
     #attachEvents() {
         const createBtn = this._element.querySelector('.filter-bar__create-btn');
         this._addListener(createBtn, 'click', () => {
@@ -97,10 +129,12 @@ export class FilterBar extends BaseComponent {
         });
     }
 
+    /** @private */
     #toggleDateDropdown() {
         this.#dateOpen ? this.#closeDateDropdown() : this.#openDateDropdown();
     }
 
+    /** @private */
     #openDateDropdown() {
         this.#dateOpen = true;
         this._element
@@ -108,6 +142,7 @@ export class FilterBar extends BaseComponent {
             .classList.add('filter-bar__date-dropdown_visible');
     }
 
+    /** @private */
     #closeDateDropdown() {
         this.#dateOpen = false;
         this._element
@@ -115,10 +150,12 @@ export class FilterBar extends BaseComponent {
             .classList.remove('filter-bar__date-dropdown_visible');
     }
 
+    /** @private */
     #toggleOwnerDropdown() {
         this.#ownerOpen ? this.#closeOwnerDropdown() : this.#openOwnerDropdown();
     }
 
+    /** @private */
     #openOwnerDropdown() {
         this.#ownerOpen = true;
         this._element
@@ -126,6 +163,7 @@ export class FilterBar extends BaseComponent {
             .classList.add('filter-bar__owner-dropdown_visible');
     }
 
+    /** @private */
     #closeOwnerDropdown() {
         this.#ownerOpen = false;
         this._element
@@ -133,6 +171,10 @@ export class FilterBar extends BaseComponent {
             .classList.remove('filter-bar__owner-dropdown_visible');
     }
 
+    /**
+     * @private
+     * @param {string} owner -- выбранный владелец
+     */
     #selectOwner(owner) {
         const btn = this._element.querySelector('.filter-bar__owner-btn');
         btn.textContent = `${owner} - Владелец`;
@@ -142,6 +184,7 @@ export class FilterBar extends BaseComponent {
         }
     }
 
+    /** @private */
     #onDateChange() {
         const dateFrom = this._element.querySelector('.filter-bar__date-from').value || null;
         const dateTo = this._element.querySelector('.filter-bar__date-to').value || null;
@@ -163,11 +206,19 @@ export class FilterBar extends BaseComponent {
         }
     }
 
+    /**
+     * Преобразует ISO-дату (YYYY-MM-DD) в формат DD.MM.YYYY.
+     *
+     * @private
+     * @param {string} isoDate -- дата в формате ISO
+     * @returns {string} дата в формате DD.MM.YYYY
+     */
     #formatDate(isoDate) {
         const [y, m, d] = isoDate.split('-');
         return `${d}.${m}.${y}`;
     }
 
+    /** @private */
     #clearFilters() {
         const ownerBtn = this._element.querySelector('.filter-bar__owner-btn');
         ownerBtn.textContent = 'Владелец';
