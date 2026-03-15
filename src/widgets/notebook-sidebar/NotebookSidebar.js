@@ -22,7 +22,11 @@ export class NotebookSidebar extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон NotebookSidebar и создаёт корневой DOM-элемент боковой панели.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['NotebookSidebar'];
         const tempContainer = document.createElement('div');
@@ -41,7 +45,11 @@ export class NotebookSidebar extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает toggle-обработчики на кнопки sidebar: открытие/закрытие панелей по data-panel атрибуту.
+     *
+     * @private
+     */
     #attachEvents() {
         this._element.querySelectorAll('.notebook-sidebar__icon-btn').forEach((btn) => {
             this._addListener(btn, 'click', () => {
@@ -76,7 +84,11 @@ export class NotebookSidebar extends BaseComponent {
         if (panel) panel.classList.add('notebook-sidebar__panel--visible');
     }
 
-    /** @private */
+    /**
+     * Деактивирует текущую открытую панель: убирает CSS-классы active/visible и сбрасывает #activePanel.
+     *
+     * @private
+     */
     #closePanel() {
         if (!this.#activePanel) return;
 

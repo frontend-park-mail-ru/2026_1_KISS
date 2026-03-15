@@ -36,7 +36,11 @@ export class Login extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон Login и создаёт DOM-элемент формы, затем инициализирует поля ввода.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['Login'];
         const data = {
@@ -74,7 +78,11 @@ export class Login extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Создаёт компоненты Input (email, password) и добавляет их контейнеры в form-fields.
+     *
+     * @private
+     */
     #createInputs() {
         const fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
@@ -93,7 +101,11 @@ export class Login extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Подключает обработчик submit-кнопки, запускающий отправку формы.
+     *
+     * @private
+     */
     #attachEvents() {
         const btn = this._element.querySelector('#login-btn');
         this._addListener(btn, 'click', (e) => {

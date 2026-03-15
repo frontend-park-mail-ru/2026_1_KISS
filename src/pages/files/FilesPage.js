@@ -189,6 +189,8 @@ export class FilesPage {
     }
 
     /**
+     * Обрабатывает изменение фильтров: мержит новые значения в текущие и перефильтровывает таблицу.
+     *
      * @private
      * @param {FilterSet} filters -- изменённые фильтры
      */
@@ -197,7 +199,11 @@ export class FilesPage {
         this.#applyFilters();
     }
 
-    /** @private */
+    /**
+     * Фильтрует #allNotebooks по текущим фильтрам (владелец, dateFrom, dateTo) и обновляет таблицу.
+     *
+     * @private
+     */
     #applyFilters() {
         let filtered = [...this.#allNotebooks];
 
@@ -220,6 +226,8 @@ export class FilesPage {
     }
 
     /**
+     * Создаёт новый ноутбук через POST /notebooks и навигирует к нему.
+     *
      * @private
      * @async
      */

@@ -97,7 +97,11 @@ export class BlocksPage {
         this.#buildLayout();
     }
 
-    /** @private */
+    /**
+     * Собирает DOM-структуру страницы: создаёт области для header, toolbar, sidebar и cell list, монтирует все виджеты и загружает блоки ноутбука.
+     *
+     * @private
+     */
     #buildLayout() {
         const page = document.createElement('div');
         page.className = 'blocks-page';

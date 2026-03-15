@@ -38,7 +38,11 @@ export class Register extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон Register и создаёт DOM-элемент формы, затем инициализирует поля ввода.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['Register'];
         const data = {
@@ -77,7 +81,11 @@ export class Register extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Создаёт компоненты Input (login, email, password, repeat_password) и добавляет их контейнеры в form-fields.
+     *
+     * @private
+     */
     #createInputs() {
         const fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
@@ -98,7 +106,11 @@ export class Register extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Подключает обработчик submit-кнопки, запускающий отправку формы.
+     *
+     * @private
+     */
     #attachEvents() {
         const btn = this._element.querySelector('#register-btn');
         this._addListener(btn, 'click', (e) => {

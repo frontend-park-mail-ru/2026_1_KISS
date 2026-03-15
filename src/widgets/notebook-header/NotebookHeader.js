@@ -40,7 +40,11 @@ export class NotebookHeader extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон NotebookHeader с названием файла и данными пользователя.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['NotebookHeader'];
         const tempContainer = document.createElement('div');
@@ -62,7 +66,11 @@ export class NotebookHeader extends BaseComponent {
         super.unmount();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики: навигация по логотипу на /files, кнопка редактирования названия, user-pill dropdown с действиями профиль/выход.
+     *
+     * @private
+     */
     #attachEvents() {
         const logoLink = this._element.querySelector('.notebook-header__logo-link');
         this._addListener(logoLink, 'click', async (e) => {
@@ -127,12 +135,20 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
-    /** @private */
+    /**
+     * Переключает видимость user dropdown.
+     *
+     * @private
+     */
     #toggleDropdown() {
         this.#isDropdownOpen ? this.#closeDropdown() : this.#openDropdown();
     }
 
-    /** @private */
+    /**
+     * Показывает user dropdown, добавляя CSS-модификатор видимости.
+     *
+     * @private
+     */
     #openDropdown() {
         this.#isDropdownOpen = true;
         this._element
@@ -140,7 +156,11 @@ export class NotebookHeader extends BaseComponent {
             .classList.add('header-user-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Скрывает user dropdown, убирая CSS-модификатор видимости.
+     *
+     * @private
+     */
     #closeDropdown() {
         this.#isDropdownOpen = false;
         this._element

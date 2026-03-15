@@ -56,7 +56,11 @@ export class FilesTable extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон FilesTable и создаёт корневой DOM-элемент таблицы.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['FilesTable'];
         const tempContainer = document.createElement('div');
@@ -102,7 +106,11 @@ export class FilesTable extends BaseComponent {
         this.#renderRows();
     }
 
-    /** @private */
+    /**
+     * Перерисовывает строки таблицы: сортирует ноутбуки, формирует ячейки с датой/владельцем и создаёт KebabMenu для каждой строки.
+     *
+     * @private
+     */
     #renderRows() {
         this.#kebabMenus.forEach((m) => m.unmount());
         this.#kebabMenus = [];
@@ -252,7 +260,11 @@ export class FilesTable extends BaseComponent {
         nameSpan.addEventListener('blur', save);
     }
 
-    /** @private */
+    /**
+     * Подключает обработчики сортировки: toggle dropdown, выбор поля (title/date) и направления (asc/desc).
+     *
+     * @private
+     */
     #attachSortEvents() {
         const trigger = this._element.querySelector('.files-table__sort-trigger');
         if (!trigger) return;
@@ -284,12 +296,20 @@ export class FilesTable extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Переключает видимость dropdown сортировки.
+     *
+     * @private
+     */
     #toggleSortDropdown() {
         this.#sortOpen ? this.#closeSortDropdown() : this.#openSortDropdown();
     }
 
-    /** @private */
+    /**
+     * Показывает dropdown сортировки, добавляя CSS-модификатор видимости.
+     *
+     * @private
+     */
     #openSortDropdown() {
         this.#sortOpen = true;
         this._element
@@ -297,7 +317,11 @@ export class FilesTable extends BaseComponent {
             .classList.add('files-table__sort-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Скрывает dropdown сортировки, убирая CSS-модификатор видимости.
+     *
+     * @private
+     */
     #closeSortDropdown() {
         this.#sortOpen = false;
         this._element
@@ -305,7 +329,11 @@ export class FilesTable extends BaseComponent {
             .classList.remove('files-table__sort-dropdown_visible');
     }
 
-    /** @private */
+    /**
+     * Обновляет визуальное состояние стрелок сортировки: снимает active со всех и ставит на текущее поле/направление.
+     *
+     * @private
+     */
     #updateSortArrows() {
         this._element.querySelectorAll('.files-table__sort-arrow').forEach((el) => {
             el.classList.remove('files-table__sort-arrow_active');

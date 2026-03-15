@@ -88,7 +88,11 @@ export class Input extends BaseComponent {
         this.#render();
     }
 
-    /** @private */
+    /**
+     * Компилирует Handlebars-шаблон Input с конфигурацией поля и флагом isPassword для toggle-кнопки.
+     *
+     * @private
+     */
     #render() {
         const template = Handlebars.templates['Input'];
         const templateData = {
@@ -141,7 +145,11 @@ export class Input extends BaseComponent {
         this.#calmDown();
     }
 
-    /** @private */
+    /**
+     * Подключает обработчик ввода: санитизация через DOMPurify, сброс ошибки при наборе, валидация при blur.
+     *
+     * @private
+     */
     #attachEvents() {
         this._addListener(this.#input, 'input', (e) => {
             const rawValue = e.target.value;
@@ -157,7 +165,11 @@ export class Input extends BaseComponent {
         });
     }
 
-    /** @private */
+    /**
+     * Сбрасывает визуальное состояние ошибки: убирает CSS-класс input-wrapper_error и очищает текст ошибки.
+     *
+     * @private
+     */
     #calmDown() {
         this.#state.isValid = true;
         const errorElement = this._element.querySelector('.input-error-message');
