@@ -11,7 +11,6 @@ export class FilesPage {
     #filterBar;
     #filesTable;
     #pagination;
-    #httpClient;
     #allNotebooks = [];
     #filters = { owner: null, dateFrom: null, dateTo: null };
     #state = {
@@ -21,9 +20,11 @@ export class FilesPage {
         username: ''
     };
 
+    #httpClient;
+
     constructor(root) {
         this.#root = root;
-        this.#httpClient = new HttpClient();
+        this.#httpClient = HttpClient.getInstance();
     }
 
     async render() {

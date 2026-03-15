@@ -10,11 +10,11 @@ const FIELD_NAMES = {
 };
 
 export class Login extends BaseComponent {
-    #http_client;
     #inputs = [];
+    #httpClient;
     constructor(parent) {
         super(null, parent);
-        this.#http_client = new HttpClient();
+        this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
@@ -88,7 +88,7 @@ export class Login extends BaseComponent {
         };
 
         try {
-            const response = await this.#http_client.post('/auth/login', formData);
+            const response = await this.#httpClient.post('/auth/login', formData);
             if (!response.ok) {
                 let data;
                 try {

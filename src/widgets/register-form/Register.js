@@ -12,11 +12,11 @@ const FIELD_NAMES = {
 };
 
 export class Register extends BaseComponent {
-    #http_client;
     #inputs = [];
+    #httpClient;
     constructor(parent) {
         super(null, parent);
-        this.#http_client = new HttpClient();
+        this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
@@ -93,7 +93,7 @@ export class Register extends BaseComponent {
             password: this.#inputs[2].getValue()
         };
 
-        const response = await this.#http_client.post('/auth/register', formData);
+        const response = await this.#httpClient.post('/auth/register', formData);
         let responseData;
         try {
             responseData = await response.json();
@@ -113,7 +113,10 @@ export class Register extends BaseComponent {
         const email = this.#inputs[1].getValue();
         const password = this.#inputs[2].getValue();
 
-        const loginResponse = await this.#http_client.post('/auth/login', { email, password });
+        const loginResponse = await this.#httpClient.post('/auth/login', {
+            email,
+            password
+        });
         if (!loginResponse.ok) {
             let loginData;
             try {
