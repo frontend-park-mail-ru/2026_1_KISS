@@ -1,23 +1,42 @@
+/**
+ * @module widgets/login-form/Login
+ */
+
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 
+/** @type {Object<string, string>} */
 const FIELD_NAMES = {
     email: 'email',
     password: 'password'
 };
 
+/**
+ * Форма авторизации (email + пароль).
+ * При успешном логине навигирует на /files.
+ *
+ * @extends BaseComponent
+ */
 export class Login extends BaseComponent {
+    /** @type {Input[]} */
     #inputs = [];
+
+    /** @type {HttpClient} */
     #httpClient;
+
+    /**
+     * @param {HTMLElement} parent
+     */
     constructor(parent) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['Login'];
         const data = {
@@ -46,12 +65,16 @@ export class Login extends BaseComponent {
         });
     }
 
+    /**
+     * Сбрасывает состояние всех полей ввода.
+     */
     update() {
         this.#inputs.forEach((input) => {
             input.update();
         });
     }
 
+    /** @private */
     #createInputs() {
         const fieldsContainer = this._element.querySelector('.form-fields');
         const fieldsConfig = [
@@ -70,6 +93,7 @@ export class Login extends BaseComponent {
         });
     }
 
+    /** @private */
     #attachEvents() {
         const btn = this._element.querySelector('#login-btn');
         this._addListener(btn, 'click', (e) => {
@@ -78,6 +102,13 @@ export class Login extends BaseComponent {
         });
     }
 
+    /**
+     * Валидирует поля, отправляет POST /auth/login.
+     * При ошибке -- показывает переведённое сообщение.
+     *
+     * @private
+     * @async
+     */
     async #submit() {
         this._element.querySelector('.sign-error-message').textContent = '';
         if (!this.validateFields()) return;
@@ -108,6 +139,11 @@ export class Login extends BaseComponent {
         }
     }
 
+    /**
+     * Запускает валидацию всех полей формы.
+     *
+     * @returns {boolean} true если все поля валидны
+     */
     validateFields() {
         let allValid = true;
         this.#inputs.forEach((input) => {
@@ -118,6 +154,7 @@ export class Login extends BaseComponent {
         return allValid;
     }
 
+    /** @type {?HTMLElement} @readonly */
     get goToRegisterBtn() {
         return this._element.querySelector('#register-from-login-btn');
     }

@@ -1,11 +1,29 @@
+/**
+ * @module widgets/cell-list/CellList
+ */
+
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { CodeCell } from '../../shared/components/code-cell/CodeCell.js';
 import { TextCell } from '../../shared/components/text-cell/TextCell.js';
 
+/** @typedef {import('../../shared/types.js').BlockData} BlockData */
+
+/**
+ * Контейнер ячеек ноутбука. Управляет списком CodeCell/TextCell,
+ * их перемещением и копированием содержимого.
+ *
+ * @extends BaseComponent
+ */
 export class CellList extends BaseComponent {
+    /** @type {(CodeCell|TextCell)[]} */
     #cells = [];
+
+    /** @type {BlockData[]} */
     #blocks = [];
 
+    /**
+     * @param {HTMLElement} parent
+     */
     constructor(parent) {
         super(null, parent);
         this.#render();
@@ -29,6 +47,12 @@ export class CellList extends BaseComponent {
         super.unmount();
     }
 
+    /**
+     * Заменяет все ячейки новым набором блоков.
+     * Очищает предыдущие, создаёт CodeCell/TextCell по типу и монтирует.
+     *
+     * @param {BlockData[]} blocks -- массив данных блоков
+     */
     updateBlocks(blocks) {
         this.#clearCells();
         this.#blocks = [...blocks];
@@ -68,11 +92,23 @@ export class CellList extends BaseComponent {
         });
     }
 
+    /**
+     * Добавляет блок в конец списка и перерисовывает все ячейки.
+     *
+     * @param {BlockData} blockData
+     */
     addBlock(blockData) {
         this.#blocks.push(blockData);
         this.updateBlocks(this.#blocks);
     }
 
+    /**
+     * Меняет позицию блока на +-1 и перерисовывает список.
+     *
+     * @private
+     * @param {string} id -- идентификатор перемещаемого блока
+     * @param {number} direction -- направление (-1 вверх, +1 вниз)
+     */
     #moveBlock(id, direction) {
         const index = this.#blocks.findIndex((b) => b.id === id);
         if (index < 0) return;
@@ -87,6 +123,12 @@ export class CellList extends BaseComponent {
         this.updateBlocks(this.#blocks);
     }
 
+    /**
+     * Копирует содержимое блока в буфер обмена.
+     *
+     * @private
+     * @param {string} id -- идентификатор блока
+     */
     #copyBlock(id) {
         const block = this.#blocks.find((b) => b.id === id);
         if (!block) return;
@@ -98,6 +140,7 @@ export class CellList extends BaseComponent {
         navigator.clipboard.writeText(content).catch(() => {});
     }
 
+    /** @private */
     #clearCells() {
         this.#cells.forEach((cell) => cell.unmount());
         this.#cells = [];
