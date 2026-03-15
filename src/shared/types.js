@@ -48,6 +48,7 @@
 /**
  * @typedef {Object} KebabAction
  * @property {string} name -- идентификатор действия (data-action)
+ * @property {string} label -- отображаемый текст пункта меню
  * @property {Function} handler -- обработчик клика по пункту меню
  */
 
