@@ -1,15 +1,35 @@
+/**
+ * @module shared/components/kebab-menu/KebabMenu
+ */
+
 import { BaseComponent } from '../base-component/BaseComponent.js';
 
+/** @typedef {import('../../types.js').KebabAction} KebabAction */
+
+/**
+ * Контекстное меню-«кебаб» (три точки) с выпадающим списком действий.
+ * Закрывается при клике вне меню или при выборе пункта.
+ *
+ * @extends BaseComponent
+ */
 export class KebabMenu extends BaseComponent {
+    /** @type {KebabAction[]} */
     #actions;
+
+    /** @type {boolean} */
     #isOpen = false;
 
+    /**
+     * @param {HTMLElement} parent -- контейнер для mount
+     * @param {KebabAction[]} actions -- список действий меню
+     */
     constructor(parent, actions) {
         super(null, parent);
         this.#actions = actions;
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['KebabMenu'];
         const tempContainer = document.createElement('div');
@@ -29,6 +49,7 @@ export class KebabMenu extends BaseComponent {
         super.unmount();
     }
 
+    /** @private */
     #attachEvents() {
         const trigger = this._element.querySelector('.kebab-menu__trigger');
         this._addListener(trigger, 'click', (e) => {
@@ -50,10 +71,12 @@ export class KebabMenu extends BaseComponent {
         });
     }
 
+    /** @private */
     #toggle() {
         this.#isOpen ? this.#close() : this.#open();
     }
 
+    /** @private */
     #open() {
         this.#isOpen = true;
         this._element
@@ -61,6 +84,7 @@ export class KebabMenu extends BaseComponent {
             .classList.add('kebab-menu__dropdown_visible');
     }
 
+    /** @private */
     #close() {
         this.#isOpen = false;
         this._element

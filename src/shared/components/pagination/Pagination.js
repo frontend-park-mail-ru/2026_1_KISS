@@ -1,11 +1,34 @@
+/**
+ * @module shared/components/pagination/Pagination
+ */
+
 import { BaseComponent } from '../base-component/BaseComponent.js';
 
+/** @typedef {import('../../types.js').PageChangeCallback} PageChangeCallback */
+
+/**
+ * Пагинатор со стилизацией «for (i=...; i++; --i)».
+ * Показывает окно из 5 страниц с эллипсами и кнопками prev/next.
+ *
+ * @extends BaseComponent
+ */
 export class Pagination extends BaseComponent {
+    /** @type {number} */
     #currentPage;
+
+    /** @type {?number} */
     #totalPages;
+
+    /** @type {PageChangeCallback} */
     #onPageChange;
+
+    /** @type {number} */
     #visiblePagesCount = 5;
 
+    /**
+     * @param {HTMLElement} parent -- контейнер для mount
+     * @param {PageChangeCallback} onPageChange -- колбэк при смене страницы (0-based)
+     */
     constructor(parent, onPageChange) {
         super(null, parent);
         this.#currentPage = 0;
@@ -14,12 +37,14 @@ export class Pagination extends BaseComponent {
         this.#render();
     }
 
+    /** @private */
     #render() {
         this._element = document.createElement('div');
         this._element.className = 'pagination';
         this.#updateElementContent();
     }
 
+    /** @private */
     #updateElementContent() {
         if (this.#totalPages === null || this.#totalPages <= 1) {
             this._element.innerHTML = '';
@@ -28,6 +53,12 @@ export class Pagination extends BaseComponent {
         this._element.innerHTML = this.#generateHTML();
     }
 
+    /**
+     * Генерирует HTML-разметку кнопок пагинации.
+     *
+     * @private
+     * @returns {string} HTML-строка
+     */
     #generateHTML() {
         const hasPrev = this.#currentPage > 0;
         const hasNext = this.#currentPage < this.#totalPages - 1;
@@ -71,6 +102,12 @@ export class Pagination extends BaseComponent {
         return html;
     }
 
+    /**
+     * Вычисляет массив видимых номеров страниц с эллипсами.
+     *
+     * @private
+     * @returns {Array<number|string>} номера страниц и маркеры 'ellipsis-start'/'ellipsis-end'
+     */
     #getVisiblePages() {
         const pages = [];
         const total = this.#totalPages;
@@ -118,6 +155,12 @@ export class Pagination extends BaseComponent {
         return pages;
     }
 
+    /**
+     * Обновляет пагинатор: перерисовывает кнопки и показывает/скрывает элемент.
+     *
+     * @param {number} currentPage -- текущая страница (0-based)
+     * @param {number} totalPages -- общее количество страниц
+     */
     update(currentPage, totalPages) {
         const safeTotalPages =
             typeof totalPages === 'number' && Number.isFinite(totalPages)
@@ -140,12 +183,18 @@ export class Pagination extends BaseComponent {
         }
     }
 
+    /**
+     * Показывает элемент пагинации.
+     */
     show() {
         if (this._element) {
             this._element.style.display = '';
         }
     }
 
+    /**
+     * Скрывает элемент пагинации.
+     */
     hide() {
         if (this._element) {
             this._element.style.display = 'none';
@@ -164,6 +213,7 @@ export class Pagination extends BaseComponent {
         super.unmount();
     }
 
+    /** @private */
     #attachEvents() {
         if (!this._element) return;
         this._addListener(this._element, 'click', (e) => {

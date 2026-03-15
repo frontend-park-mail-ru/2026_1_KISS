@@ -1,12 +1,41 @@
+/**
+ * @module shared/components/code-cell/CodeCell
+ */
+
 import { BaseComponent } from '../base-component/BaseComponent.js';
 
+/** @typedef {import('../../types.js').BlockData} BlockData */
+
+/**
+ * Ячейка Python-кода с нумерацией строк, авторесайзом и поддержкой Tab.
+ *
+ * @extends BaseComponent
+ */
 export class CodeCell extends BaseComponent {
+    /** @type {BlockData} */
     #blockData;
+
+    /** @type {Function} */
     #onMoveUp;
+
+    /** @type {Function} */
     #onMoveDown;
+
+    /** @type {Function} */
     #onCopy;
+
+    /** @type {Function} */
     #onRun;
 
+    /**
+     * @param {HTMLElement} parent
+     * @param {Object} options
+     * @param {BlockData} options.blockData -- данные блока (id + content)
+     * @param {Function} [options.onMoveUp] -- вызывается при перемещении вверх
+     * @param {Function} [options.onMoveDown] -- вызывается при перемещении вниз
+     * @param {Function} [options.onCopy] -- вызывается при копировании
+     * @param {Function} [options.onRun] -- вызывается при запуске кода
+     */
     constructor(parent, { blockData, onMoveUp, onMoveDown, onCopy, onRun }) {
         super(null, parent);
         this.#blockData = blockData;
@@ -17,6 +46,7 @@ export class CodeCell extends BaseComponent {
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['CodeCell'];
         const tempContainer = document.createElement('div');
@@ -40,6 +70,7 @@ export class CodeCell extends BaseComponent {
         super.unmount();
     }
 
+    /** @private */
     #attachEvents() {
         const textarea = this._element.querySelector('.code-cell__textarea');
 
@@ -76,6 +107,7 @@ export class CodeCell extends BaseComponent {
         });
     }
 
+    /** @private */
     #updateLineNumbers() {
         const textarea = this._element.querySelector('.code-cell__textarea');
         const lineNumbers = this._element.querySelector('.code-cell__line-numbers');
@@ -83,6 +115,7 @@ export class CodeCell extends BaseComponent {
         lineNumbers.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
     }
 
+    /** @private */
     #autoResize() {
         const textarea = this._element.querySelector('.code-cell__textarea');
         textarea.style.height = 'auto';
@@ -91,10 +124,16 @@ export class CodeCell extends BaseComponent {
         textarea.style.height = Math.max(scrollH, editorH) + 'px';
     }
 
+    /**
+     * @returns {string} текущее содержимое textarea
+     */
     getContent() {
         return this._element.querySelector('.code-cell__textarea').value;
     }
 
+    /**
+     * @returns {string} идентификатор блока
+     */
     getBlockId() {
         return this.#blockData.id;
     }

@@ -1,5 +1,20 @@
+/**
+ * @module shared/components/input/Input
+ *
+ * Текстовое поле ввода с валидацией, санитизацией через DOMPurify
+ * и поддержкой toggle-видимости пароля.
+ */
+
 import { BaseComponent } from '../base-component/BaseComponent.js';
 
+/** @typedef {import('../../types.js').InputConfig} InputConfig */
+/** @typedef {import('../../types.js').InputState} InputState */
+
+/**
+ * Предустановленные конфигурации полей ввода.
+ *
+ * @type {Object<string, InputConfig>}
+ */
 export const TYPE_INPUT_CONFIG = {
     PASSWORD: {
         type: 'password',
@@ -43,11 +58,26 @@ export const TYPE_INPUT_CONFIG = {
     }
 };
 
+/**
+ * Поле ввода с валидацией (required, pattern, minlength, maxlength),
+ * санитизацией DOMPurify и toggle-кнопкой для паролей.
+ *
+ * @extends BaseComponent
+ */
 export class Input extends BaseComponent {
+    /** @type {HTMLInputElement} */
     #input;
+
+    /** @type {InputConfig} */
     #config;
+
+    /** @type {InputState} */
     #state;
 
+    /**
+     * @param {HTMLElement} parent -- контейнер для mount
+     * @param {InputConfig} config -- конфигурация поля
+     */
     constructor(parent, config) {
         super(null, parent);
         this.#config = config;
@@ -58,6 +88,7 @@ export class Input extends BaseComponent {
         this.#render();
     }
 
+    /** @private */
     #render() {
         const template = Handlebars.templates['Input'];
         const templateData = {
@@ -101,12 +132,16 @@ export class Input extends BaseComponent {
         };
     }
 
+    /**
+     * Сбрасывает значение и убирает ошибку валидации из UI.
+     */
     update() {
         if (!this._isMounted) return;
         this.#state.value = '';
         this.#calmDown();
     }
 
+    /** @private */
     #attachEvents() {
         this._addListener(this.#input, 'input', (e) => {
             const rawValue = e.target.value;
@@ -122,6 +157,7 @@ export class Input extends BaseComponent {
         });
     }
 
+    /** @private */
     #calmDown() {
         this.#state.isValid = true;
         const errorElement = this._element.querySelector('.input-error-message');
@@ -131,6 +167,12 @@ export class Input extends BaseComponent {
         }
     }
 
+    /**
+     * Последовательно проверяет значение поля: required, pattern, minlength, maxlength.
+     * Останавливается на первой ошибке и отображает её в UI.
+     *
+     * @returns {boolean} true если значение прошло все проверки
+     */
     validate() {
         if (this.#input) {
             this.#state.value = DOMPurify.sanitize(this.#input.value);
@@ -175,6 +217,10 @@ export class Input extends BaseComponent {
         return this.#state.isValid;
     }
 
+    /**
+     * @private
+     * @param {string} errorMessage -- текст ошибки для отображения
+     */
     #updateUI(errorMessage) {
         const errorElement = this._element.querySelector('.input-error-message');
         if (!this.#state.isValid) {
@@ -191,15 +237,26 @@ export class Input extends BaseComponent {
         }
     }
 
+    /**
+     * Принудительно помечает поле как невалидное и показывает ошибку.
+     *
+     * @param {string} errorMessage -- текст ошибки
+     */
     showError(errorMessage) {
         this.#state.isValid = false;
         this.#updateUI(errorMessage);
     }
 
+    /**
+     * @returns {string} текущее значение поля (санитизированное)
+     */
     getValue() {
         return this.#state.value;
     }
 
+    /**
+     * Очищает значение поля и сбрасывает состояние валидации.
+     */
     clear() {
         this.#state = {
             isValid: true,
