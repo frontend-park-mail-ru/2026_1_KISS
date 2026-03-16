@@ -119,17 +119,21 @@ export class Pagination extends BaseComponent {
     }
 
     update(currentPage, totalPages) {
-        // console.log('Pagination update:', { currentPage, totalPages });
-        if (typeof totalPages !== 'number' || totalPages <= 0) {
-            console.warn('Invalid totalPages:', totalPages);
-            return;
-        }
-        this.#currentPage = currentPage;
-        this.#totalPages = totalPages;
+        const safeTotalPages =
+            typeof totalPages === 'number' && Number.isFinite(totalPages)
+                ? Math.max(0, Math.floor(totalPages))
+                : 0;
+        const maxPageIndex = Math.max(0, safeTotalPages - 1);
+
+        this.#currentPage =
+            typeof currentPage === 'number' && Number.isFinite(currentPage)
+                ? Math.min(Math.max(0, Math.floor(currentPage)), maxPageIndex)
+                : 0;
+        this.#totalPages = safeTotalPages;
         this._clearListeners();
         this.#updateElementContent();
         this.#attachEvents();
-        if (totalPages <= 1) {
+        if (safeTotalPages <= 1) {
             this.hide();
         } else {
             this.show();
