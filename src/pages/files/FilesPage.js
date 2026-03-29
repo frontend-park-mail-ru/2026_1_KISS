@@ -47,7 +47,7 @@ export class FilesPage {
 
         this.#header = new GreenHeader(this.#root, {
             user: { username: this.#state.username, initials },
-            onProfile: () => {},
+            onProfile: () => Router.getInstance().navigate('/profile'),
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');
