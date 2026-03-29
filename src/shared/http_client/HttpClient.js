@@ -37,14 +37,26 @@ export class HttpClient {
     }
 
     /**
-     * @param {string} url
-     * @param {FormData} formData
+     * @param {string} url - API endpoint
+     * @param {File} file - File object to upload
+     * @param {string} [fieldName='avatar'] - form field name
      * @returns {Promise<Response>}
      */
-    upload(url, formData) {
+    upload(url, file, fieldName = 'avatar') {
+        const boundary = `----FormBoundary${Date.now()}${Math.random().toString(36).slice(2)}`;
+        const safeName = file.name.replace(/["\r\n]/g, '_');
+        const body = new Blob([
+            `--${boundary}\r\nContent-Disposition: form-data; name="${fieldName}"; filename="${safeName}"\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,
+            file,
+            `\r\n--${boundary}--\r\n`
+        ]);
+
         return fetch(this.baseUrl + url, {
             method: 'POST',
-            body: formData,
+            headers: {
+                'Content-Type': `multipart/form-data; boundary=${boundary}`
+            },
+            body: body,
             credentials: 'include'
         });
     }
