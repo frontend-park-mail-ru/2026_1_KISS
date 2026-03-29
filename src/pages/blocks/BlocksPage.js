@@ -14,6 +14,7 @@ export class BlocksPage {
     #cellList;
     #notebook = null;
     #username = '';
+    #avatarUrl = '';
     #httpClient;
 
     constructor(root, params) {
@@ -33,6 +34,7 @@ export class BlocksPage {
             }
             const { data: user } = await response.json();
             this.#username = user.username;
+            this.#avatarUrl = user.avatar_url || '';
         } catch (_e) {
             Router.getInstance().navigate('/sign');
             return;
@@ -65,7 +67,7 @@ export class BlocksPage {
         const initials = this.#username.substring(0, 2).toUpperCase();
         this.#header = new NotebookHeader(headerArea, {
             filename: this.#notebook.title || 'Untitled',
-            user: { username: this.#username, initials },
+            user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             onRename: (newTitle) => this.#renameNotebook(newTitle),
             onProfile: () => Router.getInstance().navigate('/profile'),
             onLogout: async () => {

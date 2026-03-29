@@ -38,6 +38,7 @@ export class FilesPage {
             }
             const { data: user } = await response.json();
             this.#state.username = user.username;
+            this.#state.avatarUrl = user.avatar_url || '';
         } catch (_e) {
             Router.getInstance().navigate('/sign');
             return;
@@ -46,7 +47,7 @@ export class FilesPage {
         const initials = this.#state.username.substring(0, 2).toUpperCase();
 
         this.#header = new GreenHeader(this.#root, {
-            user: { username: this.#state.username, initials },
+            user: { username: this.#state.username, initials, avatarUrl: this.#state.avatarUrl },
             onProfile: () => Router.getInstance().navigate('/profile'),
             onLogout: async () => {
                 try {

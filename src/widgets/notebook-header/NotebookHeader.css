@@ -98,6 +98,23 @@
     cursor: pointer;
 }
 
+.notebook-header__pill-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notebook-header__pill-avatar--default {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--teal-green);
+    color: var(--white);
+    font-size: 9px;
+    font-weight: 600;
+}
+
 .notebook-header__menu-bar {
     display: flex;
     gap: 0;

@@ -105,13 +105,17 @@ test.describe('Profile Page', () => {
 
         await page.goto('/profile');
         const fileInput = page.locator('.profile-section__file-input');
+        const squarePng = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+            'base64'
+        );
         await fileInput.setInputFiles({
-            name: 'test.jpg',
-            mimeType: 'image/jpeg',
-            buffer: Buffer.from([0xff, 0xd8, 0xff, 0xe0])
+            name: 'avatar.png',
+            mimeType: 'image/png',
+            buffer: squarePng
         });
 
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
         expect(uploadCalled).toBe(true);
     });
 

@@ -88,35 +88,56 @@ export class ProfileSection extends BaseComponent {
 
         this._addListener(uploadBtn, 'click', () => fileInput.click());
 
-        this._addListener(fileInput, 'change', async () => {
+        this._addListener(fileInput, 'change', () => {
             const file = fileInput.files[0];
             if (!file) return;
 
             errorEl.textContent = '';
-            const formData = new FormData();
-            formData.append('avatar', file);
+            const objectUrl = URL.createObjectURL(file);
+            const img = new Image();
 
-            try {
-                const response = await this.#httpClient.upload('/users/me/avatar', formData);
-                const result = await response.json();
+            img.onload = async () => {
+                URL.revokeObjectURL(objectUrl);
 
-                if (!response.ok) {
-                    errorEl.textContent = translateError(result.error);
+                if (img.width !== img.height) {
+                    errorEl.textContent = 'Изображение должно быть квадратным (1:1)';
+                    fileInput.value = '';
                     return;
                 }
 
-                this.#config.user = result.data;
-                if (this.#config.onUserUpdate) {
-                    this.#config.onUserUpdate(result.data);
+                const formData = new FormData();
+                formData.append('avatar', file);
+
+                try {
+                    const response = await this.#httpClient.upload('/users/me/avatar', formData);
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        errorEl.textContent = translateError(result.error);
+                        return;
+                    }
+
+                    this.#config.user = result.data;
+                    if (this.#config.onUserUpdate) {
+                        this.#config.onUserUpdate(result.data);
+                    }
+
+                    const avatarEl = this._element.querySelector('.profile-section__avatar');
+                    avatarEl.innerHTML = `<img class="profile-section__avatar-img" src="${DOMPurify.sanitize(result.data.avatar_url)}" alt="Avatar" />`;
+                } catch (_e) {
+                    errorEl.textContent = 'Ошибка загрузки файла';
                 }
 
-                const avatarEl = this._element.querySelector('.profile-section__avatar');
-                avatarEl.innerHTML = `<img class="profile-section__avatar-img" src="${DOMPurify.sanitize(result.data.avatar_url)}" alt="Avatar" />`;
-            } catch (_e) {
-                errorEl.textContent = 'Ошибка загрузки файла';
-            }
+                fileInput.value = '';
+            };
 
-            fileInput.value = '';
+            img.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                errorEl.textContent = 'Не удалось прочитать изображение';
+                fileInput.value = '';
+            };
+
+            img.src = objectUrl;
         });
     }
 
