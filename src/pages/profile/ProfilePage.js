@@ -60,7 +60,11 @@ export class ProfilePage {
         const initials = this.#user.username.substring(0, 2).toUpperCase();
 
         this.#header = new GreenHeader(this.#root, {
-            user: { username: this.#user.username, initials },
+            user: {
+                username: this.#user.username,
+                initials,
+                avatarUrl: this.#user.avatar_url || ''
+            },
             onProfile: () => {},
             onLogout: async () => {
                 try {

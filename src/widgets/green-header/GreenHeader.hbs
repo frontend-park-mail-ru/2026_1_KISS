@@ -7,10 +7,11 @@
         {{#if user}}
         <div class="header-user-pill-wrapper">
             <div class="header-user-pill">
-                <svg class="header-user-pill__icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                </svg>
+                {{#if user.avatarUrl}}
+                    <img class="header-user-pill__avatar" src="{{user.avatarUrl}}" alt="" />
+                {{else}}
+                    <span class="header-user-pill__avatar header-user-pill__avatar--default">{{user.initials}}</span>
+                {{/if}}
                 <span class="header-user-pill__name">{{user.username}}</span>
             </div>
             <div class="header-user-dropdown">

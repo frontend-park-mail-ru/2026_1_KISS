@@ -23,22 +23,22 @@
 }
 
 .profile-page__sidebar-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--dark-primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 0 12px;
+    padding: 0 16px;
     margin: 0 0 6px;
 }
 
 .profile-page__sidebar-item {
     display: block;
     width: 100%;
-    padding: 8px 12px;
+    padding: 8px 16px;
     border: none;
-    border-radius: 6px;
-    background: transparent;
+    border-radius: 8px;
+    background: var(--light-grey);
     color: var(--dark-primary);
     font-size: 14px;
     cursor: pointer;
@@ -48,13 +48,13 @@
 }
 
 .profile-page__sidebar-item:hover {
-    background: var(--light-grey);
+    background: var(--grey);
 }
 
 .profile-page__sidebar-item--active {
-    background: var(--light-grey);
+    background: var(--teal-green);
     font-weight: 600;
-    color: var(--teal-green);
+    color: var(--white);
 }
 
 .profile-page__sidebar-item--danger {
