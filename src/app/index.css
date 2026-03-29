@@ -17,6 +17,12 @@
 @import '../widgets/notebook-toolbar/NotebookToolbar.css';
 @import '../widgets/notebook-sidebar/NotebookSidebar.css';
 @import '../widgets/cell-list/CellList.css';
+@import '../pages/profile/ProfilePage.css';
+@import '../widgets/profile-section/ProfileSection.css';
+@import '../widgets/password-section/PasswordSection.css';
+@import '../widgets/subscription-section/SubscriptionSection.css';
+@import '../widgets/editor-settings/EditorSettings.css';
+@import '../widgets/danger-zone/DangerZone.css';
 
 html, body {
     margin: 0;

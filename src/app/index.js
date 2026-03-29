@@ -1,6 +1,7 @@
 import { RegisterPage } from '../pages/sign/RegisterPage.js';
 import { FilesPage } from '../pages/files/FilesPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
+import { ProfilePage } from '../pages/profile/ProfilePage.js';
 import { Router } from '../shared/router/Router.js';
 import { HttpClient } from '../shared/http_client/HttpClient.js';
 
@@ -11,6 +12,7 @@ const router = new Router(rootElement);
 router.addRoute('/sign', RegisterPage);
 router.addRoute('/files', FilesPage);
 router.addRoute('/notebooks/:id', BlocksPage);
+router.addRoute('/profile', ProfilePage);
 
 async function getDefaultPath() {
     try {

@@ -67,9 +67,7 @@ export class BlocksPage {
             filename: this.#notebook.title || 'Untitled',
             user: { username: this.#username, initials },
             onRename: (newTitle) => this.#renameNotebook(newTitle),
-            onProfile: () => {
-                // TODO: navigate to profile page
-            },
+            onProfile: () => Router.getInstance().navigate('/profile'),
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');

@@ -18,6 +18,14 @@ app.use(
     })
 );
 
+app.use(
+    createProxyMiddleware({
+        target: process.env.API_TARGET || 'http://localhost:8080',
+        changeOrigin: true,
+        pathFilter: '/uploads'
+    })
+);
+
 // Раздача статических файлов (это типо nginx должен делать на беке?)
 app.use(express.static(path.resolve(__dirname, '..', 'src')));
 app.use(express.static(path.resolve(__dirname, '..', 'node_modules'))); // доступ ко всем пакетам

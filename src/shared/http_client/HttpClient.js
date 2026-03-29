@@ -36,6 +36,19 @@ export class HttpClient {
         return this.request('DELETE', url);
     }
 
+    /**
+     * @param {string} url
+     * @param {FormData} formData
+     * @returns {Promise<Response>}
+     */
+    upload(url, formData) {
+        return fetch(this.baseUrl + url, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+    }
+
     request(method, url, data = null) {
         return fetch(this.baseUrl + url, {
             method: method,
