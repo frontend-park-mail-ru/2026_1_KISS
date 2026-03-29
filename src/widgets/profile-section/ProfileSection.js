@@ -105,11 +105,8 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                const formData = new FormData();
-                formData.append('avatar', file);
-
                 try {
-                    const response = await this.#httpClient.upload('/users/me/avatar', formData);
+                    const response = await this.#httpClient.upload('/users/me/avatar', file);
                     const result = await response.json();
 
                     if (!response.ok) {

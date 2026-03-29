@@ -93,8 +93,12 @@ test.describe('Profile Page', () => {
         await mockAuthAPI(page);
 
         let uploadCalled = false;
+        let hasCorrectContentType = false;
         await page.route('**/api/v1/users/me/avatar', (route) => {
             uploadCalled = true;
+            const ct = route.request().headers()['content-type'] || '';
+            hasCorrectContentType =
+                ct.includes('multipart/form-data') && ct.includes('boundary=');
             const updated = { ...mockUser.data, avatar_url: '/uploads/test.jpg' };
             route.fulfill({
                 status: 200,
@@ -117,6 +121,7 @@ test.describe('Profile Page', () => {
 
         await page.waitForTimeout(1000);
         expect(uploadCalled).toBe(true);
+        expect(hasCorrectContentType).toBe(true);
     });
 
     test('unauthenticated user is redirected to /sign', async ({ page }) => {
