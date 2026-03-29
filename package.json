@@ -4,7 +4,8 @@
     "description": "Платформа для написания и выполнения кода на языке Python прямо в браузере",
     "main": "test_server/index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "npx playwright test",
+        "test:headed": "npx playwright test --headed",
         "prestart": "npm run compile:templates",
         "start": "DEBUG=* && node test_server/index.js",
         "compile:templates": "chmod +x compile-templates.sh && ./compile-templates.sh",
@@ -26,6 +27,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@playwright/test": "^1.58.2",
         "eslint": "^10.0.3",
         "eslint-config-prettier": "^10.1.8",
         "globals": "^17.4.0",
