@@ -1,40 +1,21 @@
-/**
- * @module widgets/cell-list/CellList
- */
-
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { CellListTemplate } from './CellList.template.js';
 import { CodeCell } from '../../shared/components/code-cell/CodeCell.js';
 import { TextCell } from '../../shared/components/text-cell/TextCell.js';
 
-/** @typedef {import('../../shared/types.js').BlockData} BlockData */
-
-/**
- * Контейнер ячеек ноутбука. Управляет списком CodeCell/TextCell,
- * их перемещением и копированием содержимого.
- *
- * @extends BaseComponent
- */
 export class CellList extends BaseComponent {
-    /** @type {(CodeCell|TextCell)[]} */
     #cells = [];
-
-    /** @type {BlockData[]} */
     #blocks = [];
+    #onRunCell;
+    #onRerender;
 
-    /**
-     * @param {HTMLElement} parent
-     */
-    constructor(parent) {
+    constructor(parent, { onRunCell, onRerender } = {}) {
         super(null, parent);
+        this.#onRunCell = onRunCell;
+        this.#onRerender = onRerender;
         this.#render();
     }
 
-    /**
-     * Компилирует Handlebars-шаблон CellList и создаёт корневой DOM-элемент контейнера ячеек.
-     *
-     * @private
-     */
     #render() {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = CellListTemplate({});
@@ -52,12 +33,6 @@ export class CellList extends BaseComponent {
         super.unmount();
     }
 
-    /**
-     * Заменяет все ячейки новым набором блоков.
-     * Очищает предыдущие, создаёт CodeCell/TextCell по типу и монтирует.
-     *
-     * @param {BlockData[]} blocks -- массив данных блоков
-     */
     updateBlocks(blocks) {
         this.#clearCells();
         this.#blocks = [...blocks];
@@ -68,6 +43,7 @@ export class CellList extends BaseComponent {
         if (blocks.length === 0) {
             container.style.display = 'none';
             emptyState.style.display = '';
+            if (this.#onRerender) this.#onRerender();
             return;
         }
 
@@ -86,7 +62,9 @@ export class CellList extends BaseComponent {
             if (block.type === 'code') {
                 cell = new CodeCell(container, {
                     ...cellCallbacks,
-                    onRun: () => {}
+                    onRun: (id) => {
+                        if (this.#onRunCell) this.#onRunCell(id);
+                    }
                 });
             } else {
                 cell = new TextCell(container, cellCallbacks);
@@ -95,25 +73,15 @@ export class CellList extends BaseComponent {
             cell.mount();
             this.#cells.push(cell);
         });
+
+        if (this.#onRerender) this.#onRerender();
     }
 
-    /**
-     * Добавляет блок в конец списка и перерисовывает все ячейки.
-     *
-     * @param {BlockData} blockData
-     */
     addBlock(blockData) {
         this.#blocks.push(blockData);
         this.updateBlocks(this.#blocks);
     }
 
-    /**
-     * Меняет позицию блока на +-1 и перерисовывает список.
-     *
-     * @private
-     * @param {string} id -- идентификатор перемещаемого блока
-     * @param {number} direction -- направление (-1 вверх, +1 вниз)
-     */
     #moveBlock(id, direction) {
         const index = this.#blocks.findIndex((b) => b.id === id);
         if (index < 0) return;
@@ -128,12 +96,6 @@ export class CellList extends BaseComponent {
         this.updateBlocks(this.#blocks);
     }
 
-    /**
-     * Копирует содержимое блока в буфер обмена.
-     *
-     * @private
-     * @param {string} id -- идентификатор блока
-     */
     #copyBlock(id) {
         const block = this.#blocks.find((b) => b.id === id);
         if (!block) return;
@@ -145,13 +107,42 @@ export class CellList extends BaseComponent {
         navigator.clipboard.writeText(content).catch(() => {});
     }
 
-    /**
-     * Размонтирует все ячейки (CodeCell/TextCell) и очищает внутренний массив.
-     *
-     * @private
-     */
     #clearCells() {
         this.#cells.forEach((cell) => cell.unmount());
         this.#cells = [];
+    }
+
+    /**
+     * Найти ячейку по id блока.
+     * @param {number|string} id
+     * @returns {CodeCell|TextCell|null}
+     */
+    getCellByBlockId(id) {
+        return this.#cells.find((c) => c.getBlockId() === id) || null;
+    }
+
+    /**
+     * Вернуть копию списка всех ячеек.
+     * @returns {Array<CodeCell|TextCell>}
+     */
+    getAllCells() {
+        return [...this.#cells];
+    }
+
+    /**
+     * Вернуть только code-ячейки в порядке позиций.
+     * @returns {CodeCell[]}
+     */
+    getCodeCellsInOrder() {
+        return this.#cells.filter((c) => c instanceof CodeCell);
+    }
+
+    /**
+     * Позиция блока в списке (0-индексированная). Соответствует backend `block_position`.
+     * @param {number|string} id
+     * @returns {number} -1 если не найдено
+     */
+    getBlockPositionById(id) {
+        return this.#blocks.findIndex((b) => b.id === id);
     }
 }
