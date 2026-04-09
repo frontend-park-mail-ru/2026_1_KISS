@@ -1,69 +1,37 @@
-/**
- * @module pages/blocks/BlocksPage
- *
- * Страница редактора ноутбука (/notebooks/:id).
- * Загружает данные ноутбука и пользователя, рендерит header, toolbar,
- * sidebar и список ячеек.
- */
-
 import { NotebookHeader } from '../../widgets/notebook-header/NotebookHeader.js';
 import { NotebookToolbar } from '../../widgets/notebook-toolbar/NotebookToolbar.js';
 import { NotebookSidebar } from '../../widgets/notebook-sidebar/NotebookSidebar.js';
 import { CellList } from '../../widgets/cell-list/CellList.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
+import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { Router } from '../../shared/router/Router.js';
 
-/** @typedef {import('../../shared/types.js').Notebook} Notebook */
-
-/**
- * Страница /notebooks/:id -- редактор ноутбука с code/text ячейками.
- * При отсутствии авторизации редиректит на /sign,
- * при ошибке загрузки ноутбука -- на /files.
- */
 export class BlocksPage {
-    /** @type {HTMLElement} */
     #root;
-
-    /** @type {string} */
     #notebookId;
-
-    /** @type {NotebookHeader} */
     #header;
-
-    /** @type {NotebookToolbar} */
     #toolbar;
-
-    /** @type {NotebookSidebar} */
     #sidebar;
-
-    /** @type {CellList} */
     #cellList;
-
-    /** @type {?Notebook} */
     #notebook = null;
-
-    /** @type {string} */
     #username = '';
     #avatarUrl = '';
     #httpClient;
+    #runnerApi;
 
-    /**
-     * @param {HTMLElement} root -- корневой элемент
-     * @param {Object} params -- параметры маршрута
-     * @param {string} params.id -- идентификатор ноутбука
-     */
+    // Сохранение execution state при re-renders (move, add, reload)
+    #executionCounter = 0;
+    #execNumbers = new Map(); // blockId -> execution number
+    #lastOutputs = new Map(); // blockId -> output object
+    #beforeUnloadHandler = null;
+
     constructor(root, params) {
         this.#root = root;
         this.#notebookId = params.id;
         this.#httpClient = HttpClient.getInstance();
+        this.#runnerApi = new RunnerApi();
     }
 
-    /**
-     * Загружает данные пользователя и ноутбука, затем строит layout.
-     *
-     * @async
-     * @returns {Promise<void>}
-     */
     async render() {
         this.#root.innerHTML = '';
 
@@ -97,11 +65,6 @@ export class BlocksPage {
         this.#buildLayout();
     }
 
-    /**
-     * Собирает DOM-структуру страницы: создаёт области для header, toolbar, sidebar и cell list, монтирует все виджеты и загружает блоки ноутбука.
-     *
-     * @private
-     */
     #buildLayout() {
         const page = document.createElement('div');
         page.className = 'blocks-page';
@@ -130,7 +93,7 @@ export class BlocksPage {
         this.#toolbar = new NotebookToolbar(headerArea, {
             onAddCode: () => this.#createBlock('code'),
             onAddText: () => this.#createBlock('text'),
-            onRunAll: () => {}
+            onRunAll: () => this.#runAllBlocks()
         });
         this.#toolbar.mount();
 
@@ -149,26 +112,30 @@ export class BlocksPage {
         main.className = 'blocks-page__main';
         body.appendChild(main);
 
-        this.#cellList = new CellList(main);
+        this.#cellList = new CellList(main, {
+            onRunCell: (blockId) => this.#runSingleBlock(blockId),
+            onRerender: () => this.#reapplyCellState()
+        });
         this.#cellList.mount();
 
         this.#root.appendChild(page);
 
         const blocks = this.#notebook.blocks || [];
         this.#cellList.updateBlocks(blocks);
+
+        // Остановка runner-сессии при закрытии вкладки / F5
+        this.#beforeUnloadHandler = () => {
+            if (this.#notebookId) this.#runnerApi.stopSessionBeacon(this.#notebookId);
+        };
+        window.addEventListener('beforeunload', this.#beforeUnloadHandler);
     }
 
-    /**
-     * Создаёт новый блок через API и перезагружает список ячеек.
-     *
-     * @private
-     * @async
-     * @param {string} type -- 'code' или 'text'
-     */
     async #createBlock(type) {
         try {
             const body = { type, content: '' };
             if (type === 'code') {
+                // TODO(runner-r): бэкенд сейчас хардкодит Python в runner_service.go:58.
+                // Когда это будет исправлено -- добавить language selector в toolbar.
                 body.language = 'python';
             }
             const response = await this.#httpClient.post(
@@ -181,6 +148,7 @@ export class BlocksPage {
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;
+            // updateBlocks автоматически зовёт onRerender → #reapplyCellState
             this.#cellList.updateBlocks(notebook.blocks || []);
         } catch (e) {
             console.error('Failed to create block:', e);
@@ -188,12 +156,112 @@ export class BlocksPage {
     }
 
     /**
-     * Переименовывает ноутбук через PUT /notebooks/:id.
-     *
-     * @private
-     * @async
-     * @param {string} newTitle -- новое название
+     * Исполнить один блок по id. Вызывается из CellList onRunCell.
+     * @param {number|string} blockId
      */
+    async #runSingleBlock(blockId) {
+        const cell = this.#cellList.getCellByBlockId(blockId);
+        if (!cell) return;
+        const position = this.#cellList.getBlockPositionById(blockId);
+        if (position < 0) return;
+
+        // Сохранить актуальное содержимое textarea на бэк перед исполнением,
+        // иначе runner выполнит старую версию из БД.
+        await this.#maybeSaveCellContent(blockId, cell);
+
+        cell.setRunning(true);
+        try {
+            const result = await this.#runnerApi.executeBlock(this.#notebookId, position);
+            this.#executionCounter += 1;
+            this.#execNumbers.set(blockId, this.#executionCounter);
+            this.#lastOutputs.set(blockId, {
+                stdout: result.stdout,
+                stderr: result.stderr,
+                result: result.result
+            });
+            cell.setExecutionNumber(this.#executionCounter);
+            cell.setOutput(this.#lastOutputs.get(blockId));
+        } catch (e) {
+            const errOut = { error: e.message || String(e) };
+            this.#lastOutputs.set(blockId, errOut);
+            cell.setOutput(errOut);
+        } finally {
+            cell.setRunning(false);
+        }
+    }
+
+    /**
+     * Исполнить все code-блоки с нулевой позиции.
+     */
+    async #runAllBlocks() {
+        const codeCells = this.#cellList.getCodeCellsInOrder();
+        if (codeCells.length === 0) return;
+
+        // Персист содержимого всех ячеек перед запуском
+        for (const c of codeCells) {
+            await this.#maybeSaveCellContent(c.getBlockId(), c);
+        }
+
+        codeCells.forEach((c) => {
+            c.setRunning(true);
+            c.clearOutput();
+        });
+
+        try {
+            const results = await this.#runnerApi.executeFromPosition(this.#notebookId, 0);
+            if (!Array.isArray(results)) return;
+            results.forEach((r) => {
+                const cell = this.#cellList.getCellByBlockId(r.block_id);
+                if (!cell || !cell.setOutput) return;
+                this.#executionCounter += 1;
+                this.#execNumbers.set(r.block_id, this.#executionCounter);
+                const out = { stdout: r.stdout, stderr: r.stderr, result: r.result };
+                this.#lastOutputs.set(r.block_id, out);
+                cell.setExecutionNumber(this.#executionCounter);
+                cell.setOutput(out);
+            });
+        } catch (e) {
+            const errOut = { error: `Run-all failed: ${e.message || e}` };
+            codeCells.forEach((c) => {
+                this.#lastOutputs.set(c.getBlockId(), errOut);
+                c.setOutput(errOut);
+            });
+        } finally {
+            codeCells.forEach((c) => c.setRunning(false));
+        }
+    }
+
+    /**
+     * Переприменить сохранённые execution numbers и outputs после re-render (например, move).
+     * Вызывать после каждого `cellList.updateBlocks`.
+     */
+    #reapplyCellState() {
+        this.#execNumbers.forEach((n, id) => {
+            const cell = this.#cellList.getCellByBlockId(id);
+            if (cell && cell.setExecutionNumber) cell.setExecutionNumber(n);
+        });
+        this.#lastOutputs.forEach((out, id) => {
+            const cell = this.#cellList.getCellByBlockId(id);
+            if (cell && cell.setOutput) cell.setOutput(out);
+        });
+    }
+
+    /**
+     * Сохранить актуальное содержимое ячейки на бэк через PUT.
+     * Fire-and-forget (ошибки глотаются) -- бэк может не поддерживать этот endpoint.
+     * @param {number|string} blockId
+     * @param {{getContent: Function}} cell
+     */
+    async #maybeSaveCellContent(blockId, cell) {
+        try {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
+                content: cell.getContent()
+            });
+        } catch {
+            /* tolerate */
+        }
+    }
+
     async #renameNotebook(newTitle) {
         try {
             const response = await this.#httpClient.put(`/notebooks/${this.#notebookId}`, {
@@ -208,10 +276,16 @@ export class BlocksPage {
         }
     }
 
-    /**
-     * Размонтирует все виджеты и очищает DOM.
-     */
     destroy() {
+        // Остановить runner-сессию (fire-and-forget)
+        if (this.#notebookId) {
+            this.#runnerApi.stopSession(this.#notebookId);
+        }
+        // Снять beforeunload listener
+        if (this.#beforeUnloadHandler) {
+            window.removeEventListener('beforeunload', this.#beforeUnloadHandler);
+            this.#beforeUnloadHandler = null;
+        }
         if (this.#cellList) this.#cellList.unmount();
         if (this.#sidebar) this.#sidebar.unmount();
         if (this.#toolbar) this.#toolbar.unmount();

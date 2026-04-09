@@ -27,6 +27,7 @@ export class CodeCell extends BaseComponent {
 
     /** @type {Function} */
     #onRun;
+    #isRunning = false;
 
     /**
      * @param {HTMLElement} parent
@@ -101,7 +102,7 @@ export class CodeCell extends BaseComponent {
 
         const runBtn = this._element.querySelector('.code-cell__run-btn');
         this._addListener(runBtn, 'click', () => {
-            if (this.#onRun) this.#onRun(this.#blockData.id);
+            if (this.#onRun && !this.#isRunning) this.#onRun(this.#blockData.id);
         });
 
         this._element.querySelectorAll('.code-cell__action-btn').forEach((btn) => {
@@ -152,5 +153,69 @@ export class CodeCell extends BaseComponent {
      */
     getBlockId() {
         return this.#blockData.id;
+    }
+
+    /**
+     * Пометить ячейку как исполняющуюся (или остановленную).
+     * Во время running: Run-кнопка disabled, execution number получает `*`, output очищается.
+     * @param {boolean} isRunning
+     */
+    setRunning(isRunning) {
+        this.#isRunning = isRunning;
+        this._element.classList.toggle('code-cell--running', isRunning);
+        if (isRunning) this.clearOutput();
+    }
+
+    /**
+     * Установить execution number (Jupyter-стиль `[N]`).
+     * @param {number|null} n
+     */
+    setExecutionNumber(n) {
+        const el = this._element.querySelector('.code-cell__execution-number');
+        if (el) el.textContent = `[${n ?? ' '}]`;
+    }
+
+    /**
+     * Показать вывод исполнения ячейки.
+     * Все тексты вставляются через textContent (безопасно, HTML не парсится).
+     * @param {{stdout?: string[], stderr?: string[], result?: string, error?: string}} out
+     */
+    setOutput(out = {}) {
+        const el = this._element.querySelector('.code-cell__output');
+        const stdoutEl = el.querySelector('.code-cell__output-stdout');
+        const stderrEl = el.querySelector('.code-cell__output-stderr');
+        const resultEl = el.querySelector('.code-cell__output-result');
+
+        const hasAny =
+            (out.stdout?.length ?? 0) > 0 ||
+            (out.stderr?.length ?? 0) > 0 ||
+            !!out.result ||
+            !!out.error;
+
+        el.hidden = !hasAny;
+
+        stdoutEl.textContent = out.stdout?.length ? out.stdout.join('\n') : '';
+
+        const stderrText = [out.stderr?.join('\n') || '', out.error || '']
+            .filter(Boolean)
+            .join('\n');
+        stderrEl.textContent = stderrText || '';
+
+        resultEl.textContent = out.result || '';
+
+        this._element.classList.toggle('code-cell--error', !!(out.stderr?.length || out.error));
+    }
+
+    /**
+     * Скрыть и очистить output-область.
+     */
+    clearOutput() {
+        const el = this._element.querySelector('.code-cell__output');
+        if (!el) return;
+        el.hidden = true;
+        el.querySelector('.code-cell__output-stdout').textContent = '';
+        el.querySelector('.code-cell__output-stderr').textContent = '';
+        el.querySelector('.code-cell__output-result').textContent = '';
+        this._element.classList.remove('code-cell--error');
     }
 }

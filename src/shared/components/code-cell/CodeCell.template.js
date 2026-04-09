@@ -10,9 +10,16 @@ export function CodeCellTemplate(ctx) {
             </svg>
         </button>
     </div>
-    <div class="code-cell__editor">
-        <div class="code-cell__line-numbers"></div>
-        <textarea class="code-cell__textarea" wrap="off" spellcheck="false" placeholder="Введите код...">${escapeHtml(ctx.content)}</textarea>
+    <div class="code-cell__main">
+        <div class="code-cell__editor">
+            <div class="code-cell__line-numbers"></div>
+            <textarea class="code-cell__textarea" wrap="off" spellcheck="false" placeholder="Введите код...">${escapeHtml(ctx.content)}</textarea>
+        </div>
+        <div class="code-cell__output" hidden>
+            <pre class="code-cell__output-stdout"></pre>
+            <pre class="code-cell__output-stderr"></pre>
+            <pre class="code-cell__output-result"></pre>
+        </div>
     </div>
     <div class="code-cell__actions">
         <button class="code-cell__action-btn" data-action="move-up" title="Переместить вверх">
