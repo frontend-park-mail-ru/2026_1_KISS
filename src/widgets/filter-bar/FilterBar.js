@@ -25,6 +25,7 @@ export class FilterBar extends BaseComponent {
 
     /** @type {boolean} */
     #ownerOpen = false;
+    #searchDebounce = null;
 
     /**
      * @param {HTMLElement} parent
@@ -87,6 +88,15 @@ export class FilterBar extends BaseComponent {
         const createBtn = this._element.querySelector('.filter-bar__create-btn');
         this._addListener(createBtn, 'click', () => {
             this.#onCreate();
+        });
+
+        const searchInput = this._element.querySelector('.filter-bar__search-input');
+        this._addListener(searchInput, 'input', (e) => {
+            clearTimeout(this.#searchDebounce);
+            const value = e.target.value;
+            this.#searchDebounce = setTimeout(() => {
+                if (this.#onFilterChange) this.#onFilterChange({ search: value });
+            }, 200);
         });
 
         const dateBtn = this._element.querySelector('.filter-bar__date-btn');
@@ -270,9 +280,11 @@ export class FilterBar extends BaseComponent {
 
         this._element.querySelector('.filter-bar__date-from').value = '';
         this._element.querySelector('.filter-bar__date-to').value = '';
+        this._element.querySelector('.filter-bar__search-input').value = '';
 
+        clearTimeout(this.#searchDebounce);
         if (this.#onFilterChange) {
-            this.#onFilterChange({ owner: null, dateFrom: null, dateTo: null });
+            this.#onFilterChange({ owner: null, dateFrom: null, dateTo: null, search: '' });
         }
     }
 }
