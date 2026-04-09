@@ -1,11 +1,3 @@
-/**
- * @module pages/files/FilesPage
- *
- * Страница списка ноутбуков (/files).
- * Загружает ноутбуки с пагинацией, поддерживает фильтрацию по владельцу
- * и дате, CRUD-операции над ноутбуками.
- */
-
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { FilterBar } from '../../widgets/filter-bar/FilterBar.js';
 import { FilesTable } from '../../widgets/files-table/FilesTable.js';
@@ -13,40 +5,14 @@ import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 
-/** @typedef {import('../../shared/types.js').Notebook} Notebook */
-/** @typedef {import('../../shared/types.js').FilterSet} FilterSet */
-/** @typedef {import('../../shared/types.js').FilesPageState} FilesPageState */
-
-/**
- * Страница /files -- список ноутбуков с фильтрами, сортировкой и пагинацией.
- * При отсутствии авторизации редиректит на /sign.
- */
 export class FilesPage {
-    /** @type {HTMLElement} */
     #root;
-
-    /** @type {GreenHeader} */
     #header;
-
-    /** @type {FilterBar} */
     #filterBar;
-
-    /** @type {FilesTable} */
     #filesTable;
-
-    /** @type {Pagination} */
     #pagination;
-
-    /** @type {HttpClient} */
-    #httpClient;
-
-    /** @type {Notebook[]} */
     #allNotebooks = [];
-
-    /** @type {FilterSet} */
-    #filters = { owner: null, dateFrom: null, dateTo: null };
-
-    /** @type {FilesPageState} */
+    #filters = { owner: null, dateFrom: null, dateTo: null, search: '' };
     #state = {
         notebooks: [],
         currentPage: 1,
@@ -54,21 +20,13 @@ export class FilesPage {
         username: ''
     };
 
-    /**
-     * @param {HTMLElement} root -- корневой элемент
-     */
+    #httpClient;
+
     constructor(root) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
     }
 
-    /**
-     * Проверяет авторизацию, рендерит header, фильтры, таблицу и пагинацию,
-     * загружает первую страницу ноутбуков.
-     *
-     * @async
-     * @returns {Promise<void>}
-     */
     async render() {
         this.#root.innerHTML = '';
 
@@ -131,9 +89,6 @@ export class FilesPage {
         await this.#loadNotebooks(1);
     }
 
-    /**
-     * Размонтирует виджеты и очищает DOM.
-     */
     destroy() {
         if (this.#filterBar) this.#filterBar.unmount();
         if (this.#filesTable) this.#filesTable.unmount();
@@ -141,21 +96,18 @@ export class FilesPage {
         this.#root.innerHTML = '';
     }
 
-    /**
-     * Загружает страницу ноутбуков с сервера и обновляет таблицу + пагинатор.
-     *
-     * @private
-     * @async
-     * @param {number} page -- номер страницы (1-based)
-     */
     async #loadNotebooks(page) {
         const requestedPage = Math.max(1, page);
         const offset = (requestedPage - 1) * this.#state.limit;
 
+        const params = new URLSearchParams({
+            limit: String(this.#state.limit),
+            offset: String(offset)
+        });
+        if (this.#filters.search) params.set('search', this.#filters.search);
+
         try {
-            const response = await this.#httpClient.get(
-                `/notebooks?limit=${this.#state.limit}&offset=${offset}`
-            );
+            const response = await this.#httpClient.get(`/notebooks?${params.toString()}`);
 
             if (!response.ok) return;
 
@@ -188,22 +140,17 @@ export class FilesPage {
         }
     }
 
-    /**
-     * Обрабатывает изменение фильтров: мержит новые значения в текущие и перефильтровывает таблицу.
-     *
-     * @private
-     * @param {FilterSet} filters -- изменённые фильтры
-     */
     #onFilterChange(filters) {
+        const searchChanged = 'search' in filters && filters.search !== this.#filters.search;
         Object.assign(this.#filters, filters);
-        this.#applyFilters();
+        if (searchChanged) {
+            // Поиск идёт на бэк, сбрасываем на первую страницу
+            this.#loadNotebooks(1);
+        } else {
+            this.#applyFilters();
+        }
     }
 
-    /**
-     * Фильтрует #allNotebooks по текущим фильтрам (владелец, dateFrom, dateTo) и обновляет таблицу.
-     *
-     * @private
-     */
     #applyFilters() {
         let filtered = [...this.#allNotebooks];
 
@@ -225,12 +172,6 @@ export class FilesPage {
         this.#filesTable.setData(filtered, this.#state.username);
     }
 
-    /**
-     * Создаёт новый ноутбук через POST /notebooks и навигирует к нему.
-     *
-     * @private
-     * @async
-     */
     async #createNotebook() {
         try {
             const response = await this.#httpClient.post('/notebooks', {
@@ -245,11 +186,6 @@ export class FilesPage {
         }
     }
 
-    /**
-     * @private
-     * @async
-     * @param {string} id -- идентификатор ноутбука
-     */
     async #deleteNotebook(id) {
         try {
             const response = await this.#httpClient.delete(`/notebooks/${id}`);
@@ -261,12 +197,6 @@ export class FilesPage {
         }
     }
 
-    /**
-     * @private
-     * @async
-     * @param {string} id -- идентификатор ноутбука
-     * @param {string} newTitle -- новое название
-     */
     async #renameNotebook(id, newTitle) {
         try {
             const response = await this.#httpClient.put(`/notebooks/${id}`, {

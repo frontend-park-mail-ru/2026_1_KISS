@@ -1,6 +1,13 @@
 export function FilterBarTemplate() {
     return `<div class="filter-bar">
     <div class="filter-bar__filters">
+        <div class="filter-bar__search">
+            <svg class="filter-bar__search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" class="filter-bar__search-input" placeholder="Поиск по названию...">
+        </div>
         <div class="filter-bar__date-wrapper">
             <button class="filter-bar__dropdown-btn filter-bar__date-btn">Изменено</button>
             <div class="filter-bar__date-dropdown">
