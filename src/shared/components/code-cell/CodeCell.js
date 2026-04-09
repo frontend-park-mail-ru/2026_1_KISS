@@ -148,9 +148,20 @@ export class CodeCell extends BaseComponent {
         return this._element.querySelector('.code-cell__textarea').value;
     }
 
-    /**
-     * @returns {string} идентификатор блока
-     */
+    setContent(text) {
+        const textarea = this._element.querySelector('.code-cell__textarea');
+        textarea.value = text;
+        this.#updateLineNumbers();
+        this.#autoResize();
+    }
+
+    highlightRange(start, end) {
+        const textarea = this._element.querySelector('.code-cell__textarea');
+        textarea.focus({ preventScroll: true });
+        textarea.setSelectionRange(start, end);
+        this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     getBlockId() {
         return this.#blockData.id;
     }

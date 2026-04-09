@@ -21,12 +21,21 @@ export function NotebookSidebarTemplate() {
     <div class="notebook-sidebar__panel notebook-sidebar__panel--search">
         <h3 class="notebook-sidebar__panel-title">Найти и заменить</h3>
         <div class="notebook-sidebar__panel-content">
-            <input type="text" class="notebook-sidebar__input" placeholder="Найти...">
-            <input type="text" class="notebook-sidebar__input" placeholder="Заменить на...">
-            <button class="notebook-sidebar__find-btn">Найти</button>
+            <input type="text" class="notebook-sidebar__input notebook-sidebar__find-input" placeholder="Найти...">
+            <input type="text" class="notebook-sidebar__input notebook-sidebar__replace-input" placeholder="Заменить на...">
+            <label class="notebook-sidebar__checkbox">
+                <input type="checkbox" class="notebook-sidebar__case-toggle">
+                Учитывать регистр
+            </label>
+            <div class="notebook-sidebar__find-row">
+                <button class="notebook-sidebar__find-btn" data-action="find">Найти</button>
+                <button class="notebook-sidebar__nav-btn" data-action="prev" title="Назад">↑</button>
+                <button class="notebook-sidebar__nav-btn" data-action="next" title="Далее">↓</button>
+                <span class="notebook-sidebar__match-count">0 / 0</span>
+            </div>
             <div class="notebook-sidebar__replace-links">
-                <a href="#" class="notebook-sidebar__link">Заменить</a>
-                <a href="#" class="notebook-sidebar__link">Заменить все</a>
+                <button class="notebook-sidebar__link-btn" data-action="replace">Заменить</button>
+                <button class="notebook-sidebar__link-btn" data-action="replace-all">Заменить все</button>
             </div>
         </div>
     </div>
