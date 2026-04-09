@@ -91,9 +91,34 @@ export class TextCell extends BaseComponent {
         return this._element.querySelector('.text-cell__content').textContent;
     }
 
-    /**
-     * @returns {string} идентификатор блока
-     */
+    setContent(text) {
+        this._element.querySelector('.text-cell__content').textContent = text;
+    }
+
+    highlightMatch(_matchIndex, start, end) {
+        const el = this._element.querySelector('.text-cell__content');
+        const raw = el.textContent;
+        const before = raw.substring(0, start);
+        const matchText = raw.substring(start, end);
+        const after = raw.substring(end);
+        el.innerHTML = '';
+        el.appendChild(document.createTextNode(before));
+        const mark = document.createElement('mark');
+        mark.className = 'find-match find-match--current';
+        mark.textContent = matchText;
+        el.appendChild(mark);
+        el.appendChild(document.createTextNode(after));
+        this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    clearHighlights() {
+        const el = this._element.querySelector('.text-cell__content');
+        el.querySelectorAll('mark.find-match').forEach((m) => {
+            m.replaceWith(document.createTextNode(m.textContent));
+        });
+        el.normalize();
+    }
+
     getBlockId() {
         return this.#blockData.id;
     }

@@ -2,8 +2,10 @@ import { NotebookHeader } from '../../widgets/notebook-header/NotebookHeader.js'
 import { NotebookToolbar } from '../../widgets/notebook-toolbar/NotebookToolbar.js';
 import { NotebookSidebar } from '../../widgets/notebook-sidebar/NotebookSidebar.js';
 import { CellList } from '../../widgets/cell-list/CellList.js';
+import { CodeCell } from '../../shared/components/code-cell/CodeCell.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { RunnerApi } from '../../shared/api/RunnerApi.js';
+import { FindEngine } from '../../shared/search/FindEngine.js';
 import { Router } from '../../shared/router/Router.js';
 
 export class BlocksPage {
@@ -24,6 +26,9 @@ export class BlocksPage {
     #execNumbers = new Map(); // blockId -> execution number
     #lastOutputs = new Map(); // blockId -> output object
     #beforeUnloadHandler = null;
+
+    // Find/Replace state
+    #findEngine = new FindEngine();
 
     constructor(root, params) {
         this.#root = root;
@@ -105,7 +110,13 @@ export class BlocksPage {
         sidebarArea.className = 'blocks-page__sidebar';
         body.appendChild(sidebarArea);
 
-        this.#sidebar = new NotebookSidebar(sidebarArea);
+        this.#sidebar = new NotebookSidebar(sidebarArea, {
+            onFind: (q) => this.#handleFind(q),
+            onNext: (q) => this.#handleFindNav(q, 'next'),
+            onPrev: (q) => this.#handleFindNav(q, 'prev'),
+            onReplace: (q) => this.#handleReplace(q),
+            onReplaceAll: (q) => this.#handleReplaceAll(q)
+        });
         this.#sidebar.mount();
 
         const main = document.createElement('main');
@@ -274,6 +285,90 @@ export class BlocksPage {
         } catch (e) {
             console.error('Failed to rename notebook:', e);
         }
+    }
+
+    /**
+     * Собрать ячейки для поиска в формате, понятном FindEngine.
+     * Читаем живой getContent() (а не this.#notebook.blocks) -- пользователь
+     * мог редактировать ячейки с момента загрузки.
+     * @returns {Array<{id: number|string, kind: 'code'|'text', content: string}>}
+     */
+    #collectSearchableCells() {
+        return this.#cellList.getAllCells().map((c) => ({
+            id: c.getBlockId(),
+            kind: c instanceof CodeCell ? 'code' : 'text',
+            content: c.getContent()
+        }));
+    }
+
+    #handleFind({ query, caseSensitive }) {
+        const cells = this.#collectSearchableCells();
+        const total = this.#findEngine.search(cells, query, caseSensitive);
+        this.#sidebar.setMatchCount(this.#findEngine.index(), total);
+        if (total > 0) this.#focusCurrentMatch();
+    }
+
+    #handleFindNav(query, direction) {
+        if (this.#findEngine.total() === 0) {
+            this.#handleFind(query);
+            return;
+        }
+        const m = direction === 'next' ? this.#findEngine.next() : this.#findEngine.prev();
+        if (m) {
+            this.#sidebar.setMatchCount(this.#findEngine.index(), this.#findEngine.total());
+            this.#focusCurrentMatch();
+        }
+    }
+
+    #focusCurrentMatch() {
+        // Сначала сбросить все highlights в text-ячейках
+        this.#cellList
+            .getAllCells()
+            .filter((c) => typeof c.clearHighlights === 'function')
+            .forEach((c) => c.clearHighlights());
+
+        const m = this.#findEngine.current();
+        if (!m) return;
+        const cell = this.#cellList.getCellByBlockId(m.blockId);
+        if (!cell) return;
+
+        if (m.kind === 'code' && typeof cell.highlightRange === 'function') {
+            cell.highlightRange(m.start, m.end);
+        } else if (m.kind === 'text' && typeof cell.highlightMatch === 'function') {
+            cell.highlightMatch(m.index, m.start, m.end);
+        }
+    }
+
+    #handleReplace({ query, replacement, caseSensitive }) {
+        if (this.#findEngine.total() === 0) {
+            this.#handleFind({ query, caseSensitive });
+            if (this.#findEngine.total() === 0) return;
+        }
+        const m = this.#findEngine.current();
+        if (!m) return;
+        const cell = this.#cellList.getCellByBlockId(m.blockId);
+        if (!cell || typeof cell.setContent !== 'function') return;
+
+        const content = cell.getContent();
+        const updated = content.substring(0, m.start) + replacement + content.substring(m.end);
+        cell.setContent(updated);
+
+        // Пересчитать matches и перейти к следующему
+        this.#handleFind({ query, caseSensitive });
+    }
+
+    #handleReplaceAll({ query, replacement, caseSensitive }) {
+        if (!query) return;
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(escaped, caseSensitive ? 'g' : 'gi');
+        for (const cell of this.#cellList.getAllCells()) {
+            if (typeof cell.setContent !== 'function') continue;
+            const original = cell.getContent();
+            const updated = original.replace(re, replacement);
+            if (updated !== original) cell.setContent(updated);
+        }
+        this.#findEngine.reset();
+        this.#sidebar.setMatchCount(-1, 0);
     }
 
     destroy() {
