@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../base-component/BaseComponent.js';
+import { CodeCellTemplate } from './CodeCell.template.js';
 
 /** @typedef {import('../../types.js').BlockData} BlockData */
 
@@ -52,9 +53,8 @@ export class CodeCell extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['CodeCell'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({
+        tempContainer.innerHTML = CodeCellTemplate({
             id: this.#blockData.id,
             content: this.#blockData.content || ''
         });

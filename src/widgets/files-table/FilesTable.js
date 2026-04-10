@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { FilesTableTemplate } from './FilesTable.template.js';
 import { KebabMenu } from '../../shared/components/kebab-menu/KebabMenu.js';
 
 /** @typedef {import('../../shared/types.js').Notebook} Notebook */
@@ -62,9 +63,8 @@ export class FilesTable extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['FilesTable'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({});
+        tempContainer.innerHTML = FilesTableTemplate({});
         this._element = tempContainer.firstElementChild;
     }
 

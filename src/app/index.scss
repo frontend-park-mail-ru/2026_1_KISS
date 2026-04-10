@@ -1,0 +1,41 @@
+@use 'styles/variables';
+@use 'styles/button';
+@use '../shared/components/input/Input';
+@use '../widgets/register-form/Register';
+@use '../widgets/login-form/Login';
+@use '../widgets/green-header/GreenHeader';
+@use '../pages/sign/RegisterPage';
+@use '../pages/files/FilesPage';
+@use '../widgets/filter-bar/FilterBar';
+@use '../widgets/files-table/FilesTable';
+@use '../shared/components/pagination/Pagination';
+@use '../shared/components/kebab-menu/KebabMenu';
+@use '../shared/components/code-cell/CodeCell';
+@use '../shared/components/text-cell/TextCell';
+@use '../pages/blocks/BlocksPage';
+@use '../widgets/notebook-header/NotebookHeader';
+@use '../widgets/notebook-toolbar/NotebookToolbar';
+@use '../widgets/notebook-sidebar/NotebookSidebar';
+@use '../widgets/cell-list/CellList';
+@use '../pages/profile/ProfilePage';
+@use '../widgets/profile-section/ProfileSection';
+@use '../widgets/password-section/PasswordSection';
+@use '../widgets/subscription-section/SubscriptionSection';
+@use '../widgets/editor-settings/EditorSettings';
+@use '../widgets/danger-zone/DangerZone';
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}

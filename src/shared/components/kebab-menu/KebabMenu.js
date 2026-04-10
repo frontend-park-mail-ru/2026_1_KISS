@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../base-component/BaseComponent.js';
+import { KebabMenuTemplate } from './KebabMenu.template.js';
 
 /** @typedef {import('../../types.js').KebabAction} KebabAction */
 
@@ -35,9 +36,8 @@ export class KebabMenu extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['KebabMenu'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({ actions: this.#actions });
+        tempContainer.innerHTML = KebabMenuTemplate({ actions: this.#actions });
         this._element = tempContainer.firstElementChild;
     }
 

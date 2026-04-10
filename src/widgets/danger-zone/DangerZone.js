@@ -1,4 +1,5 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { DangerZoneTemplate } from './DangerZone.template.js';
 
 /**
  * DangerZone displays the account deletion section with a disabled button.
@@ -17,9 +18,8 @@ export class DangerZone extends BaseComponent {
      * Renders the section from the Handlebars template.
      */
     #render() {
-        const template = Handlebars.templates['DangerZone'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template();
+        tempContainer.innerHTML = DangerZoneTemplate();
         this._element = tempContainer.firstElementChild;
     }
 }

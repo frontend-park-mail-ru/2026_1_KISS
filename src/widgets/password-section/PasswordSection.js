@@ -1,3 +1,4 @@
+import { PasswordSectionTemplate } from './PasswordSection.template.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
@@ -26,9 +27,8 @@ export class PasswordSection extends BaseComponent {
      * Renders the section from the Handlebars template.
      */
     #render() {
-        const template = Handlebars.templates['PasswordSection'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template();
+        tempContainer.innerHTML = PasswordSectionTemplate();
         this._element = tempContainer.firstElementChild;
     }
 

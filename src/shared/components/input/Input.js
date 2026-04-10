@@ -6,6 +6,7 @@
  */
 
 import { BaseComponent } from '../base-component/BaseComponent.js';
+import { InputTemplate } from './Input.template.js';
 
 /** @typedef {import('../../types.js').InputConfig} InputConfig */
 /** @typedef {import('../../types.js').InputState} InputState */
@@ -94,13 +95,12 @@ export class Input extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['Input'];
         const templateData = {
             ...this.#config,
             isPassword: this.#config.type === 'password'
         };
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template(templateData);
+        tempContainer.innerHTML = InputTemplate(templateData);
         this._element = tempContainer.firstElementChild;
     }
 
@@ -152,12 +152,7 @@ export class Input extends BaseComponent {
      */
     #attachEvents() {
         this._addListener(this.#input, 'input', (e) => {
-            const rawValue = e.target.value;
-            const cleanValue = DOMPurify.sanitize(rawValue);
-            if (cleanValue !== rawValue) {
-                this.#input.value = cleanValue;
-            }
-            this.#state.value = cleanValue;
+            this.#state.value = e.target.value;
             this.#calmDown();
         });
         this.#input.addEventListener('blur', () => {
@@ -187,7 +182,7 @@ export class Input extends BaseComponent {
      */
     validate() {
         if (this.#input) {
-            this.#state.value = DOMPurify.sanitize(this.#input.value);
+            this.#state.value = this.#input.value;
         }
 
         let isValid = true;

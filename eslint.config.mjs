@@ -4,7 +4,7 @@ import globals from 'globals';
 
 export default [
     {
-        ignores: ['node_modules/', 'src/all-templates.precompiled.js', 'test-results/']
+        ignores: ['node_modules/', 'dist/', 'test-results/', 'playwright-report/']
     },
 
     {
@@ -13,9 +13,7 @@ export default [
             ecmaVersion: 'latest',
             sourceType: 'module',
             globals: {
-                ...globals.browser,
-                Handlebars: 'readonly',
-                DOMPurify: 'readonly'
+                ...globals.browser
             }
         },
         rules: {
@@ -39,10 +37,10 @@ export default [
     },
 
     {
-        files: ['test_server/**/*.js'],
+        files: ['build/**/*.js'],
         languageOptions: {
             ecmaVersion: 'latest',
-            sourceType: 'commonjs',
+            sourceType: 'module',
             globals: {
                 ...globals.node
             }
@@ -57,12 +55,8 @@ export default [
             'no-var': 'error',
             'prefer-const': 'error',
             eqeqeq: 'error',
-            curly: ['error', 'multi-line'],
             'no-console': 'off',
-            'no-duplicate-imports': 'error',
-            'no-self-compare': 'error',
-            'no-template-curly-in-string': 'error',
-            'no-use-before-define': ['error', { classes: false }]
+            'no-duplicate-imports': 'error'
         }
     },
 

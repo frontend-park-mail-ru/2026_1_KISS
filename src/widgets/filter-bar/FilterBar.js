@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { FilterBarTemplate } from './FilterBar.template.js';
 
 /** @typedef {import('../../shared/types.js').FilterChangeCallback} FilterChangeCallback */
 
@@ -44,9 +45,8 @@ export class FilterBar extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['FilterBar'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({});
+        tempContainer.innerHTML = FilterBarTemplate({});
         this._element = tempContainer.firstElementChild;
     }
 

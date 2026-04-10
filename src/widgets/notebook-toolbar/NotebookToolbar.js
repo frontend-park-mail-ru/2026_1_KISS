@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { NotebookToolbarTemplate } from './NotebookToolbar.template.js';
 
 /**
  * Панель инструментов ноутбука: кнопки «+ Code», «+ Text», «Run All».
@@ -40,9 +41,8 @@ export class NotebookToolbar extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['NotebookToolbar'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({});
+        tempContainer.innerHTML = NotebookToolbarTemplate({});
         this._element = tempContainer.firstElementChild;
     }
 

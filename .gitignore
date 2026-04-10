@@ -55,7 +55,10 @@ docs/package.json
 
 # front
 /node_modules/
+/dist/
 .Identifier
 *all-templates.precompiled.js
 .playwright-mcp/
+/test-results/
+/playwright-report/
 

@@ -1,0 +1,51 @@
+.kebab-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.kebab-menu__trigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: var(--accent);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.kebab-menu__trigger:hover {
+    background-color: var(--light-grey);
+}
+
+.kebab-menu__dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.kebab-menu__dropdown_visible {
+    display: block;
+}
+
+.kebab-menu__item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--dark-primary);
+}
+
+.kebab-menu__item:hover {
+    background-color: var(--light-grey);
+}
