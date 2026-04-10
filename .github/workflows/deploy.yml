@@ -1,0 +1,43 @@
+name: Deploy
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/front/2026_1_KISS
+
+            git fetch origin develop
+            CHANGED=$(git diff --name-only HEAD origin/develop)
+
+            git pull origin develop
+
+            if echo "$CHANGED" | grep -q 'docker-compose\.yml'; then
+              docker compose down
+              docker compose up -d
+            elif echo "$CHANGED" | grep -q 'nginx/'; then
+              docker exec myapp-frontend nginx -s reload
+            fi
