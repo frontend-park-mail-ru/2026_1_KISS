@@ -6,9 +6,12 @@ services:
     container_name: myapp-frontend
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/conf.d/00-logging.conf:/etc/nginx/conf.d/00-logging.conf:ro
       - ./src:/app/src:ro
       - ./public:/app/public:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
