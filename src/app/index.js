@@ -5,6 +5,7 @@
  * Создаёт роутер, регистрирует маршруты и запускает навигацию.
  */
 
+import { initPwa } from './pwa.js';
 import { RegisterPage } from '../pages/sign/RegisterPage.js';
 import { FilesPage } from '../pages/files/FilesPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
@@ -42,4 +43,4 @@ async function bootstrap() {
     router.start();
 }
 
-bootstrap();
+bootstrap().then(() => initPwa());
