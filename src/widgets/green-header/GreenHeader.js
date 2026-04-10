@@ -2,6 +2,8 @@
  * @module widgets/green-header/GreenHeader
  */
 
+import { GreenHeaderTemplate } from './GreenHeader.template.js';
+
 /** @typedef {import('../../shared/types.js').GreenHeaderConfig} GreenHeaderConfig */
 /** @typedef {import('../../shared/types.js').EventListenerRecord} EventListenerRecord */
 
@@ -52,8 +54,7 @@ export class GreenHeader {
      * Рендерит header в начало parent и подключает события dropdown.
      */
     render() {
-        const template = Handlebars.templates['GreenHeader'];
-        this.#parent.insertAdjacentHTML('afterbegin', template(this.#config));
+        this.#parent.insertAdjacentHTML('afterbegin', GreenHeaderTemplate(this.#config));
         this.#header = this.#parent.querySelector('.green-header');
         this.#attachDropdownEvents();
     }

@@ -7,6 +7,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
+import { LoginTemplate } from './Login.template.js';
 
 /** @type {Object<string, string>} */
 const FIELD_NAMES = {
@@ -42,12 +43,11 @@ export class Login extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['Login'];
         const data = {
             title: 'Colab'
         };
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template(data);
+        tempContainer.innerHTML = LoginTemplate(data);
         this._element = tempContainer.firstElementChild;
         this.#createInputs();
     }

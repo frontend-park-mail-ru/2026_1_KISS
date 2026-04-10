@@ -1,4 +1,5 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { EditorSettingsTemplate } from './EditorSettings.template.js';
 
 const STORAGE_KEY = 'kisscolab_editor';
 
@@ -20,9 +21,8 @@ export class EditorSettings extends BaseComponent {
      * Renders the section from the Handlebars template.
      */
     #render() {
-        const template = Handlebars.templates['EditorSettings'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template();
+        tempContainer.innerHTML = EditorSettingsTemplate();
         this._element = tempContainer.firstElementChild;
     }
 

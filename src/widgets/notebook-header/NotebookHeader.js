@@ -4,6 +4,7 @@
 
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { Router } from '../../shared/router/Router.js';
+import { NotebookHeaderTemplate } from './NotebookHeader.template.js';
 
 /** @typedef {import('../../shared/types.js').NotebookHeaderConfig} NotebookHeaderConfig */
 
@@ -46,9 +47,8 @@ export class NotebookHeader extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['NotebookHeader'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({
+        tempContainer.innerHTML = NotebookHeaderTemplate({
             filename: this.#config.filename || 'Untitled',
             user: this.#config.user || null
         });

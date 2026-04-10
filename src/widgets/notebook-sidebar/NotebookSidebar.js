@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { NotebookSidebarTemplate } from './NotebookSidebar.template.js';
 
 /**
  * Боковая панель ноутбука с иконками-кнопками.
@@ -28,9 +29,8 @@ export class NotebookSidebar extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['NotebookSidebar'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({});
+        tempContainer.innerHTML = NotebookSidebarTemplate({});
         this._element = tempContainer.firstElementChild;
     }
 

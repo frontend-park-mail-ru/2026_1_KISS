@@ -2,6 +2,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
+import { ProfileSectionTemplate } from './ProfileSection.template.js';
 
 /**
  * ProfileSection displays the user's profile info with avatar upload,
@@ -30,7 +31,6 @@ export class ProfileSection extends BaseComponent {
      * Renders the profile section from Handlebars template.
      */
     #render() {
-        const template = Handlebars.templates['ProfileSection'];
         const user = this.#config.user;
         const createdAt = new Date(user.created_at).toLocaleDateString('ru-RU', {
             year: 'numeric',
@@ -39,7 +39,7 @@ export class ProfileSection extends BaseComponent {
         });
         const initials = user.username.substring(0, 2).toUpperCase();
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({ user, createdAt, initials });
+        tempContainer.innerHTML = ProfileSectionTemplate({ user, createdAt, initials });
         this._element = tempContainer.firstElementChild;
     }
 
@@ -120,7 +120,12 @@ export class ProfileSection extends BaseComponent {
                     }
 
                     const avatarEl = this._element.querySelector('.profile-section__avatar');
-                    avatarEl.innerHTML = `<img class="profile-section__avatar-img" src="${DOMPurify.sanitize(result.data.avatar_url)}" alt="Avatar" />`;
+                    avatarEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.className = 'profile-section__avatar-img';
+                    img.src = result.data.avatar_url;
+                    img.alt = 'Avatar';
+                    avatarEl.appendChild(img);
                 } catch (_e) {
                     errorEl.textContent = 'Ошибка загрузки файла';
                 }
@@ -157,9 +162,9 @@ export class ProfileSection extends BaseComponent {
 
             try {
                 const response = await this.#httpClient.put('/users/me', {
-                    username: DOMPurify.sanitize(username),
-                    status: DOMPurify.sanitize(status),
-                    description: DOMPurify.sanitize(description)
+                    username,
+                    status,
+                    description
                 });
                 const result = await response.json();
 
@@ -209,7 +214,7 @@ export class ProfileSection extends BaseComponent {
 
         this._addListener(emailSaveBtn, 'click', async () => {
             const newEmailInput = this._element.querySelector('[data-field="new_email"]');
-            const newEmail = DOMPurify.sanitize(newEmailInput.value);
+            const newEmail = newEmailInput.value;
             const password = passwordInput.getValue();
 
             emailMsg.textContent = '';

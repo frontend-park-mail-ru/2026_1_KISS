@@ -3,6 +3,7 @@
  */
 
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { CellListTemplate } from './CellList.template.js';
 import { CodeCell } from '../../shared/components/code-cell/CodeCell.js';
 import { TextCell } from '../../shared/components/text-cell/TextCell.js';
 
@@ -35,9 +36,8 @@ export class CellList extends BaseComponent {
      * @private
      */
     #render() {
-        const template = Handlebars.templates['CellList'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template({});
+        tempContainer.innerHTML = CellListTemplate({});
         this._element = tempContainer.firstElementChild;
     }
 

@@ -1,0 +1,39 @@
+export function FilesTableTemplate() {
+    return `<div class="files-table">
+    <table class="files-table__table">
+        <thead>
+            <tr class="files-table__header-row">
+                <th class="files-table__header">Название</th>
+                <th class="files-table__header">Дата изменения</th>
+                <th class="files-table__header">Владелец</th>
+                <th class="files-table__header files-table__header_actions">
+                    <button class="files-table__sort-trigger">&#9776;</button>
+                    <div class="files-table__sort-dropdown">
+                        <div class="files-table__sort-title">Сортировать по</div>
+                        <button class="files-table__sort-option" data-sort="date">
+                            <span>Дата изменения</span>
+                            <span class="files-table__sort-arrows">
+                                <span class="files-table__sort-arrow" data-dir="asc">&#9650;</span>
+                                <span class="files-table__sort-arrow" data-dir="desc">&#9660;</span>
+                            </span>
+                        </button>
+                        <button class="files-table__sort-option" data-sort="title">
+                            <span>Название</span>
+                            <span class="files-table__sort-arrows">
+                                <span class="files-table__sort-arrow" data-dir="asc">&#9650;</span>
+                                <span class="files-table__sort-arrow" data-dir="desc">&#9660;</span>
+                            </span>
+                        </button>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="files-table__body">
+        </tbody>
+    </table>
+    <div class="files-table__empty-state" style="display: none;">
+        <div class="files-table__empty-icon">K</div>
+        <div class="files-table__empty-text">Начни работу</div>
+    </div>
+</div>`;
+}

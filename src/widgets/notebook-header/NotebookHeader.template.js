@@ -1,0 +1,56 @@
+import { escapeHtml } from '../../shared/utils/escapeHtml.js';
+
+export function NotebookHeaderTemplate(ctx) {
+    return `<header class="notebook-header">
+    <div class="notebook-header__top">
+        <a href="/files" class="notebook-header__logo-link">
+            <svg class="notebook-header__logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="var(--teal-green)">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                <polyline points="14,2 14,8 20,8" fill="none" stroke="var(--white)" stroke-width="1.5"/>
+            </svg>
+            <span class="notebook-header__logo-text">KissColab</span>
+        </a>
+        <div class="notebook-header__center">
+            <span class="notebook-header__filename">${escapeHtml(ctx.filename)}</span>
+            <div class="notebook-header__icons">
+                <button class="notebook-header__icon-btn notebook-header__edit-btn" title="Переименовать">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="notebook-header__icon-btn" title="Избранное">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </button>
+                <button class="notebook-header__icon-btn" title="Облако">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="notebook-header__right">
+            <button class="notebook-header__icon-btn" title="Настройки">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
+            ${
+                ctx.user
+                    ? `<div class="notebook-header__user-pill-wrapper">
+                <div class="notebook-header__user-pill">
+                    ${ctx.user.avatarUrl ? `<img class="notebook-header__pill-avatar" src="${escapeHtml(ctx.user.avatarUrl)}" alt="" />` : `<span class="notebook-header__pill-avatar notebook-header__pill-avatar--default">${escapeHtml(ctx.user.initials)}</span>`}
+                    <span>${escapeHtml(ctx.user.username)}</span>
+                </div>
+                <div class="header-user-dropdown notebook-header__user-dropdown">
+                    <button class="header-user-dropdown__item" data-action="profile">Профиль</button>
+                    <button class="header-user-dropdown__item header-user-dropdown__item--danger" data-action="logout">Выйти из аккаунта</button>
+                </div>
+            </div>`
+                    : ''
+            }
+        </div>
+    </div>
+    <nav class="notebook-header__menu-bar">
+        <button class="notebook-header__menu-item">Файл</button>
+        <button class="notebook-header__menu-item">Изменить</button>
+        <button class="notebook-header__menu-item">Вид</button>
+        <button class="notebook-header__menu-item">Вставка</button>
+        <button class="notebook-header__menu-item">Среда выполнения</button>
+        <button class="notebook-header__menu-item">Инструменты</button>
+    </nav>
+</header>`;
+}

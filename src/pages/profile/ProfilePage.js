@@ -6,6 +6,7 @@ import { EditorSettings } from '../../widgets/editor-settings/EditorSettings.js'
 import { DangerZone } from '../../widgets/danger-zone/DangerZone.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
+import { ProfilePageTemplate } from './ProfilePage.template.js';
 
 const SECTION_MAP = {
     profile: ProfileSection,
@@ -77,9 +78,8 @@ export class ProfilePage {
         });
         this.#header.render();
 
-        const template = Handlebars.templates['ProfilePage'];
         const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = template();
+        tempContainer.innerHTML = ProfilePageTemplate();
         const main = tempContainer.firstElementChild;
         this.#root.appendChild(main);
 
