@@ -19,9 +19,27 @@ export class RunnerApi {
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
             const err = body?.error || `HTTP ${response.status}`;
-            throw new Error(err);
+            throw new Error(this.#formatError(err));
         }
         return body.data;
+    }
+
+    #formatError(raw) {
+        const jsonMatch = raw.match(/:\s*(\{.+\})\s*$/s);
+        if (jsonMatch) {
+            try {
+                const parsed = JSON.parse(jsonMatch[1]);
+                if (Array.isArray(parsed.detail) && parsed.detail.length > 0) {
+                    return parsed.detail
+                        .map((d) => d.msg)
+                        .filter(Boolean)
+                        .join('; ');
+                }
+            } catch {
+                /* fallback */
+            }
+        }
+        return raw;
     }
 
     /**
