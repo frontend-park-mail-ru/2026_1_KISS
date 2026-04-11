@@ -30,6 +30,9 @@ export class NotebookHeader extends BaseComponent {
     /** @type {boolean} */
     #isDropdownOpen = false;
 
+    /** @type {boolean} */
+    #isMenuOpen = false;
+
     /**
      * @param {HTMLElement} parent
      * @param {NotebookHeaderConfig} [config={}]
@@ -83,6 +86,18 @@ export class NotebookHeader extends BaseComponent {
         this._addListener(editBtn, 'click', () => {
             this.#startRename();
         });
+
+        const menuBtn = this._element.querySelector('[data-menu="file"]');
+        if (menuBtn) {
+            this._addListener(menuBtn, 'click', (e) => {
+                e.stopPropagation();
+                this.#toggleMenu();
+            });
+
+            this._addListener(document, 'click', () => {
+                if (this.#isMenuOpen) this.#closeMenu();
+            });
+        }
 
         const pill = this._element.querySelector('.notebook-header__user-pill');
         if (pill) {
@@ -140,6 +155,30 @@ export class NotebookHeader extends BaseComponent {
      *
      * @private
      */
+    #toggleMenu() {
+        this.#isMenuOpen ? this.#closeMenu() : this.#openMenu();
+    }
+
+    #openMenu() {
+        this.#isMenuOpen = true;
+        this._element
+            .querySelector('.notebook-header__dropdown')
+            .classList.add('notebook-header__dropdown--open');
+        this._element
+            .querySelector('[data-menu="file"]')
+            .classList.add('notebook-header__menu-item--active');
+    }
+
+    #closeMenu() {
+        this.#isMenuOpen = false;
+        this._element
+            .querySelector('.notebook-header__dropdown')
+            .classList.remove('notebook-header__dropdown--open');
+        this._element
+            .querySelector('[data-menu="file"]')
+            .classList.remove('notebook-header__menu-item--active');
+    }
+
     #toggleDropdown() {
         this.#isDropdownOpen ? this.#closeDropdown() : this.#openDropdown();
     }

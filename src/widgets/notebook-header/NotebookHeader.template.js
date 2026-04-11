@@ -45,12 +45,14 @@ export function NotebookHeaderTemplate(ctx) {
         </div>
     </div>
     <nav class="notebook-header__menu-bar">
-        <button class="notebook-header__menu-item">Файл</button>
-        <button class="notebook-header__menu-item">Изменить</button>
-        <button class="notebook-header__menu-item">Вид</button>
-        <button class="notebook-header__menu-item">Вставка</button>
-        <button class="notebook-header__menu-item">Среда выполнения</button>
-        <button class="notebook-header__menu-item">Инструменты</button>
+        <div class="notebook-header__menu-wrapper">
+            <button class="notebook-header__menu-item" data-menu="file">Файл</button>
+            <div class="notebook-header__dropdown">
+                <button class="notebook-header__dropdown-item" data-action="open">Открыть</button>
+                <button class="notebook-header__dropdown-item" data-action="save">Сохранить</button>
+                <button class="notebook-header__dropdown-item" data-action="save-as">Сохранить как</button>
+            </div>
+        </div>
     </nav>
 </header>`;
 }
