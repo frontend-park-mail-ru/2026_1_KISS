@@ -11,7 +11,7 @@ export function ProfileSectionTemplate(ctx) {
         <div class="profile-section__avatar-actions">
             <input type="file" class="profile-section__file-input" accept="image/jpeg,image/png,image/bmp" />
             <button class="accent-btn profile-section__upload-btn">Загрузить аватар</button>
-            <span class="profile-section__avatar-hint">JPG, PNG или BMP. Макс. 2 МБ. Изображение должно быть квадратным.</span>
+            <span class="profile-section__avatar-hint">JPG, PNG или BMP. Макс. 2 МБ. Соотношение сторон аватара должно быть 1 к 1.</span>
         </div>
     </div>
 
