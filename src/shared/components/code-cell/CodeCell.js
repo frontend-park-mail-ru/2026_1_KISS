@@ -4,6 +4,7 @@
 
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { CodeCellTemplate } from './CodeCell.template.js';
+import { ansiToHtml, stripTracebackDashes } from '../../utils/ansiToHtml.js';
 
 /** @typedef {import('../../types.js').BlockData} BlockData */
 
@@ -210,7 +211,7 @@ export class CodeCell extends BaseComponent {
         const stderrText = [out.stderr?.join('\n') || '', out.error || '']
             .filter(Boolean)
             .join('\n');
-        stderrEl.textContent = stderrText || '';
+        stderrEl.innerHTML = stderrText ? ansiToHtml(stripTracebackDashes(stderrText)) : '';
 
         resultEl.textContent = out.result || '';
 
@@ -225,7 +226,7 @@ export class CodeCell extends BaseComponent {
         if (!el) return;
         el.hidden = true;
         el.querySelector('.code-cell__output-stdout').textContent = '';
-        el.querySelector('.code-cell__output-stderr').textContent = '';
+        el.querySelector('.code-cell__output-stderr').innerHTML = '';
         el.querySelector('.code-cell__output-result').textContent = '';
         this._element.classList.remove('code-cell--error');
     }
