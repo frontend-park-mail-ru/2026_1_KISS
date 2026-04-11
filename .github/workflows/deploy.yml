@@ -39,5 +39,5 @@ jobs:
               docker compose down
               docker compose up -d
             elif echo "$CHANGED" | grep -q 'nginx/'; then
-              docker exec myapp-frontend nginx -s reload
+              docker compose restart frontend
             fi
