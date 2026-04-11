@@ -61,7 +61,7 @@
 .code-cell__editor {
     flex: 1;
     display: flex;
-    min-height: 96px;
+    min-height: 40px;
     min-width: 0;
     background: var(--code-bg);
     border-left: 1px solid var(--cell-border);
