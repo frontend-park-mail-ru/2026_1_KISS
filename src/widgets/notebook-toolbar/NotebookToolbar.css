@@ -1,7 +1,7 @@
 .notebook-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 8px 16px;
     background: var(--white);
     border-bottom: 1px solid var(--cell-border);
@@ -9,35 +9,6 @@
     flex-shrink: 0;
 }
 
-.notebook-toolbar__search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    background: var(--code-bg);
-    flex: 1;
-    max-width: 320px;
-}
-
-.notebook-toolbar__search-icon {
-    color: var(--line-number-color);
-    flex-shrink: 0;
-}
-
-.notebook-toolbar__search-input {
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 13px;
-    color: var(--dark-primary);
-    width: 100%;
-}
-
-.notebook-toolbar__search-input::placeholder {
-    color: var(--line-number-color);
-}
 
 .notebook-toolbar__buttons {
     display: flex;
