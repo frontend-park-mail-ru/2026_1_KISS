@@ -126,7 +126,8 @@ export class BlocksPage {
         this.#cellList = new CellList(main, {
             onRunCell: (blockId) => this.#runSingleBlock(blockId),
             onRerender: () => this.#reapplyCellState(),
-            onDeleteCell: (blockId) => this.#deleteBlock(blockId)
+            onDeleteCell: (blockId) => this.#deleteBlock(blockId),
+            onSaveContent: (blockId, content) => this.#saveTextCellContent(blockId, content)
         });
         this.#cellList.mount();
 
@@ -142,7 +143,27 @@ export class BlocksPage {
         window.addEventListener('beforeunload', this.#beforeUnloadHandler);
     }
 
+    async #saveTextCellContent(blockId, content) {
+        try {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
+                content
+            });
+        } catch {
+            /* tolerate */
+        }
+    }
+
+    async #saveAllTextCells() {
+        const allCells = this.#cellList.getAllCells();
+        for (const cell of allCells) {
+            if (!(cell instanceof CodeCell)) {
+                await this.#maybeSaveCellContent(cell.getBlockId(), cell);
+            }
+        }
+    }
+
     async #createBlock(type) {
+        await this.#saveAllTextCells();
         try {
             const body = { type, content: '' };
             if (type === 'code') {
