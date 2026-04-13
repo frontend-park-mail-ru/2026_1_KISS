@@ -184,3 +184,25 @@
 .profile-section__info-label {
     font-weight: 600;
 }
+
+.profile-section__delete-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-section__delete-btn {
+    background: none;
+    border: 1px solid #9ca3af;
+    color: #9ca3af;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: not-allowed;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.profile-section__delete-notice {
+    font-size: 12px;
+    color: #9ca3af;
+}

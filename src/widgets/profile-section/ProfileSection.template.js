@@ -58,5 +58,11 @@ export function ProfileSectionTemplate(ctx) {
         <span class="profile-section__info-label">Дата регистрации:</span>
         <span class="profile-section__info-value">${escapeHtml(ctx.createdAt)}</span>
     </div>
+
+    <hr class="profile-section__divider" />
+    <div class="profile-section__delete-section">
+        <button class="profile-section__delete-btn" disabled>Удалить аккаунт</button>
+        <span class="profile-section__delete-notice">Функция временно недоступна</span>
+    </div>
 </div>`;
 }
