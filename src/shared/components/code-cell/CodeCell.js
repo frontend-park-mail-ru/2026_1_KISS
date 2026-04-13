@@ -27,6 +27,9 @@ export class CodeCell extends BaseComponent {
     #onCopy;
 
     /** @type {Function} */
+    #onDelete;
+
+    /** @type {Function} */
     #onRun;
     #isRunning = false;
 
@@ -39,12 +42,13 @@ export class CodeCell extends BaseComponent {
      * @param {Function} [options.onCopy] -- вызывается при копировании
      * @param {Function} [options.onRun] -- вызывается при запуске кода
      */
-    constructor(parent, { blockData, onMoveUp, onMoveDown, onCopy, onRun }) {
+    constructor(parent, { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onRun }) {
         super(null, parent);
         this.#blockData = blockData;
         this.#onMoveUp = onMoveUp;
         this.#onMoveDown = onMoveDown;
         this.#onCopy = onCopy;
+        this.#onDelete = onDelete;
         this.#onRun = onRun;
         this.#render();
     }
@@ -113,6 +117,7 @@ export class CodeCell extends BaseComponent {
                 if (action === 'move-down' && this.#onMoveDown)
                     this.#onMoveDown(this.#blockData.id);
                 if (action === 'copy' && this.#onCopy) this.#onCopy(this.#blockData.id);
+                if (action === 'delete' && this.#onDelete) this.#onDelete(this.#blockData.id);
             });
         });
     }

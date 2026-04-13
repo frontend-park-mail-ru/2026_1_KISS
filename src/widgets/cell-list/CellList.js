@@ -8,11 +8,13 @@ export class CellList extends BaseComponent {
     #blocks = [];
     #onRunCell;
     #onRerender;
+    #onDeleteCell;
 
-    constructor(parent, { onRunCell, onRerender } = {}) {
+    constructor(parent, { onRunCell, onRerender, onDeleteCell } = {}) {
         super(null, parent);
         this.#onRunCell = onRunCell;
         this.#onRerender = onRerender;
+        this.#onDeleteCell = onDeleteCell;
         this.#render();
     }
 
@@ -55,7 +57,10 @@ export class CellList extends BaseComponent {
                 blockData: block,
                 onMoveUp: (id) => this.#moveBlock(id, -1),
                 onMoveDown: (id) => this.#moveBlock(id, 1),
-                onCopy: (id) => this.#copyBlock(id)
+                onCopy: (id) => this.#copyBlock(id),
+                onDelete: (id) => {
+                    if (this.#onDeleteCell) this.#onDeleteCell(id);
+                }
             };
 
             let cell;
