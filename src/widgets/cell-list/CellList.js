@@ -9,12 +9,14 @@ export class CellList extends BaseComponent {
     #onRunCell;
     #onRerender;
     #onDeleteCell;
+    #onSaveContent;
 
-    constructor(parent, { onRunCell, onRerender, onDeleteCell } = {}) {
+    constructor(parent, { onRunCell, onRerender, onDeleteCell, onSaveContent } = {}) {
         super(null, parent);
         this.#onRunCell = onRunCell;
         this.#onRerender = onRerender;
         this.#onDeleteCell = onDeleteCell;
+        this.#onSaveContent = onSaveContent;
         this.#render();
     }
 
@@ -72,7 +74,12 @@ export class CellList extends BaseComponent {
                     }
                 });
             } else {
-                cell = new TextCell(container, cellCallbacks);
+                cell = new TextCell(container, {
+                    ...cellCallbacks,
+                    onContentChange: (id, content) => {
+                        if (this.#onSaveContent) this.#onSaveContent(id, content);
+                    }
+                });
             }
 
             cell.mount();
@@ -87,12 +94,23 @@ export class CellList extends BaseComponent {
         this.updateBlocks(this.#blocks);
     }
 
+    #syncTextCellsToBlocks() {
+        for (const cell of this.#cells) {
+            if (cell instanceof TextCell) {
+                const block = this.#blocks.find((b) => b.id === cell.getBlockId());
+                if (block) block.content = cell.getContent();
+            }
+        }
+    }
+
     #moveBlock(id, direction) {
         const index = this.#blocks.findIndex((b) => b.id === id);
         if (index < 0) return;
 
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= this.#blocks.length) return;
+
+        this.#syncTextCellsToBlocks();
 
         const temp = this.#blocks[index];
         this.#blocks[index] = this.#blocks[newIndex];

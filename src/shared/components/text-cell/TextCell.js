@@ -28,6 +28,9 @@ export class TextCell extends BaseComponent {
     /** @type {Function} */
     #onDelete;
 
+    /** @type {Function} */
+    #onContentChange;
+
     /**
      * @param {HTMLElement} parent
      * @param {Object} options
@@ -36,14 +39,16 @@ export class TextCell extends BaseComponent {
      * @param {Function} [options.onMoveDown] -- вызывается при перемещении вниз
      * @param {Function} [options.onCopy] -- вызывается при копировании
      * @param {Function} [options.onDelete] -- вызывается при удалении
+     * @param {Function} [options.onContentChange] -- вызывается при потере фокуса (сохранение)
      */
-    constructor(parent, { blockData, onMoveUp, onMoveDown, onCopy, onDelete }) {
+    constructor(parent, { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onContentChange }) {
         super(null, parent);
         this.#blockData = blockData;
         this.#onMoveUp = onMoveUp;
         this.#onMoveDown = onMoveDown;
         this.#onCopy = onCopy;
         this.#onDelete = onDelete;
+        this.#onContentChange = onContentChange;
         this.#render();
     }
 
@@ -87,6 +92,13 @@ export class TextCell extends BaseComponent {
                 if (action === 'copy' && this.#onCopy) this.#onCopy(this.#blockData.id);
                 if (action === 'delete' && this.#onDelete) this.#onDelete(this.#blockData.id);
             });
+        });
+
+        const contentEl = this._element.querySelector('.text-cell__content');
+        this._addListener(contentEl, 'blur', () => {
+            if (this.#onContentChange) {
+                this.#onContentChange(this.#blockData.id, contentEl.textContent);
+            }
         });
     }
 
