@@ -35,7 +35,10 @@ async function getDefaultPath() {
 async function bootstrap() {
     const defaultPath = await getDefaultPath();
 
-    if (defaultPath === '/files' && (window.location.pathname === '/sign' || window.location.pathname === '/')) {
+    if (
+        defaultPath === '/files' &&
+        (window.location.pathname === '/sign' || window.location.pathname === '/')
+    ) {
         // Keep history clean on startup redirect from auth page.
         history.replaceState(null, '', '/files');
     }
