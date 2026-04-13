@@ -205,8 +205,13 @@ export class ProfileSection extends BaseComponent {
 
         this._addListener(changeBtn, 'click', () => {
             emailForm.classList.toggle('profile-section__email-form--hidden');
-            if (!emailForm.classList.contains('profile-section__email-form--hidden')) {
+            const isHidden = emailForm.classList.contains('profile-section__email-form--hidden');
+            changeBtn.textContent = isHidden ? 'Изменить email' : 'Отмена';
+            if (!isHidden) {
                 passwordInput.mount();
+                passwordInput.clear();
+                const pwdEl = passwordWrap.querySelector('.input-field');
+                if (pwdEl) pwdEl.setAttribute('autocomplete', 'new-password');
             } else {
                 passwordInput.unmount();
             }

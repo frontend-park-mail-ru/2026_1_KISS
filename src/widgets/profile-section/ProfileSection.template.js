@@ -47,7 +47,10 @@ export function ProfileSectionTemplate(ctx) {
                 <label class="profile-section__label">Новый email</label>
                 <input type="email" class="profile-section__input" data-field="new_email" placeholder="Новый email" />
             </div>
-            <div class="profile-section__email-password-wrap"></div>
+            <div class="profile-section__field">
+                <label class="profile-section__label">Текущий пароль (для подтверждения)</label>
+                <div class="profile-section__email-password-wrap"></div>
+            </div>
             <button class="accent-btn profile-section__email-save-btn">Сменить email</button>
             <span class="profile-section__email-msg"></span>
         </div>
