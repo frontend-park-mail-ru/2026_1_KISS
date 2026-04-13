@@ -12,10 +12,6 @@ export function ProfilePageTemplate() {
                 <h3 class="profile-page__sidebar-title">Настройки</h3>
                 <button class="profile-page__sidebar-item" data-section="editor">Оформление</button>
             </div>
-            <div class="profile-page__sidebar-group">
-                <h3 class="profile-page__sidebar-title">Опасная зона</h3>
-                <button class="profile-page__sidebar-item profile-page__sidebar-item--danger" data-section="danger">Удаление аккаунта</button>
-            </div>
         </nav>
         <div class="profile-page__content"></div>
     </div>

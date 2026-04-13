@@ -3,7 +3,6 @@ import { ProfileSection } from '../../widgets/profile-section/ProfileSection.js'
 import { PasswordSection } from '../../widgets/password-section/PasswordSection.js';
 import { SubscriptionSection } from '../../widgets/subscription-section/SubscriptionSection.js';
 import { EditorSettings } from '../../widgets/editor-settings/EditorSettings.js';
-import { DangerZone } from '../../widgets/danger-zone/DangerZone.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { ProfilePageTemplate } from './ProfilePage.template.js';
@@ -12,8 +11,7 @@ const SECTION_MAP = {
     profile: ProfileSection,
     password: PasswordSection,
     subscription: SubscriptionSection,
-    editor: EditorSettings,
-    danger: DangerZone
+    editor: EditorSettings
 };
 
 /**
