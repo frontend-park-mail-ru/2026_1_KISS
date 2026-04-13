@@ -112,7 +112,8 @@ export class Router {
      * @param {string} path -- текущий pathname
      */
     #handleRoute(path) {
-        const matched = this.#matchRoute(path);
+        const [pathname] = path.split('?');
+        const matched = this.#matchRoute(pathname);
         if (!matched) {
             this.navigate(this.#defaultPath);
             return;

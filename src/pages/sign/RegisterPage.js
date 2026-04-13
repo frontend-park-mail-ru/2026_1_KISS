@@ -142,6 +142,10 @@ export class RegisterPage {
      * @returns {Login|Register} форма для отображения
      */
     #restoreState() {
+        const urlMode = new URLSearchParams(window.location.search).get('mode');
+        if (urlMode === LOGIN_STATE) return this.#login;
+        if (urlMode === REGISTER_STATE) return this.#register;
+
         const savedState = sessionStorage.getItem(SESSION_ACTIVE_STATE);
         if (savedState) {
             try {
