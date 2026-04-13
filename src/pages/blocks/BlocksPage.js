@@ -249,34 +249,59 @@ export class BlocksPage {
         const codeCells = this.#cellList.getCodeCellsInOrder();
         if (codeCells.length === 0) return;
 
-        // Персист содержимого всех ячеек перед запуском
         for (const c of codeCells) {
             await this.#maybeSaveCellContent(c.getBlockId(), c);
         }
 
+        const savedOutputs = new Map();
         codeCells.forEach((c) => {
-            c.setRunning(true);
-            c.clearOutput();
+            const blockId = c.getBlockId();
+            if (this.#lastOutputs.has(blockId)) {
+                savedOutputs.set(blockId, this.#lastOutputs.get(blockId));
+            }
         });
+
+        codeCells.forEach((c) => c.setRunning(true));
 
         try {
             const results = await this.#runnerApi.executeFromPosition(this.#notebookId, 0);
             if (!Array.isArray(results)) return;
-            results.forEach((r) => {
-                const cell = this.#cellList.getCellByBlockId(r.block_id);
-                if (!cell || !cell.setOutput) return;
+
+            const resultMap = new Map();
+            results.forEach((r) => resultMap.set(r.block_id, r));
+
+            codeCells.forEach((c) => {
+                const blockId = c.getBlockId();
+                const r = resultMap.get(blockId);
+
+                if (!r) {
+                    if (savedOutputs.has(blockId)) {
+                        c.setOutput(savedOutputs.get(blockId));
+                    }
+                    return;
+                }
+
+                if (r.error) {
+                    const errOut = { error: r.error };
+                    this.#lastOutputs.set(blockId, errOut);
+                    c.setOutput(errOut);
+                    return;
+                }
+
                 this.#executionCounter += 1;
-                this.#execNumbers.set(r.block_id, this.#executionCounter);
+                this.#execNumbers.set(blockId, this.#executionCounter);
                 const out = { stdout: r.stdout, stderr: r.stderr, result: r.result };
-                this.#lastOutputs.set(r.block_id, out);
-                cell.setExecutionNumber(this.#executionCounter);
-                cell.setOutput(out);
+                this.#lastOutputs.set(blockId, out);
+                c.setExecutionNumber(this.#executionCounter);
+                c.setOutput(out);
             });
         } catch (e) {
             const errOut = { error: `Run-all failed: ${e.message || e}` };
             codeCells.forEach((c) => {
                 const blockId = c.getBlockId();
-                if (!this.#lastOutputs.has(blockId)) {
+                if (savedOutputs.has(blockId)) {
+                    c.setOutput(savedOutputs.get(blockId));
+                } else {
                     this.#lastOutputs.set(blockId, errOut);
                     c.setOutput(errOut);
                 }
