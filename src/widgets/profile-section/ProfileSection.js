@@ -230,6 +230,12 @@ export class ProfileSection extends BaseComponent {
                 return;
             }
 
+            if (newEmail.toLowerCase() === this.#config.user.email.toLowerCase()) {
+                emailMsg.textContent = 'Вы уже используете этот email';
+                emailMsg.style.color = 'var(--error-red)';
+                return;
+            }
+
             try {
                 const response = await this.#httpClient.put('/users/me/email', {
                     new_email: newEmail,
