@@ -4,7 +4,11 @@
 
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { CodeCellTemplate } from './CodeCell.template.js';
-import { ansiToHtml, stripTracebackDashes } from '../../utils/ansiToHtml.js';
+import {
+    ansiToHtml,
+    stripTracebackDashes,
+    handleCarriageReturns
+} from '../../utils/ansiToHtml.js';
 
 /** @typedef {import('../../types.js').BlockData} BlockData */
 
@@ -211,12 +215,15 @@ export class CodeCell extends BaseComponent {
 
         el.hidden = !hasAny;
 
-        stdoutEl.textContent = out.stdout?.length ? out.stdout.join('\n') : '';
+        const stdoutText = out.stdout?.length ? out.stdout.join('\n') : '';
+        stdoutEl.innerHTML = stdoutText ? ansiToHtml(handleCarriageReturns(stdoutText)) : '';
 
         const stderrText = [out.stderr?.join('\n') || '', out.error || '']
             .filter(Boolean)
             .join('\n');
-        stderrEl.innerHTML = stderrText ? ansiToHtml(stripTracebackDashes(stderrText)) : '';
+        stderrEl.innerHTML = stderrText
+            ? ansiToHtml(handleCarriageReturns(stripTracebackDashes(stderrText)))
+            : '';
 
         resultEl.textContent = out.result || '';
 
@@ -230,7 +237,7 @@ export class CodeCell extends BaseComponent {
         const el = this._element.querySelector('.code-cell__output');
         if (!el) return;
         el.hidden = true;
-        el.querySelector('.code-cell__output-stdout').textContent = '';
+        el.querySelector('.code-cell__output-stdout').innerHTML = '';
         el.querySelector('.code-cell__output-stderr').innerHTML = '';
         el.querySelector('.code-cell__output-result').textContent = '';
         this._element.classList.remove('code-cell--error');

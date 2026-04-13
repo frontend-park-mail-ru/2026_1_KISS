@@ -71,3 +71,13 @@ export function ansiToHtml(text) {
 export function stripTracebackDashes(text) {
     return text.replace(/^-{10,}\s*$/gm, '').replace(/\n{3,}/g, '\n\n');
 }
+
+export function handleCarriageReturns(text) {
+    return text
+        .split('\n')
+        .map((line) => {
+            const parts = line.split('\r');
+            return parts[parts.length - 1];
+        })
+        .join('\n');
+}
