@@ -1,17 +1,5 @@
 export function LandingPageTemplate() {
     return `<div class="landing-page">
-    <header class="landing-page__header">
-        <div class="landing-page__header-container">
-            <a href="/" class="logo-link">
-                <img src="/images/NewLogoTransparentWhite.svg" alt="KissColab" class="logo-image">
-            </a>
-            <div class="landing-page__header-buttons">
-                <button class="landing-page__header-btn" data-action="register">Регистрация</button>
-                <button class="landing-page__header-btn" data-action="login">Войти</button>
-            </div>
-        </div>
-    </header>
-
     <main class="landing-page__main">
         <section class="landing-page__hero">
             <h1 class="landing-page__title">Kisscolab: Простые блокноты для кода в один клик</h1>
