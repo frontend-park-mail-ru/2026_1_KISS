@@ -33,18 +33,15 @@ export class LandingPage {
         if (!el) return;
 
         el.querySelector('[data-action="register"]')?.addEventListener('click', () => {
-            sessionStorage.setItem('registerPageState', JSON.stringify({ activeView: 'register' }));
-            Router.getInstance().navigate('/sign');
+            Router.getInstance().navigate('/sign?mode=register');
         });
 
         el.querySelector('[data-action="login"]')?.addEventListener('click', () => {
-            sessionStorage.setItem('registerPageState', JSON.stringify({ activeView: 'login' }));
-            Router.getInstance().navigate('/sign');
+            Router.getInstance().navigate('/sign?mode=login');
         });
 
         el.querySelector('[data-action="create-notebook"]')?.addEventListener('click', () => {
-            sessionStorage.setItem('registerPageState', JSON.stringify({ activeView: 'register' }));
-            Router.getInstance().navigate('/sign');
+            Router.getInstance().navigate('/sign?mode=register');
         });
     }
 
