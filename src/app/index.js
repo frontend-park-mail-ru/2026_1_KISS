@@ -5,6 +5,7 @@
  * Создаёт роутер, регистрирует маршруты и запускает навигацию.
  */
 
+import { LandingPage } from '../pages/landing/LandingPage.js';
 import { RegisterPage } from '../pages/sign/RegisterPage.js';
 import { FilesPage } from '../pages/files/FilesPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
@@ -16,6 +17,7 @@ const rootElement = document.getElementById('root');
 const httpClient = new HttpClient();
 
 const router = new Router(rootElement);
+router.addRoute('/', LandingPage);
 router.addRoute('/sign', RegisterPage);
 router.addRoute('/files', FilesPage);
 router.addRoute('/notebooks/:id', BlocksPage);
@@ -24,16 +26,16 @@ router.addRoute('/profile', ProfilePage);
 async function getDefaultPath() {
     try {
         const response = await httpClient.get('/auth/me');
-        return response.ok ? '/files' : '/sign';
+        return response.ok ? '/files' : '/';
     } catch (_e) {
-        return '/sign';
+        return '/';
     }
 }
 
 async function bootstrap() {
     const defaultPath = await getDefaultPath();
 
-    if (defaultPath === '/files' && window.location.pathname === '/sign') {
+    if (defaultPath === '/files' && (window.location.pathname === '/sign' || window.location.pathname === '/')) {
         // Keep history clean on startup redirect from auth page.
         history.replaceState(null, '', '/files');
     }
