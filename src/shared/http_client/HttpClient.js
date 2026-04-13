@@ -87,11 +87,16 @@ export class HttpClient {
             `\r\n--${boundary}--\r\n`
         ]);
 
+        const uploadHeaders = {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`
+        };
+        const csrfToken = this.#getCookie('csrf_token');
+        if (csrfToken) {
+            uploadHeaders['X-CSRF-Token'] = csrfToken;
+        }
         return fetch(this.baseUrl + url, {
             method: 'POST',
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${boundary}`
-            },
+            headers: uploadHeaders,
             body: body,
             credentials: 'include'
         });
@@ -105,10 +110,27 @@ export class HttpClient {
      * @param {?Object} [data=null] -- тело запроса
      * @returns {Promise<Response>}
      */
+    /**
+     * Читает значение куки по имени.
+     * @param {string} name
+     * @returns {string}
+     */
+    #getCookie(name) {
+        const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
     request(method, url, data = null) {
+        const headers = { ...this.headers };
+        if (method !== 'GET' && method !== 'HEAD') {
+            const csrfToken = this.#getCookie('csrf_token');
+            if (csrfToken) {
+                headers['X-CSRF-Token'] = csrfToken;
+            }
+        }
         return fetch(this.baseUrl + url, {
             method: method,
-            headers: this.headers,
+            headers: headers,
             body: data ? JSON.stringify(data) : null,
             credentials: 'include'
         });
