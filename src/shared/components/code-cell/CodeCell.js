@@ -4,11 +4,7 @@
 
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { CodeCellTemplate } from './CodeCell.template.js';
-import {
-    ansiToHtml,
-    stripTracebackDashes,
-    handleCarriageReturns
-} from '../../utils/ansiToHtml.js';
+import { ansiToHtml, stripTracebackDashes, handleCarriageReturns } from '../../utils/ansiToHtml.js';
 
 /** @typedef {import('../../types.js').BlockData} BlockData */
 
