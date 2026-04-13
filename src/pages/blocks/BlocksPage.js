@@ -234,8 +234,11 @@ export class BlocksPage {
         } catch (e) {
             const errOut = { error: `Run-all failed: ${e.message || e}` };
             codeCells.forEach((c) => {
-                this.#lastOutputs.set(c.getBlockId(), errOut);
-                c.setOutput(errOut);
+                const blockId = c.getBlockId();
+                if (!this.#lastOutputs.has(blockId)) {
+                    this.#lastOutputs.set(blockId, errOut);
+                    c.setOutput(errOut);
+                }
             });
         } finally {
             codeCells.forEach((c) => c.setRunning(false));
