@@ -99,12 +99,6 @@ export class ProfileSection extends BaseComponent {
             img.onload = async () => {
                 URL.revokeObjectURL(objectUrl);
 
-                if (img.width !== img.height) {
-                    errorEl.textContent = 'Изображение должно быть квадратным (1:1)';
-                    fileInput.value = '';
-                    return;
-                }
-
                 try {
                     const response = await this.#httpClient.upload('/users/me/avatar', file);
                     const result = await response.json();
