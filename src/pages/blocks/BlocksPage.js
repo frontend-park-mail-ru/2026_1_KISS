@@ -125,7 +125,8 @@ export class BlocksPage {
 
         this.#cellList = new CellList(main, {
             onRunCell: (blockId) => this.#runSingleBlock(blockId),
-            onRerender: () => this.#reapplyCellState()
+            onRerender: () => this.#reapplyCellState(),
+            onDeleteCell: (blockId) => this.#deleteBlock(blockId)
         });
         this.#cellList.mount();
 
@@ -163,6 +164,25 @@ export class BlocksPage {
             this.#cellList.updateBlocks(notebook.blocks || []);
         } catch (e) {
             console.error('Failed to create block:', e);
+        }
+    }
+
+    async #deleteBlock(blockId) {
+        try {
+            const response = await this.#httpClient.delete(
+                `/notebooks/${this.#notebookId}/blocks/${blockId}`
+            );
+            if (!response.ok) return;
+
+            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
+            if (!reloadResponse.ok) return;
+            const { data: notebook } = await reloadResponse.json();
+            this.#notebook = notebook;
+            this.#cellList.updateBlocks(notebook.blocks || []);
+            this.#execNumbers.delete(blockId);
+            this.#lastOutputs.delete(blockId);
+        } catch (e) {
+            console.error('Failed to delete block:', e);
         }
     }
 

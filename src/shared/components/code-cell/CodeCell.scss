@@ -135,6 +135,10 @@
     color: var(--dark-primary);
 }
 
+.code-cell__action-btn--delete:hover {
+    color: var(--error-red);
+}
+
 .code-cell--error {
     border-color: var(--error-red);
 }
