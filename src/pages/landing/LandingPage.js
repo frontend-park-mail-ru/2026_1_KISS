@@ -48,7 +48,7 @@ export class LandingPage {
         if (!el) return;
 
         el.querySelector('[data-action="create-notebook"]')?.addEventListener('click', () => {
-            Router.getInstance().navigate('/sign?mode=register');
+            Router.getInstance().navigate('/sign?mode=login');
         });
     }
 
