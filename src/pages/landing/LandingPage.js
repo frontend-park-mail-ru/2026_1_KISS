@@ -33,26 +33,17 @@ export class LandingPage {
         if (!el) return;
 
         el.querySelector('[data-action="register"]')?.addEventListener('click', () => {
-            sessionStorage.setItem(
-                'registerPageState',
-                JSON.stringify({ activeView: 'register' })
-            );
+            sessionStorage.setItem('registerPageState', JSON.stringify({ activeView: 'register' }));
             Router.getInstance().navigate('/sign');
         });
 
         el.querySelector('[data-action="login"]')?.addEventListener('click', () => {
-            sessionStorage.setItem(
-                'registerPageState',
-                JSON.stringify({ activeView: 'login' })
-            );
+            sessionStorage.setItem('registerPageState', JSON.stringify({ activeView: 'login' }));
             Router.getInstance().navigate('/sign');
         });
 
         el.querySelector('[data-action="create-notebook"]')?.addEventListener('click', () => {
-            sessionStorage.setItem(
-                'registerPageState',
-                JSON.stringify({ activeView: 'register' })
-            );
+            sessionStorage.setItem('registerPageState', JSON.stringify({ activeView: 'register' }));
             Router.getInstance().navigate('/sign');
         });
     }
