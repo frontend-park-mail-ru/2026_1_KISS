@@ -291,7 +291,12 @@ export class BlocksPage {
 
                 this.#executionCounter += 1;
                 this.#execNumbers.set(blockId, this.#executionCounter);
-                const out = { stdout: r.stdout, stderr: r.stderr, result: r.result, outputs: r.outputs };
+                const out = {
+                    stdout: r.stdout,
+                    stderr: r.stderr,
+                    result: r.result,
+                    outputs: r.outputs
+                };
                 this.#lastOutputs.set(blockId, out);
                 c.setExecutionNumber(this.#executionCounter);
                 c.setOutput(out);

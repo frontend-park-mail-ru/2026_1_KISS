@@ -205,7 +205,7 @@ export class CodeCell extends BaseComponent {
         const imagesEl = el.querySelector('.code-cell__output-images');
 
         const imageOutputs = (out.outputs ?? []).filter(
-            (o) => o.mime_type === 'image/png' || o.mime_type === 'image/jpeg',
+            (o) => o.mime_type === 'image/png' || o.mime_type === 'image/jpeg'
         );
 
         const hasAny =
@@ -228,7 +228,7 @@ export class CodeCell extends BaseComponent {
             : '';
 
         // Если есть картинки — текстовый result типа "<Figure ...>" не нужен
-        resultEl.textContent = imageOutputs.length ? '' : (out.result || '');
+        resultEl.textContent = imageOutputs.length ? '' : out.result || '';
 
         imagesEl.innerHTML = '';
         for (const output of imageOutputs) {
