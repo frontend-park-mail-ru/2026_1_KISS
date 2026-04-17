@@ -19,6 +19,7 @@ export function CodeCellTemplate(ctx) {
             <pre class="code-cell__output-stdout"></pre>
             <pre class="code-cell__output-stderr"></pre>
             <pre class="code-cell__output-result"></pre>
+            <div class="code-cell__output-images"></div>
         </div>
     </div>
     <div class="code-cell__actions">

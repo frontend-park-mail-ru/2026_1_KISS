@@ -195,19 +195,25 @@ export class CodeCell extends BaseComponent {
     /**
      * Показать вывод исполнения ячейки.
      * Все тексты вставляются через textContent (безопасно, HTML не парсится).
-     * @param {{stdout?: string[], stderr?: string[], result?: string, error?: string}} out
+     * @param {{stdout?: string[], stderr?: string[], result?: string, error?: string, outputs?: Array<{mime_type: string, data: string}>}} out
      */
     setOutput(out = {}) {
         const el = this._element.querySelector('.code-cell__output');
         const stdoutEl = el.querySelector('.code-cell__output-stdout');
         const stderrEl = el.querySelector('.code-cell__output-stderr');
         const resultEl = el.querySelector('.code-cell__output-result');
+        const imagesEl = el.querySelector('.code-cell__output-images');
+
+        const imageOutputs = (out.outputs ?? []).filter(
+            (o) => o.mime_type === 'image/png' || o.mime_type === 'image/jpeg',
+        );
 
         const hasAny =
             (out.stdout?.length ?? 0) > 0 ||
             (out.stderr?.length ?? 0) > 0 ||
             !!out.result ||
-            !!out.error;
+            !!out.error ||
+            imageOutputs.length > 0;
 
         el.hidden = !hasAny;
 
@@ -221,7 +227,16 @@ export class CodeCell extends BaseComponent {
             ? ansiToHtml(handleCarriageReturns(stripTracebackDashes(stderrText)))
             : '';
 
-        resultEl.textContent = out.result || '';
+        // Если есть картинки — текстовый result типа "<Figure ...>" не нужен
+        resultEl.textContent = imageOutputs.length ? '' : (out.result || '');
+
+        imagesEl.innerHTML = '';
+        for (const output of imageOutputs) {
+            const img = document.createElement('img');
+            img.src = `data:${output.mime_type};base64,${output.data}`;
+            img.className = 'code-cell__output-image';
+            imagesEl.appendChild(img);
+        }
 
         this._element.classList.toggle('code-cell--error', !!(out.stderr?.length || out.error));
     }
@@ -236,6 +251,7 @@ export class CodeCell extends BaseComponent {
         el.querySelector('.code-cell__output-stdout').innerHTML = '';
         el.querySelector('.code-cell__output-stderr').innerHTML = '';
         el.querySelector('.code-cell__output-result').textContent = '';
+        el.querySelector('.code-cell__output-images').innerHTML = '';
         this._element.classList.remove('code-cell--error');
     }
 }
