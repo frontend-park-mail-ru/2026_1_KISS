@@ -105,6 +105,19 @@
     font-weight: 500;
 }
 
+
+.code-cell__output-images:empty {
+    display: none;
+}
+
+.code-cell__output-image {
+    display: block;
+    max-width: 100%;
+    max-height: 390px;
+    margin-top: 8px;
+    border-radius: 4px;
+}
+
 .code-cell--running .code-cell__execution-number::after {
     content: '*';
 }

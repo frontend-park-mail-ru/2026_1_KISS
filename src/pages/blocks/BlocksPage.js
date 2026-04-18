@@ -229,7 +229,8 @@ export class BlocksPage {
             this.#lastOutputs.set(blockId, {
                 stdout: result.stdout,
                 stderr: result.stderr,
-                result: result.result
+                result: result.result,
+                outputs: result.outputs
             });
             cell.setExecutionNumber(this.#executionCounter);
             cell.setOutput(this.#lastOutputs.get(blockId));
@@ -290,7 +291,12 @@ export class BlocksPage {
 
                 this.#executionCounter += 1;
                 this.#execNumbers.set(blockId, this.#executionCounter);
-                const out = { stdout: r.stdout, stderr: r.stderr, result: r.result };
+                const out = {
+                    stdout: r.stdout,
+                    stderr: r.stderr,
+                    result: r.result,
+                    outputs: r.outputs
+                };
                 this.#lastOutputs.set(blockId, out);
                 c.setExecutionNumber(this.#executionCounter);
                 c.setOutput(out);
