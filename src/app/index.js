@@ -10,8 +10,10 @@ import { RegisterPage } from '../pages/sign/RegisterPage.js';
 import { FilesPage } from '../pages/files/FilesPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
 import { ProfilePage } from '../pages/profile/ProfilePage.js';
+import { AdminPage } from '../pages/admin/AdminPage.js';
 import { Router } from '../shared/router/Router.js';
 import { HttpClient } from '../shared/http_client/HttpClient.js';
+import { Heartbeat } from '../shared/heartbeat/Heartbeat.js';
 
 const rootElement = document.getElementById('root');
 const httpClient = new HttpClient();
@@ -22,6 +24,7 @@ router.addRoute('/sign', RegisterPage);
 router.addRoute('/files', FilesPage);
 router.addRoute('/notebooks/:id', BlocksPage);
 router.addRoute('/profile', ProfilePage);
+router.addRoute('/admin', AdminPage);
 
 async function getDefaultPath() {
     try {
@@ -35,12 +38,12 @@ async function getDefaultPath() {
 async function bootstrap() {
     const defaultPath = await getDefaultPath();
 
-    if (
-        defaultPath === '/files' &&
-        (window.location.pathname === '/sign' || window.location.pathname === '/')
-    ) {
-        // Keep history clean on startup redirect from auth page.
-        history.replaceState(null, '', '/files');
+    if (defaultPath === '/files') {
+        Heartbeat.getInstance().start();
+
+        if (window.location.pathname === '/sign' || window.location.pathname === '/') {
+            history.replaceState(null, '', '/files');
+        }
     }
 
     router.setDefault(defaultPath);
