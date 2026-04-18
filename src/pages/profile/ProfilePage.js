@@ -58,7 +58,7 @@ export class ProfilePage {
 
         const initials = this.#user.username.substring(0, 2).toUpperCase();
 
-        this.#header = new GreenHeader(this.#root, {
+        const headerConfig = {
             user: {
                 username: this.#user.username,
                 initials,
@@ -73,7 +73,11 @@ export class ProfilePage {
                 }
                 Router.getInstance().navigate('/sign');
             }
-        });
+        };
+        if (this.#user.is_admin) {
+            headerConfig.onAdmin = () => Router.getInstance().navigate('/admin');
+        }
+        this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
 
         const tempContainer = document.createElement('div');
