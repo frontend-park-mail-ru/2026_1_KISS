@@ -231,7 +231,6 @@ export class Input extends BaseComponent {
     #updateUI(errorMessage) {
         const errorElement = this._element.querySelector('.input-error-message');
         if (!this.#state.isValid) {
-            console.log('Not valid: ', errorMessage);
             this._element.classList.add('input-wrapper_error');
             if (errorElement) {
                 errorElement.textContent = errorMessage;
