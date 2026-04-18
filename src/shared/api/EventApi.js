@@ -10,7 +10,7 @@ export class EventApi {
     trackEvent(eventType, metadata = {}) {
         return this.#http.post('/events/track', {
             event_type: eventType,
-            metadata: JSON.stringify(metadata),
+            metadata: JSON.stringify(metadata)
         });
     }
 }
