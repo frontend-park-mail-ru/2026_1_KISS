@@ -145,7 +145,7 @@ export class Register extends BaseComponent {
         }
 
         if (!response.ok) {
-            console.log(responseData);
+            console.error(responseData);
             const errorElement = this._element.querySelector('.sign-error-message');
             if (errorElement) {
                 errorElement.textContent = translateError(responseData.error);
