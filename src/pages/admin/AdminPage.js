@@ -56,13 +56,17 @@ export class AdminPage {
 
         const initials = this.#user.username.substring(0, 2).toUpperCase();
         const header = new GreenHeader(this.#root, {
-            user: { username: this.#user.username, initials, avatarUrl: this.#user.avatar_url || '' },
+            user: {
+                username: this.#user.username,
+                initials,
+                avatarUrl: this.#user.avatar_url || ''
+            },
             onProfile: () => Router.getInstance().navigate('/profile'),
             onAdmin: () => {},
             onLogout: async () => {
                 await this.#httpClient.post('/auth/logout').catch(() => {});
                 Router.getInstance().navigate('/sign');
-            },
+            }
         });
         header.render();
 
@@ -94,9 +98,15 @@ export class AdminPage {
         this.#activeKey = key;
         this.#contentArea.innerHTML = '';
         switch (key) {
-            case 'stats': this.#renderStats(); break;
-            case 'users': this.#renderUsers(1); break;
-            case 'notebooks': this.#renderNotebooks(1); break;
+            case 'stats':
+                this.#renderStats();
+                break;
+            case 'users':
+                this.#renderUsers(1);
+                break;
+            case 'notebooks':
+                this.#renderNotebooks(1);
+                break;
         }
     }
 
@@ -109,10 +119,26 @@ export class AdminPage {
         try {
             const stats = await this.#adminApi.getStats();
             const cards = [
-                { label: 'Пользователи', value: stats.total_users || 0, tooltip: 'Общее количество зарегистрированных пользователей на платформе' },
-                { label: 'Активные сессии', value: stats.total_sessions || 0, tooltip: 'Количество сессий, которые ещё не истекли (TTL 24 часа)' },
-                { label: 'DAU', value: stats.dau || 0, tooltip: 'Daily Active Users — уникальные пользователи за последние 24 часа' },
-                { label: 'MAU', value: stats.mau || 0, tooltip: 'Monthly Active Users — уникальные пользователи за последние 30 дней' },
+                {
+                    label: 'Пользователи',
+                    value: stats.total_users || 0,
+                    tooltip: 'Общее количество зарегистрированных пользователей на платформе'
+                },
+                {
+                    label: 'Активные сессии',
+                    value: stats.total_sessions || 0,
+                    tooltip: 'Количество сессий, которые ещё не истекли (TTL 24 часа)'
+                },
+                {
+                    label: 'DAU',
+                    value: stats.dau || 0,
+                    tooltip: 'Daily Active Users — уникальные пользователи за последние 24 часа'
+                },
+                {
+                    label: 'MAU',
+                    value: stats.mau || 0,
+                    tooltip: 'Monthly Active Users — уникальные пользователи за последние 30 дней'
+                }
             ];
 
             const grid = document.createElement('div');
@@ -129,7 +155,7 @@ export class AdminPage {
                 { label: 'DAU', value: stats.dau || 0 },
                 { label: 'MAU', value: stats.mau || 0 },
                 { label: 'Users', value: stats.total_users || 0 },
-                { label: 'Sessions', value: stats.total_sessions || 0 },
+                { label: 'Sessions', value: stats.total_sessions || 0 }
             ]);
         } catch (e) {
             this.#contentArea.innerHTML += `<div class="admin-empty">Ошибка загрузки: ${this.#esc(e.message)}</div>`;
@@ -137,7 +163,7 @@ export class AdminPage {
     }
 
     #renderBarChart(titleText, items) {
-        const maxVal = Math.max(...items.map(i => i.value), 1);
+        const maxVal = Math.max(...items.map((i) => i.value), 1);
 
         const chart = document.createElement('div');
         chart.className = 'admin-chart';
@@ -201,7 +227,8 @@ export class AdminPage {
             countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
 
             if (users.length === 0) {
-                this.#contentArea.innerHTML += '<div class="admin-empty">Пользователи не найдены</div>';
+                this.#contentArea.innerHTML +=
+                    '<div class="admin-empty">Пользователи не найдены</div>';
                 return;
             }
 
@@ -223,10 +250,12 @@ export class AdminPage {
                 const tr = document.createElement('tr');
 
                 let roleBadge = '<span class="admin-badge admin-badge--active">user</span>';
-                if (user.is_admin) roleBadge = '<span class="admin-badge admin-badge--admin">admin</span>';
+                if (user.is_admin)
+                    roleBadge = '<span class="admin-badge admin-badge--admin">admin</span>';
 
                 let statusBadge = '<span class="admin-badge admin-badge--active">active</span>';
-                if (isBanned) statusBadge = '<span class="admin-badge admin-badge--banned">banned</span>';
+                if (isBanned)
+                    statusBadge = '<span class="admin-badge admin-badge--banned">banned</span>';
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${user.id}</td>
@@ -240,7 +269,9 @@ export class AdminPage {
                 const actionsCell = tr.querySelector('td:last-child');
                 if (user.id !== this.#user.id && !user.is_admin) {
                     const btn = document.createElement('button');
-                    btn.className = isBanned ? 'admin-btn admin-btn--unban' : 'admin-btn admin-btn--ban';
+                    btn.className = isBanned
+                        ? 'admin-btn admin-btn--unban'
+                        : 'admin-btn admin-btn--ban';
                     btn.textContent = isBanned ? 'Разбанить' : 'Забанить';
                     btn.addEventListener('click', async () => {
                         try {

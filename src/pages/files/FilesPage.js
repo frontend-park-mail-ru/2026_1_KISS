@@ -57,7 +57,7 @@ export class FilesPage {
                     /* ignore */
                 }
                 Router.getInstance().navigate('/sign');
-            },
+            }
         };
         if (this.#state.isAdmin) {
             headerConfig.onAdmin = () => Router.getInstance().navigate('/admin');

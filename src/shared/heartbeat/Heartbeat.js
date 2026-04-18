@@ -47,7 +47,10 @@ export class Heartbeat {
     #onUnload = () => {
         if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
             const body = JSON.stringify({ event_type: 'heartbeat', metadata: '{}' });
-            navigator.sendBeacon('/api/v1/events/track', new Blob([body], { type: 'application/json' }));
+            navigator.sendBeacon(
+                '/api/v1/events/track',
+                new Blob([body], { type: 'application/json' })
+            );
         }
     };
 }
