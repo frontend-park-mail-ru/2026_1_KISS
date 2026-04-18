@@ -24,6 +24,7 @@
 @import '../widgets/editor-settings/EditorSettings.css';
 @import '../widgets/danger-zone/DangerZone.css';
 @import '../pages/landing/LandingPage.css';
+@import '../pages/admin/AdminPage.css';
 
 html, body {
     margin: 0;
