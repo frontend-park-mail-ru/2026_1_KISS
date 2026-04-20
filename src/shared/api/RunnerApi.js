@@ -49,7 +49,7 @@ export class RunnerApi {
      * @returns {Promise<object>} BlockExecutionResult
      */
     async executeBlock(notebookId, blockPosition) {
-        const response = await this.#http.get(
+        const response = await this.#http.post(
             `/runner/${notebookId}/block?block_position=${blockPosition}`
         );
         return this.#parse(response);
@@ -62,7 +62,7 @@ export class RunnerApi {
      * @returns {Promise<object[]>} BlockExecutionResult[]
      */
     async executeFromPosition(notebookId, startPosition = 0) {
-        const response = await this.#http.get(
+        const response = await this.#http.post(
             `/runner/${notebookId}?block_position=${startPosition}`
         );
         return this.#parse(response);
@@ -74,7 +74,7 @@ export class RunnerApi {
      */
     stopSession(notebookId) {
         try {
-            return this.#http.get(`/runner/${notebookId}/stop`).catch(() => {});
+            return this.#http.post(`/runner/${notebookId}/stop`).catch(() => {});
         } catch {
             return Promise.resolve();
         }
