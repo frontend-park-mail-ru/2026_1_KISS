@@ -28,6 +28,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
+            set -e
             cd /home/ubuntu/front/2026_1_KISS
 
             git fetch origin develop
