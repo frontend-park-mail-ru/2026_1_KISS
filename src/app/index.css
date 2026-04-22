@@ -14,6 +14,7 @@
 @import '../shared/components/text-cell/TextCell.css';
 @import '../pages/blocks/BlocksPage.css';
 @import '../widgets/notebook-header/NotebookHeader.css';
+@import '../widgets/share-modal/ShareModal.css';
 @import '../widgets/notebook-toolbar/NotebookToolbar.css';
 @import '../widgets/notebook-sidebar/NotebookSidebar.css';
 @import '../widgets/cell-list/CellList.css';
