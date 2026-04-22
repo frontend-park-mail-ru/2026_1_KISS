@@ -7,6 +7,7 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { FindEngine } from '../../shared/search/FindEngine.js';
 import { Router } from '../../shared/router/Router.js';
+import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 
 export class BlocksPage {
     #root;
@@ -29,6 +30,9 @@ export class BlocksPage {
 
     // Find/Replace state
     #findEngine = new FindEngine();
+
+    /** @type {ShareModal} */
+    #shareModal = null;
 
     constructor(root, params) {
         this.#root = root;
@@ -91,7 +95,8 @@ export class BlocksPage {
                     /* ignore */
                 }
                 Router.getInstance().navigate('/sign');
-            }
+            },
+            onShare: () => this.#openShareModal()
         });
         this.#header.mount();
 
@@ -348,6 +353,17 @@ export class BlocksPage {
         }
     }
 
+    #openShareModal() {
+        if (!this.#shareModal) {
+            this.#shareModal = new ShareModal();
+        }
+        this.#shareModal.open(
+            this.#notebookId,
+            this.#notebook?.title || 'Untitled',
+            this.#notebook?.is_public ?? false
+        );
+    }
+
     async #renameNotebook(newTitle) {
         try {
             const response = await this.#httpClient.put(`/notebooks/${this.#notebookId}`, {
@@ -456,6 +472,7 @@ export class BlocksPage {
             window.removeEventListener('beforeunload', this.#beforeUnloadHandler);
             this.#beforeUnloadHandler = null;
         }
+        if (this.#shareModal) this.#shareModal.close();
         if (this.#cellList) this.#cellList.unmount();
         if (this.#sidebar) this.#sidebar.unmount();
         if (this.#toolbar) this.#toolbar.unmount();

@@ -1,0 +1,305 @@
+.share-modal__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.share-modal {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.share-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--cell-border);
+}
+
+.share-modal__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--dark-primary);
+    margin: 0;
+}
+
+.share-modal__close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.share-modal__close-btn:hover {
+    background: var(--light-grey);
+    color: var(--dark-primary);
+}
+
+.share-modal__body {
+    padding: 0 20px;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.share-modal__section {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--cell-border);
+}
+
+.share-modal__section:last-child {
+    border-bottom: none;
+}
+
+.share-modal__label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--dark-primary);
+    margin-bottom: 8px;
+}
+
+.share-modal__input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.share-modal__input {
+    flex: 1;
+    height: 36px;
+    padding: 0 10px;
+    border: 1.5px solid var(--cell-border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--dark-primary);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.share-modal__input:focus {
+    border-color: var(--teal-green);
+}
+
+.share-modal__add-btn {
+    height: 36px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 6px;
+    background: var(--teal-green);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+}
+
+.share-modal__add-btn:hover {
+    opacity: 0.85;
+}
+
+.share-modal__add-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.share-modal__error {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #d93025;
+}
+
+.share-modal__section--list {
+    min-height: 40px;
+}
+
+.share-modal__collaborators {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.share-modal__collaborator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--light-grey);
+}
+
+.share-modal__collaborator-email {
+    font-size: 13px;
+    color: var(--dark-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.share-modal__collaborator-level {
+    height: 28px;
+    padding: 0 6px;
+    border: 1.5px solid var(--cell-border);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--dark-primary);
+    background: var(--white);
+    outline: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+}
+
+.share-modal__collaborator-level:focus {
+    border-color: var(--grey);
+}
+
+.share-modal__remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.share-modal__remove-btn:hover {
+    background: var(--light-grey);
+    color: #d93025;
+}
+
+.share-modal__empty {
+    font-size: 13px;
+    color: var(--accent);
+    margin: 0;
+}
+
+.share-modal__section--public {
+    padding: 14px 0;
+}
+
+.share-modal__public-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.share-modal__public-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.share-modal__public-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--dark-primary);
+}
+
+.share-modal__public-hint {
+    font-size: 12px;
+    color: var(--accent);
+}
+
+.share-modal__toggle {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.share-modal__toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.share-modal__toggle-track {
+    display: flex;
+    align-items: center;
+    width: 40px;
+    height: 21px;
+    border-radius: 20px;
+    background: var(--cell-border);
+    transition: background 0.2s;
+    padding: 3px;
+}
+
+.share-modal__toggle-input:checked + .share-modal__toggle-track {
+    background: var(--teal-green);
+}
+
+.share-modal__toggle-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+.share-modal__toggle-input:checked + .share-modal__toggle-track .share-modal__toggle-thumb {
+    transform: translateX(20px);
+}
+
+.share-modal__footer {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-top: 1px solid var(--cell-border);
+}
+
+.share-modal__copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1.5px solid var(--cell-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--dark-primary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.share-modal__copy-btn:hover {
+    border-color: var(--teal-green);
+    color: var(--teal-green);
+}
+
+.share-modal__copy-btn--success {
+    border-color: var(--teal-green);
+    color: var(--teal-green);
+}

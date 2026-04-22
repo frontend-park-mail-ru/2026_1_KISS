@@ -21,6 +21,9 @@ export class NotebookHeader extends BaseComponent {
     /** @type {?Function} */
     #onRename;
 
+    /** @type {?Function} */
+    #onShare;
+
     /** @type {string} */
     #originalText = '';
 
@@ -41,6 +44,7 @@ export class NotebookHeader extends BaseComponent {
         super(null, parent);
         this.#config = config;
         this.#onRename = config.onRename || null;
+        this.#onShare = config.onShare || null;
         this.#render();
     }
 
@@ -86,6 +90,13 @@ export class NotebookHeader extends BaseComponent {
         this._addListener(editBtn, 'click', () => {
             this.#startRename();
         });
+
+        const shareBtn = this._element.querySelector('.notebook-header__share-btn');
+        if (shareBtn && this.#onShare) {
+            this._addListener(shareBtn, 'click', () => {
+                this.#onShare();
+            });
+        }
 
         const menuBtn = this._element.querySelector('[data-menu="file"]');
         if (menuBtn) {
