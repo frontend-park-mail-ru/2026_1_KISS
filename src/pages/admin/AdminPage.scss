@@ -219,6 +219,12 @@
     white-space: nowrap;
 }
 
+.admin-chart__svg {
+    width: 100%;
+    max-height: 260px;
+    display: block;
+}
+
 /* --- Table Header with Search --- */
 
 .admin-table-header {
@@ -260,6 +266,14 @@
     border: 1px solid var(--cell-border);
     border-radius: 10px;
     overflow: hidden;
+    table-layout: fixed;
+}
+
+.admin-table__cell-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
 }
 
 .admin-table th {
@@ -398,6 +412,26 @@
 .admin-badge--admin {
     background: #e8eaf6;
     color: #3949ab;
+}
+
+.admin-badge--free {
+    background: #e0f2f1;
+    color: var(--teal-green);
+}
+
+.admin-badge--freeze {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.admin-badge--pro {
+    background: #e8eaf6;
+    color: #3949ab;
+}
+
+.admin-badge--max {
+    background: #fce4ec;
+    color: #c62828;
 }
 
 /* --- Empty state --- */

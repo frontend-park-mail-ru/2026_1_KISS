@@ -32,6 +32,21 @@ export class AdminApi {
         return this.#parse(response);
     }
 
+    async updateUser(id, data) {
+        const response = await this.#http.put(`/admin/users/${id}`, data);
+        return this.#parse(response);
+    }
+
+    async resetPassword(id, password) {
+        const response = await this.#http.put(`/admin/users/${id}/password`, { password });
+        return this.#parse(response);
+    }
+
+    async setPlan(id, plan) {
+        const response = await this.#http.put(`/admin/users/${id}/plan`, { plan });
+        return this.#parse(response);
+    }
+
     async getNotebooks(limit = 20, offset = 0, search = '') {
         const response = await this.#http.get(
             `/admin/notebooks?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`
@@ -46,6 +61,13 @@ export class AdminApi {
 
     async getStats() {
         const response = await this.#http.get('/admin/stats');
+        return this.#parse(response);
+    }
+
+    async getActivityStats(dauDays = 30, mauMonths = 12) {
+        const response = await this.#http.get(
+            `/admin/stats/activity?dau_days=${dauDays}&mau_months=${mauMonths}`
+        );
         return this.#parse(response);
     }
 }

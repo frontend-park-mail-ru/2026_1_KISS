@@ -25,6 +25,8 @@
 @use '../widgets/danger-zone/DangerZone';
 @use '../pages/landing/LandingPage';
 @use '../pages/admin/AdminPage';
+@use '../shared/components/context-menu/ContextMenu';
+@use '../shared/components/modal/Modal';
 
 html, body {
     margin: 0;
