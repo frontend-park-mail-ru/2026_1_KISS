@@ -2,6 +2,8 @@ import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { AdminApi } from '../../shared/api/AdminApi.js';
 import { Router } from '../../shared/router/Router.js';
+import { ContextMenu } from '../../shared/components/context-menu/ContextMenu.js';
+import { Modal } from '../../shared/components/modal/Modal.js';
 
 function AdminPageTemplate() {
     return `<main class="admin-page">
@@ -19,6 +21,21 @@ function AdminPageTemplate() {
 </main>`;
 }
 
+const PLAN_BADGES = {
+    free: { cls: 'admin-badge--free', label: 'Free' },
+    freeze: { cls: 'admin-badge--freeze', label: 'Freeze' },
+    pro: { cls: 'admin-badge--pro', label: 'Pro' },
+    max: { cls: 'admin-badge--max', label: 'Max' },
+    admin: { cls: 'admin-badge--admin', label: 'Admin' }
+};
+
+const PLAN_OPTIONS = [
+    { value: 'free', label: 'Free' },
+    { value: 'pro', label: 'Pro' },
+    { value: 'max', label: 'Max' },
+    { value: 'admin', label: 'Admin' }
+];
+
 export class AdminPage {
     #root;
     #httpClient;
@@ -27,6 +44,12 @@ export class AdminPage {
     #activeKey = 'stats';
     #contentArea = null;
     #searchTimeout = null;
+    #contextMenu = null;
+    #modal = null;
+    #currentUserPage = 1;
+    #currentUserSearch = '';
+    #currentNbPage = 1;
+    #currentNbSearch = '';
 
     constructor(root) {
         this.#root = root;
@@ -76,6 +99,8 @@ export class AdminPage {
         this.#root.appendChild(main);
 
         this.#contentArea = main.querySelector('.admin-page__content');
+        this.#contextMenu = new ContextMenu();
+        this.#modal = new Modal();
         this.#attachSidebarEvents(main);
         this.#showSection('stats');
     }
@@ -102,10 +127,10 @@ export class AdminPage {
                 this.#renderStats();
                 break;
             case 'users':
-                this.#renderUsers(1);
+                this.#initUsersSection();
                 break;
             case 'notebooks':
-                this.#renderNotebooks(1);
+                this.#initNotebooksSection();
                 break;
         }
     }
@@ -125,9 +150,9 @@ export class AdminPage {
                     tooltip: 'Общее количество зарегистрированных пользователей на платформе'
                 },
                 {
-                    label: 'Активные сессии',
-                    value: stats.total_sessions || 0,
-                    tooltip: 'Количество сессий, которые ещё не истекли (TTL 24 часа)'
+                    label: 'Блокноты',
+                    value: stats.total_notebooks || 0,
+                    tooltip: 'Общее количество блокнотов на платформе'
                 },
                 {
                     label: 'DAU',
@@ -151,44 +176,76 @@ export class AdminPage {
             });
             this.#contentArea.appendChild(grid);
 
-            this.#renderBarChart('Активность (DAU / MAU)', [
-                { label: 'DAU', value: stats.dau || 0 },
-                { label: 'MAU', value: stats.mau || 0 },
-                { label: 'Users', value: stats.total_users || 0 },
-                { label: 'Sessions', value: stats.total_sessions || 0 }
-            ]);
+            const activityData = await this.#adminApi.getActivityStats(30, 12);
+            this.#renderTimeSeriesChart(
+                'DAU (последние 30 дней)',
+                activityData.dau || [],
+                'date',
+                'count'
+            );
+            this.#renderTimeSeriesChart(
+                'MAU (последние 12 месяцев)',
+                activityData.mau || [],
+                'month',
+                'count'
+            );
         } catch (e) {
             this.#contentArea.innerHTML += `<div class="admin-empty">Ошибка загрузки: ${this.#esc(e.message)}</div>`;
         }
     }
 
-    #renderBarChart(titleText, items) {
-        const maxVal = Math.max(...items.map((i) => i.value), 1);
-
+    #renderTimeSeriesChart(titleText, entries, keyField, valueField) {
         const chart = document.createElement('div');
         chart.className = 'admin-chart';
         chart.innerHTML = `<div class="admin-chart__title">${this.#esc(titleText)}</div>`;
 
-        const bars = document.createElement('div');
-        bars.className = 'admin-chart__bars';
+        if (!entries || entries.length === 0) {
+            chart.innerHTML += '<div class="admin-empty" style="padding:20px 0">Нет данных</div>';
+            this.#contentArea.appendChild(chart);
+            return;
+        }
 
-        items.forEach(({ label, value }) => {
-            const pct = Math.max((value / maxVal) * 100, 2);
-            const group = document.createElement('div');
-            group.className = 'admin-chart__bar-group';
-            group.innerHTML = `
-                <div class="admin-chart__bar-value">${value}</div>
-                <div class="admin-chart__bar" style="height: ${pct}%"></div>
-                <div class="admin-chart__bar-label">${this.#esc(label)}</div>`;
-            bars.appendChild(group);
+        const maxVal = Math.max(...entries.map((e) => e[valueField]), 1);
+        const width = 700;
+        const height = 180;
+        const padding = { left: 40, right: 10, top: 20, bottom: 30 };
+        const chartW = width - padding.left - padding.right;
+        const chartH = height - padding.top - padding.bottom;
+        const barW = Math.max(6, Math.floor(chartW / entries.length) - 3);
+
+        let svg = `<svg viewBox="0 0 ${width} ${height}" class="admin-chart__svg">`;
+        svg += `<line x1="${padding.left}" y1="${padding.top + chartH}" x2="${padding.left + chartW}" y2="${padding.top + chartH}" stroke="var(--cell-border)" stroke-width="1"/>`;
+
+        for (let i = 0; i <= 4; i++) {
+            const y = padding.top + chartH - (chartH / 4) * i;
+            const val = Math.round((maxVal / 4) * i);
+            svg += `<text x="${padding.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--accent)">${val}</text>`;
+            if (i > 0)
+                svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1"/>`;
+        }
+
+        entries.forEach((entry, i) => {
+            const x = padding.left + i * (barW + 3) + 2;
+            const barH = Math.max(1, (entry[valueField] / maxVal) * chartH);
+            const y = padding.top + chartH - barH;
+
+            svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="var(--teal-green)" rx="2"><title>${entry[keyField]}: ${entry[valueField]}</title></rect>`;
+
+            if (entries.length <= 15 || i % Math.ceil(entries.length / 10) === 0) {
+                const label =
+                    entry[keyField].length > 5 ? entry[keyField].slice(5) : entry[keyField];
+                svg += `<text x="${x + barW / 2}" y="${padding.top + chartH + 16}" text-anchor="middle" font-size="9" fill="var(--accent)">${label}</text>`;
+            }
         });
 
-        chart.appendChild(bars);
+        svg += '</svg>';
+        chart.innerHTML += svg;
         this.#contentArea.appendChild(chart);
     }
 
-    async #renderUsers(page, search = '') {
-        this.#contentArea.innerHTML = '';
+    #initUsersSection() {
+        this.#currentUserPage = 1;
+        this.#currentUserSearch = '';
 
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
@@ -202,104 +259,207 @@ export class AdminPage {
         searchInput.className = 'admin-search';
         searchInput.type = 'text';
         searchInput.placeholder = 'Поиск по имени или email...';
-        searchInput.value = search;
         searchInput.addEventListener('input', () => {
             clearTimeout(this.#searchTimeout);
             this.#searchTimeout = setTimeout(() => {
-                this.#renderUsers(1, searchInput.value);
+                this.#currentUserSearch = searchInput.value;
+                this.#currentUserPage = 1;
+                this.#refreshUsersTable();
             }, 300);
         });
         header.appendChild(searchInput);
 
         const countEl = document.createElement('span');
         countEl.className = 'admin-count';
+        countEl.dataset.role = 'user-count';
         header.appendChild(countEl);
-
         this.#contentArea.appendChild(header);
 
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'admin-table-container';
+        this.#contentArea.appendChild(tableContainer);
+
+        this.#refreshUsersTable();
+    }
+
+    async #refreshUsersTable() {
+        const tableContainer = this.#contentArea.querySelector('.admin-table-container');
+        const countEl = this.#contentArea.querySelector('[data-role="user-count"]');
+        if (!tableContainer) return;
+        tableContainer.innerHTML = '';
+
         const limit = 15;
-        const offset = (page - 1) * limit;
+        const offset = (this.#currentUserPage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getUsers(limit, offset, search);
+            const data = await this.#adminApi.getUsers(limit, offset, this.#currentUserSearch);
             const users = data.users || [];
             const total = data.total || 0;
-            countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
+            if (countEl)
+                countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
 
             if (users.length === 0) {
-                this.#contentArea.innerHTML +=
-                    '<div class="admin-empty">Пользователи не найдены</div>';
+                tableContainer.innerHTML = '<div class="admin-empty">Пользователи не найдены</div>';
                 return;
             }
 
             const table = document.createElement('table');
             table.className = 'admin-table';
-            table.innerHTML = `<thead><tr>
-                <th>ID</th>
-                <th>Имя</th>
-                <th>Email</th>
-                <th>Роль</th>
-                <th>Статус</th>
-                <th>Регистрация</th>
-                <th>Действия</th>
+            table.innerHTML = `<colgroup>
+                <col style="width:50px"><col style="width:18%"><col style="width:22%">
+                <col style="width:80px"><col style="width:100px"><col style="width:100px">
+                <col style="width:110px"><col style="width:100px">
+            </colgroup>
+            <thead><tr>
+                <th>ID</th><th>Имя</th><th>Email</th><th>Группа</th>
+                <th>Активность</th><th>Общее время</th><th>Регистрация</th><th>Статус</th>
             </tr></thead>`;
 
             const tbody = document.createElement('tbody');
             users.forEach((user) => {
-                const isBanned = user.status === 'banned';
                 const tr = document.createElement('tr');
-
-                let roleBadge = '<span class="admin-badge admin-badge--active">user</span>';
-                if (user.is_admin)
-                    roleBadge = '<span class="admin-badge admin-badge--admin">admin</span>';
-
-                let statusBadge = '<span class="admin-badge admin-badge--active">active</span>';
-                if (isBanned)
-                    statusBadge = '<span class="admin-badge admin-badge--banned">banned</span>';
+                const badge = this.#planBadge(user.plan);
+                const isBanned = user.status === 'banned';
+                const statusBadge = isBanned
+                    ? '<span class="admin-badge admin-badge--banned">banned</span>'
+                    : '';
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${user.id}</td>
-                    <td><strong>${this.#esc(user.username)}</strong></td>
-                    <td>${this.#esc(user.email)}</td>
-                    <td>${roleBadge}</td>
-                    <td>${statusBadge}</td>
+                    <td class="admin-table__cell-truncate" title="${this.#esc(user.username)}"><strong>${this.#esc(user.username)}</strong></td>
+                    <td class="admin-table__cell-truncate" title="${this.#esc(user.email)}">${this.#esc(user.email)}</td>
+                    <td>${badge}</td>
+                    <td class="admin-table__muted">${this.#formatRelativeTime(user.last_active_at)}</td>
+                    <td class="admin-table__muted">${this.#formatDuration(user.total_time_seconds || 0)}</td>
                     <td class="admin-table__muted">${new Date(user.created_at).toLocaleDateString('ru-RU')}</td>
-                    <td></td>`;
+                    <td>${statusBadge}</td>`;
 
-                const actionsCell = tr.querySelector('td:last-child');
-                if (user.id !== this.#user.id && !user.is_admin) {
-                    const btn = document.createElement('button');
-                    btn.className = isBanned
-                        ? 'admin-btn admin-btn--unban'
-                        : 'admin-btn admin-btn--ban';
-                    btn.textContent = isBanned ? 'Разбанить' : 'Забанить';
-                    btn.addEventListener('click', async () => {
-                        try {
-                            if (isBanned) await this.#adminApi.unbanUser(user.id);
-                            else await this.#adminApi.banUser(user.id);
-                            this.#renderUsers(page, search);
-                        } catch (e) {
-                            console.error('Ban/unban failed:', e);
-                        }
-                    });
-                    actionsCell.appendChild(btn);
-                }
+                tr.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    this.#showUserContextMenu(e, user);
+                });
                 tbody.appendChild(tr);
             });
             table.appendChild(tbody);
-            this.#contentArea.appendChild(table);
+            tableContainer.appendChild(table);
 
             const totalPages = Math.ceil(total / limit);
             if (totalPages > 1) {
-                this.#renderPagination(page, totalPages, (p) => this.#renderUsers(p, search));
+                this.#renderPagination(tableContainer, this.#currentUserPage, totalPages, (p) => {
+                    this.#currentUserPage = p;
+                    this.#refreshUsersTable();
+                });
             }
         } catch (e) {
-            this.#contentArea.innerHTML += `<div class="admin-empty">Ошибка: ${this.#esc(e.message)}</div>`;
+            tableContainer.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc(e.message)}</div>`;
         }
     }
 
-    async #renderNotebooks(page, search = '') {
-        this.#contentArea.innerHTML = '';
+    #showUserContextMenu(e, user) {
+        const actions = [];
+        actions.push({
+            label: 'Изменить имя',
+            handler: () => this.#editUsername(user)
+        });
+        actions.push({
+            label: 'Изменить email',
+            handler: () => this.#editEmail(user)
+        });
+        actions.push({
+            label: 'Сменить пароль',
+            handler: () => this.#changePassword(user)
+        });
+        actions.push({
+            label: 'Изменить тариф',
+            handler: () => this.#changePlan(user)
+        });
+        if (user.id !== this.#user.id && user.plan === 'freeze' && user.status !== 'banned') {
+            actions.push({
+                label: 'Забанить',
+                danger: true,
+                handler: () => this.#banUser(user)
+            });
+        }
+        this.#contextMenu.show(e.clientX, e.clientY, actions);
+    }
+
+    async #editUsername(user) {
+        const result = await this.#modal.open('Изменить имя', [
+            { name: 'username', label: 'Имя пользователя', type: 'text', value: user.username }
+        ]);
+        if (!result || result.username === user.username) return;
+        try {
+            await this.#adminApi.updateUser(user.id, {
+                username: result.username,
+                email: user.email
+            });
+            this.#refreshUsersTable();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async #editEmail(user) {
+        const result = await this.#modal.open('Изменить email', [
+            { name: 'email', label: 'Email', type: 'text', value: user.email }
+        ]);
+        if (!result || result.email === user.email) return;
+        try {
+            await this.#adminApi.updateUser(user.id, {
+                username: user.username,
+                email: result.email
+            });
+            this.#refreshUsersTable();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async #changePassword(user) {
+        const result = await this.#modal.open('Сменить пароль', [
+            { name: 'password', label: 'Новый пароль (минимум 8 символов)', type: 'password' }
+        ]);
+        if (!result || !result.password) return;
+        try {
+            await this.#adminApi.resetPassword(user.id, result.password);
+            alert('Пароль изменён');
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async #changePlan(user) {
+        const result = await this.#modal.open('Изменить тариф', [
+            {
+                name: 'plan',
+                label: 'Тариф',
+                type: 'select',
+                value: user.plan,
+                options: PLAN_OPTIONS
+            }
+        ]);
+        if (!result || result.plan === user.plan) return;
+        try {
+            await this.#adminApi.setPlan(user.id, result.plan);
+            this.#refreshUsersTable();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async #banUser(user) {
+        if (!confirm(`Забанить "${user.username}"? Публичн��е блокноты станут приватными.`)) return;
+        try {
+            await this.#adminApi.banUser(user.id);
+            this.#refreshUsersTable();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    #initNotebooksSection() {
+        this.#currentNbPage = 1;
+        this.#currentNbSearch = '';
 
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
@@ -313,44 +473,58 @@ export class AdminPage {
         searchInput.className = 'admin-search';
         searchInput.type = 'text';
         searchInput.placeholder = 'Поиск по названию...';
-        searchInput.value = search;
         searchInput.addEventListener('input', () => {
             clearTimeout(this.#searchTimeout);
             this.#searchTimeout = setTimeout(() => {
-                this.#renderNotebooks(1, searchInput.value);
+                this.#currentNbSearch = searchInput.value;
+                this.#currentNbPage = 1;
+                this.#refreshNotebooksTable();
             }, 300);
         });
         header.appendChild(searchInput);
 
         const countEl = document.createElement('span');
         countEl.className = 'admin-count';
+        countEl.dataset.role = 'nb-count';
         header.appendChild(countEl);
-
         this.#contentArea.appendChild(header);
 
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'admin-table-container';
+        this.#contentArea.appendChild(tableContainer);
+
+        this.#refreshNotebooksTable();
+    }
+
+    async #refreshNotebooksTable() {
+        const tableContainer = this.#contentArea.querySelector('.admin-table-container');
+        const countEl = this.#contentArea.querySelector('[data-role="nb-count"]');
+        if (!tableContainer) return;
+        tableContainer.innerHTML = '';
+
         const limit = 15;
-        const offset = (page - 1) * limit;
+        const offset = (this.#currentNbPage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getNotebooks(limit, offset, search);
+            const data = await this.#adminApi.getNotebooks(limit, offset, this.#currentNbSearch);
             const notebooks = data.notebooks || [];
             const total = data.total || 0;
-            countEl.textContent = `${total} блокнот${this.#plural(total, '', 'а', 'ов')}`;
+            if (countEl)
+                countEl.textContent = `${total} блокнот${this.#plural(total, '', 'а', 'ов')}`;
 
             if (notebooks.length === 0) {
-                this.#contentArea.innerHTML += '<div class="admin-empty">Блокноты не найдены</div>';
+                tableContainer.innerHTML = '<div class="admin-empty">Блокноты не найдены</div>';
                 return;
             }
 
             const table = document.createElement('table');
             table.className = 'admin-table';
-            table.innerHTML = `<thead><tr>
-                <th>ID</th>
-                <th>Название</th>
-                <th>Owner ID</th>
-                <th>Доступ</th>
-                <th>Создан</th>
-                <th>Действия</th>
+            table.innerHTML = `<colgroup>
+                <col style="width:50px"><col style="width:40%"><col style="width:80px">
+                <col style="width:80px"><col style="width:120px">
+            </colgroup>
+            <thead><tr>
+                <th>ID</th><th>Название</th><th>Owner ID</th><th>Доступ</th><th>Создан</th>
             </tr></thead>`;
 
             const tbody = document.createElement('tbody');
@@ -362,42 +536,48 @@ export class AdminPage {
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${nb.id}</td>
-                    <td><strong>${this.#esc(nb.title)}</strong></td>
+                    <td class="admin-table__cell-truncate" title="${this.#esc(nb.title)}"><strong>${this.#esc(nb.title)}</strong></td>
                     <td class="admin-table__muted">${nb.owner_id}</td>
                     <td>${accessBadge}</td>
-                    <td class="admin-table__muted">${new Date(nb.created_at).toLocaleDateString('ru-RU')}</td>
-                    <td></td>`;
+                    <td class="admin-table__muted">${new Date(nb.created_at).toLocaleDateString('ru-RU')}</td>`;
 
-                const actionsCell = tr.querySelector('td:last-child');
-                const btn = document.createElement('button');
-                btn.className = 'admin-btn admin-btn--delete';
-                btn.textContent = 'Удалить';
-                btn.addEventListener('click', async () => {
-                    if (confirm(`Удалить блокнот "${nb.title}"?`)) {
-                        try {
-                            await this.#adminApi.deleteNotebook(nb.id);
-                            this.#renderNotebooks(page, search);
-                        } catch (e) {
-                            console.error('Delete failed:', e);
+                tr.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    this.#contextMenu.show(e.clientX, e.clientY, [
+                        {
+                            label: 'Удалить',
+                            danger: true,
+                            handler: async () => {
+                                if (confirm(`Удалить блокнот "${nb.title}"?`)) {
+                                    try {
+                                        await this.#adminApi.deleteNotebook(nb.id);
+                                        this.#refreshNotebooksTable();
+                                    } catch (err) {
+                                        alert(err.message);
+                                    }
+                                }
+                            }
                         }
-                    }
+                    ]);
                 });
-                actionsCell.appendChild(btn);
                 tbody.appendChild(tr);
             });
             table.appendChild(tbody);
-            this.#contentArea.appendChild(table);
+            tableContainer.appendChild(table);
 
             const totalPages = Math.ceil(total / limit);
             if (totalPages > 1) {
-                this.#renderPagination(page, totalPages, (p) => this.#renderNotebooks(p, search));
+                this.#renderPagination(tableContainer, this.#currentNbPage, totalPages, (p) => {
+                    this.#currentNbPage = p;
+                    this.#refreshNotebooksTable();
+                });
             }
         } catch (e) {
-            this.#contentArea.innerHTML += `<div class="admin-empty">Ошибка: ${this.#esc(e.message)}</div>`;
+            tableContainer.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc(e.message)}</div>`;
         }
     }
 
-    #renderPagination(current, total, onPage) {
+    #renderPagination(container, current, total, onPage) {
         const nav = document.createElement('div');
         nav.className = 'admin-pagination';
 
@@ -427,7 +607,35 @@ export class AdminPage {
         nextBtn.addEventListener('click', () => onPage(current + 1));
         nav.appendChild(nextBtn);
 
-        this.#contentArea.appendChild(nav);
+        container.appendChild(nav);
+    }
+
+    #planBadge(plan) {
+        const b = PLAN_BADGES[plan] || PLAN_BADGES.free;
+        return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
+    }
+
+    #formatRelativeTime(dateStr) {
+        if (!dateStr) return '—';
+        const date = new Date(dateStr);
+        const diffMs = Date.now() - date.getTime();
+        if (diffMs < 0) return 'Только что';
+        const diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return 'Только что';
+        if (diffMin < 60) return `${diffMin} мин. назад`;
+        const diffHrs = Math.floor(diffMin / 60);
+        if (diffHrs < 24) return `${diffHrs} ч. назад`;
+        const diffDays = Math.floor(diffHrs / 24);
+        if (diffDays < 30) return `${diffDays} дн. назад`;
+        return date.toLocaleDateString('ru-RU');
+    }
+
+    #formatDuration(seconds) {
+        if (!seconds || seconds <= 0) return '0 мин.';
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        if (hrs > 0) return `${hrs} ч. ${mins} мин.`;
+        return `${mins} мин.`;
     }
 
     #esc(str) {

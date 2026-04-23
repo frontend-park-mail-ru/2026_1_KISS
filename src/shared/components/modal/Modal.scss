@@ -1,0 +1,99 @@
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay--visible {
+    display: flex;
+}
+
+.modal-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 24px 28px;
+    min-width: 360px;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.modal-card__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--dark-primary);
+    margin: 0 0 20px;
+}
+
+.modal-card__form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-card__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.modal-card__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+}
+
+.modal-card__input {
+    padding: 8px 12px;
+    border: 1px solid var(--cell-border);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    color: var(--dark-primary);
+    background: var(--white);
+}
+
+.modal-card__input:focus {
+    border-color: var(--teal-green);
+}
+
+.modal-card__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.modal-card__btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--cell-border);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.modal-card__btn--cancel {
+    background: var(--white);
+    color: var(--accent);
+}
+
+.modal-card__btn--cancel:hover {
+    background: var(--light-grey);
+}
+
+.modal-card__btn--submit {
+    background: var(--teal-green);
+    color: var(--white);
+    border-color: var(--teal-green);
+}
+
+.modal-card__btn--submit:hover {
+    opacity: 0.9;
+}
