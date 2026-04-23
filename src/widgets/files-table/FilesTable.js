@@ -160,7 +160,7 @@ export class FilesTable extends BaseComponent {
 
             const ownerCell = document.createElement('td');
             ownerCell.className = 'files-table__cell';
-            ownerCell.textContent = this.#ownerName;
+            ownerCell.textContent = nb._isShared ? '—' : this.#ownerName;
 
             const kebabCell = document.createElement('td');
             kebabCell.className = 'files-table__cell files-table__kebab-cell';
@@ -180,23 +180,24 @@ export class FilesTable extends BaseComponent {
                 });
             }
 
-            const actions = [];
-            if (this.#onRename) {
+            if (!nb._isShared) {
+                const actions = [];
+                if (this.#onRename) {
+                    actions.push({
+                        name: 'rename',
+                        label: 'Переименовать',
+                        handler: () => this.#startRename(tr, titleSpan, nb)
+                    });
+                }
                 actions.push({
-                    name: 'rename',
-                    label: 'Переименовать',
-                    handler: () => this.#startRename(tr, titleSpan, nb)
+                    name: 'delete',
+                    label: 'Удалить',
+                    handler: () => this.#onDelete(nb.id)
                 });
+                const menu = new KebabMenu(kebabCell, actions);
+                menu.mount();
+                this.#kebabMenus.push(menu);
             }
-            actions.push({
-                name: 'delete',
-                label: 'Удалить',
-                handler: () => this.#onDelete(nb.id)
-            });
-
-            const menu = new KebabMenu(kebabCell, actions);
-            menu.mount();
-            this.#kebabMenus.push(menu);
         });
     }
 

@@ -57,7 +57,8 @@ export class NotebookHeader extends BaseComponent {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = NotebookHeaderTemplate({
             filename: this.#config.filename || 'Untitled',
-            user: this.#config.user || null
+            user: this.#config.user || null,
+            isOwner: this.#config.isOwner ?? true
         });
         this._element = tempContainer.firstElementChild;
     }

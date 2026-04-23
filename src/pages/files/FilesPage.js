@@ -20,6 +20,8 @@ export class FilesPage {
         username: ''
     };
 
+    #sharedNotebooks = [];
+
     #httpClient;
 
     constructor(root) {
@@ -91,6 +93,7 @@ export class FilesPage {
         });
         this.#pagination.mount();
 
+        await this.#loadSharedNotebooks();
         await this.#loadNotebooks(1);
     }
 
@@ -174,7 +177,29 @@ export class FilesPage {
             filtered = filtered.filter((n) => new Date(n.updated_at) <= to);
         }
 
-        this.#filesTable.setData(filtered, this.#state.username);
+        let sharedFiltered = [...this.#sharedNotebooks];
+        if (this.#filters.dateFrom) {
+            const from = new Date(this.#filters.dateFrom);
+            sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) >= from);
+        }
+        if (this.#filters.dateTo) {
+            const to = new Date(this.#filters.dateTo);
+            to.setHours(23, 59, 59, 999);
+            sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) <= to);
+        }
+
+        this.#filesTable.setData([...filtered, ...sharedFiltered], this.#state.username);
+    }
+
+    async #loadSharedNotebooks() {
+        try {
+            const response = await this.#httpClient.get('/notebooks/shared?limit=100&offset=0');
+            if (!response.ok) return;
+            const { data } = await response.json();
+            this.#sharedNotebooks = (data.notebooks ?? []).map((n) => ({ ...n, _isShared: true }));
+        } catch {
+            this.#sharedNotebooks = [];
+        }
     }
 
     async #createNotebook() {

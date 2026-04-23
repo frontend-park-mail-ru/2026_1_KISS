@@ -17,6 +17,7 @@ export class BlocksPage {
     #sidebar;
     #cellList;
     #notebook = null;
+    #userId = null;
     #username = '';
     #avatarUrl = '';
     #httpClient;
@@ -51,6 +52,7 @@ export class BlocksPage {
                 return;
             }
             const { data: user } = await response.json();
+            this.#userId = user.id;
             this.#username = user.username;
             this.#avatarUrl = user.avatar_url || '';
         } catch (_e) {
@@ -83,10 +85,12 @@ export class BlocksPage {
         page.appendChild(headerArea);
 
         const initials = this.#username.substring(0, 2).toUpperCase();
+        const isOwner = this.#notebook.owner_id === this.#userId;
         this.#header = new NotebookHeader(headerArea, {
             filename: this.#notebook.title || 'Untitled',
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
-            onRename: (newTitle) => this.#renameNotebook(newTitle),
+            isOwner,
+            onRename: isOwner ? (newTitle) => this.#renameNotebook(newTitle) : null,
             onProfile: () => Router.getInstance().navigate('/profile'),
             onLogout: async () => {
                 try {
@@ -96,7 +100,7 @@ export class BlocksPage {
                 }
                 Router.getInstance().navigate('/sign');
             },
-            onShare: () => this.#openShareModal()
+            onShare: isOwner ? () => this.#openShareModal() : null
         });
         this.#header.mount();
 
