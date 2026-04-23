@@ -18,6 +18,7 @@
  * @property {string} id -- идентификатор ноутбука
  * @property {string} title -- название ноутбука
  * @property {string} updated_at -- ISO-дата последнего обновления
+ * @property {string} [owner_username] -- имя владельца (только для расшаренных ноутбуков)
  * @property {BlockData[]} [blocks] -- список блоков (может отсутствовать в списочном API)
  */
 
