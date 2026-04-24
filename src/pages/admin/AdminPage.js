@@ -239,9 +239,13 @@ export class AdminPage {
     }
 
     #formatChartLabel(raw, keyField) {
+        const DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
         if (keyField === 'date') {
             const parts = raw.split('-');
-            if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0].slice(2)}`;
+            if (parts.length === 3) {
+                const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                return `${parts[2]}.${parts[1]}.${parts[0].slice(2)}(${DAYS[d.getDay()]})`;
+            }
         }
         if (keyField === 'month') {
             const parts = raw.split('-');
