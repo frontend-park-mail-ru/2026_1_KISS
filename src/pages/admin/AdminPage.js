@@ -197,10 +197,9 @@ export class AdminPage {
         const padding = { left: 44, right: 10, top: 20, bottom: 54 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
-        const gap = 2;
-        const barW = Math.min(18, Math.max(4, Math.floor(chartW / data.length) - gap));
-        const totalBarsW = data.length * (barW + gap);
-        const offsetX = padding.left + Math.max(0, (chartW - totalBarsW) / 2);
+        const gap = 3;
+        const barW = Math.max(4, Math.floor(chartW / data.length) - gap);
+        const offsetX = padding.left;
 
         const ticks = this.#calcYTicks(maxVal);
 
