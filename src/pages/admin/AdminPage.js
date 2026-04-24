@@ -193,12 +193,12 @@ export class AdminPage {
 
         const maxVal = Math.max(...data.map((e) => e[valueField]), 1);
         const width = 700;
-        const height = 200;
-        const padding = { left: 44, right: 10, top: 20, bottom: 34 };
+        const height = 220;
+        const padding = { left: 44, right: 10, top: 20, bottom: 54 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
         const gap = 2;
-        const barW = Math.min(20, Math.max(4, Math.floor(chartW / data.length) - gap));
+        const barW = Math.min(18, Math.max(4, Math.floor(chartW / data.length) - gap));
         const totalBarsW = data.length * (barW + gap);
         const offsetX = padding.left + Math.max(0, (chartW - totalBarsW) / 2);
 
@@ -223,17 +223,31 @@ export class AdminPage {
             const y = padding.top + chartH - barH;
 
             const opacity = val > 0 ? 1 : 0.15;
-            svg += `<rect x="${x}" y="${val > 0 ? y : padding.top + chartH - 2}" width="${barW}" height="${val > 0 ? barH : 2}" fill="var(--teal-green)" opacity="${opacity}" rx="1"><title>${entry[keyField]}: ${val}</title></rect>`;
+            svg += `<rect x="${x}" y="${val > 0 ? y : padding.top + chartH - 2}" width="${barW}" height="${val > 0 ? barH : 2}" fill="var(--teal-green)" opacity="${opacity}" rx="1"><title>${this.#formatChartLabel(entry[keyField], keyField)}: ${val}</title></rect>`;
 
             if (i % labelStep === 0) {
-                const lbl = entry[keyField].length > 5 ? entry[keyField].slice(5) : entry[keyField];
-                svg += `<text x="${x + barW / 2}" y="${padding.top + chartH + 16}" text-anchor="middle" font-size="9" fill="var(--accent)">${lbl}</text>`;
+                const lbl = this.#formatChartLabel(entry[keyField], keyField);
+                const tx = x + barW / 2;
+                const ty = padding.top + chartH + 10;
+                svg += `<text x="${tx}" y="${ty}" text-anchor="end" font-size="9" fill="var(--accent)" transform="rotate(-45 ${tx} ${ty})">${lbl}</text>`;
             }
         });
 
         svg += '</svg>';
         chart.innerHTML += svg;
         this.#contentArea.appendChild(chart);
+    }
+
+    #formatChartLabel(raw, keyField) {
+        if (keyField === 'date') {
+            const parts = raw.split('-');
+            if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0].slice(2)}`;
+        }
+        if (keyField === 'month') {
+            const parts = raw.split('-');
+            if (parts.length === 2) return `${parts[1]}.${parts[0].slice(2)}`;
+        }
+        return raw;
     }
 
     #calcYTicks(maxVal) {
