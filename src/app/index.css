@@ -26,6 +26,8 @@
 @import '../widgets/danger-zone/DangerZone.css';
 @import '../pages/landing/LandingPage.css';
 @import '../pages/admin/AdminPage.css';
+@import '../shared/components/context-menu/ContextMenu.css';
+@import '../shared/components/modal/Modal.css';
 
 html, body {
     margin: 0;
