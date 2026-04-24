@@ -12,9 +12,6 @@ export class ContextMenu extends BaseComponent {
         this._addListener(document, 'click', () => {
             if (this.#isVisible) this.hide();
         });
-        this._addListener(document, 'contextmenu', () => {
-            if (this.#isVisible) this.hide();
-        });
         this._addListener(document, 'keydown', (e) => {
             if (e.key === 'Escape' && this.#isVisible) this.hide();
         });

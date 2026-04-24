@@ -199,19 +199,15 @@ export class AdminPage {
         chart.className = 'admin-chart';
         chart.innerHTML = `<div class="admin-chart__title">${this.#esc(titleText)}</div>`;
 
-        if (!entries || entries.length === 0) {
-            chart.innerHTML += '<div class="admin-empty" style="padding:20px 0">Нет данных</div>';
-            this.#contentArea.appendChild(chart);
-            return;
-        }
-
-        const maxVal = Math.max(...entries.map((e) => e[valueField]), 1);
+        const data =
+            entries && entries.length > 0 ? entries : [{ [keyField]: '—', [valueField]: 0 }];
+        const maxVal = Math.max(...data.map((e) => e[valueField]), 1);
         const width = 700;
         const height = 180;
         const padding = { left: 40, right: 10, top: 20, bottom: 30 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
-        const barW = Math.max(6, Math.floor(chartW / entries.length) - 3);
+        const barW = Math.max(6, Math.floor(chartW / data.length) - 3);
 
         let svg = `<svg viewBox="0 0 ${width} ${height}" class="admin-chart__svg">`;
         svg += `<line x1="${padding.left}" y1="${padding.top + chartH}" x2="${padding.left + chartW}" y2="${padding.top + chartH}" stroke="var(--cell-border)" stroke-width="1"/>`;
@@ -224,14 +220,14 @@ export class AdminPage {
                 svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1"/>`;
         }
 
-        entries.forEach((entry, i) => {
+        data.forEach((entry, i) => {
             const x = padding.left + i * (barW + 3) + 2;
             const barH = Math.max(1, (entry[valueField] / maxVal) * chartH);
             const y = padding.top + chartH - barH;
 
             svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="var(--teal-green)" rx="2"><title>${entry[keyField]}: ${entry[valueField]}</title></rect>`;
 
-            if (entries.length <= 15 || i % Math.ceil(entries.length / 10) === 0) {
+            if (data.length <= 15 || i % Math.ceil(data.length / 10) === 0) {
                 const label =
                     entry[keyField].length > 5 ? entry[keyField].slice(5) : entry[keyField];
                 svg += `<text x="${x + barW / 2}" y="${padding.top + chartH + 16}" text-anchor="middle" font-size="9" fill="var(--accent)">${label}</text>`;
@@ -336,6 +332,7 @@ export class AdminPage {
 
                 tr.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     this.#showUserContextMenu(e, user);
                 });
                 tbody.appendChild(tr);
@@ -543,6 +540,7 @@ export class AdminPage {
 
                 tr.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     this.#contextMenu.show(e.clientX, e.clientY, [
                         {
                             label: 'Удалить',
