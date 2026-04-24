@@ -25,9 +25,9 @@
 @import '../widgets/editor-settings/EditorSettings.css';
 @import '../widgets/danger-zone/DangerZone.css';
 @import '../pages/landing/LandingPage.css';
-@import '../pages/admin/AdminPage.css';
-@import '../shared/components/context-menu/ContextMenu.css';
-@import '../shared/components/modal/Modal.css';
+@import '../pages/admin/AdminPage.css?v=2';
+@import '../shared/components/context-menu/ContextMenu.css?v=2';
+@import '../shared/components/modal/Modal.css?v=2';
 
 html, body {
     margin: 0;
