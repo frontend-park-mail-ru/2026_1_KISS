@@ -192,15 +192,14 @@ export class AdminPage {
         chart.innerHTML = `<div class="admin-chart__title">${this.#esc(titleText)}</div>`;
 
         const maxVal = Math.max(...data.map((e) => e[valueField]), 1);
-        const n = data.length;
-        const gap = 1;
-        const barW = Math.min(18, Math.max(4, Math.floor(646 / n) - gap));
-        const totalBarsW = n * (barW + gap);
-        const width = Math.max(700, totalBarsW + 60);
-        const height = 260;
-        const padding = { left: 44, right: 10, top: 20, bottom: 90 };
+        const width = 700;
+        const height = 220;
+        const padding = { left: 44, right: 10, top: 20, bottom: 54 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
+        const gap = 2;
+        const barW = Math.min(18, Math.max(4, Math.floor(chartW / data.length) - gap));
+        const totalBarsW = data.length * (barW + gap);
         const offsetX = padding.left + Math.max(0, (chartW - totalBarsW) / 2);
 
         const ticks = this.#calcYTicks(maxVal);
@@ -215,6 +214,8 @@ export class AdminPage {
                 svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1" stroke-dasharray="4,3"/>`;
         });
 
+        const labelStep = Math.max(1, Math.ceil(data.length / 15));
+
         data.forEach((entry, i) => {
             const x = offsetX + i * (barW + gap);
             const val = entry[valueField];
@@ -224,10 +225,12 @@ export class AdminPage {
             const opacity = val > 0 ? 1 : 0.15;
             svg += `<rect x="${x}" y="${val > 0 ? y : padding.top + chartH - 2}" width="${barW}" height="${val > 0 ? barH : 2}" fill="var(--teal-green)" opacity="${opacity}" rx="1"><title>${this.#formatChartLabel(entry[keyField], keyField)}: ${val}</title></rect>`;
 
-            const lbl = this.#formatChartLabel(entry[keyField], keyField);
-            const tx = x + barW / 2;
-            const ty = padding.top + chartH + 8;
-            svg += `<text x="${tx}" y="${ty}" text-anchor="end" font-size="8" fill="var(--accent)" transform="rotate(-55 ${tx} ${ty})">${lbl}</text>`;
+            if (i % labelStep === 0) {
+                const lbl = this.#formatChartLabel(entry[keyField], keyField);
+                const tx = x + barW / 2;
+                const ty = padding.top + chartH + 10;
+                svg += `<text x="${tx}" y="${ty}" text-anchor="end" font-size="9" fill="var(--accent)" transform="rotate(-45 ${tx} ${ty})">${lbl}</text>`;
+            }
         });
 
         svg += '</svg>';
@@ -236,13 +239,9 @@ export class AdminPage {
     }
 
     #formatChartLabel(raw, keyField) {
-        const DAYS_SHORT = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
         if (keyField === 'date') {
             const parts = raw.split('-');
-            if (parts.length === 3) {
-                const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-                return `${parts[2]}.${parts[1]}.${parts[0].slice(2)}(${DAYS_SHORT[d.getDay()]})`;
-            }
+            if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0].slice(2)}`;
         }
         if (keyField === 'month') {
             const parts = raw.split('-');
