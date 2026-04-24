@@ -177,66 +177,106 @@ export class AdminPage {
             this.#contentArea.appendChild(grid);
 
             const activityData = await this.#adminApi.getActivityStats(30, 12);
-            this.#renderTimeSeriesChart(
-                'DAU (последние 30 дней)',
-                activityData.dau || [],
-                'date',
-                'count'
-            );
-            this.#renderTimeSeriesChart(
-                'MAU (последние 12 месяцев)',
-                activityData.mau || [],
-                'month',
-                'count'
-            );
+            const dauFilled = this.#fillDays(activityData.dau || [], 30);
+            const mauFilled = this.#fillMonths(activityData.mau || [], 12);
+            this.#renderTimeSeriesChart('DAU (последние 30 дней)', dauFilled, 'date', 'count');
+            this.#renderTimeSeriesChart('MAU (последние 12 месяцев)', mauFilled, 'month', 'count');
         } catch (e) {
             this.#contentArea.innerHTML += `<div class="admin-empty">Ошибка загрузки: ${this.#esc(e.message)}</div>`;
         }
     }
 
-    #renderTimeSeriesChart(titleText, entries, keyField, valueField) {
+    #renderTimeSeriesChart(titleText, data, keyField, valueField) {
         const chart = document.createElement('div');
         chart.className = 'admin-chart';
         chart.innerHTML = `<div class="admin-chart__title">${this.#esc(titleText)}</div>`;
 
-        const data =
-            entries && entries.length > 0 ? entries : [{ [keyField]: '—', [valueField]: 0 }];
         const maxVal = Math.max(...data.map((e) => e[valueField]), 1);
         const width = 700;
-        const height = 180;
-        const padding = { left: 40, right: 10, top: 20, bottom: 30 };
+        const height = 200;
+        const padding = { left: 44, right: 10, top: 20, bottom: 34 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
-        const barW = Math.max(6, Math.floor(chartW / data.length) - 3);
+        const gap = 2;
+        const barW = Math.min(20, Math.max(4, Math.floor(chartW / data.length) - gap));
+        const totalBarsW = data.length * (barW + gap);
+        const offsetX = padding.left + Math.max(0, (chartW - totalBarsW) / 2);
+
+        const ticks = this.#calcYTicks(maxVal);
 
         let svg = `<svg viewBox="0 0 ${width} ${height}" class="admin-chart__svg">`;
         svg += `<line x1="${padding.left}" y1="${padding.top + chartH}" x2="${padding.left + chartW}" y2="${padding.top + chartH}" stroke="var(--cell-border)" stroke-width="1"/>`;
 
-        for (let i = 0; i <= 4; i++) {
-            const y = padding.top + chartH - (chartH / 4) * i;
-            const val = Math.round((maxVal / 4) * i);
-            svg += `<text x="${padding.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--accent)">${val}</text>`;
-            if (i > 0)
-                svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1"/>`;
-        }
+        ticks.forEach(({ value, label }) => {
+            const y = padding.top + chartH - (value / maxVal) * chartH;
+            svg += `<text x="${padding.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--accent)">${label}</text>`;
+            if (value > 0)
+                svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1" stroke-dasharray="4,3"/>`;
+        });
+
+        const labelStep = Math.max(1, Math.ceil(data.length / 15));
 
         data.forEach((entry, i) => {
-            const x = padding.left + i * (barW + 3) + 2;
-            const barH = Math.max(1, (entry[valueField] / maxVal) * chartH);
+            const x = offsetX + i * (barW + gap);
+            const val = entry[valueField];
+            const barH = val > 0 ? Math.max(2, (val / maxVal) * chartH) : 0;
             const y = padding.top + chartH - barH;
 
-            svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="var(--teal-green)" rx="2"><title>${entry[keyField]}: ${entry[valueField]}</title></rect>`;
+            const opacity = val > 0 ? 1 : 0.15;
+            svg += `<rect x="${x}" y="${val > 0 ? y : padding.top + chartH - 2}" width="${barW}" height="${val > 0 ? barH : 2}" fill="var(--teal-green)" opacity="${opacity}" rx="1"><title>${entry[keyField]}: ${val}</title></rect>`;
 
-            if (data.length <= 15 || i % Math.ceil(data.length / 10) === 0) {
-                const label =
-                    entry[keyField].length > 5 ? entry[keyField].slice(5) : entry[keyField];
-                svg += `<text x="${x + barW / 2}" y="${padding.top + chartH + 16}" text-anchor="middle" font-size="9" fill="var(--accent)">${label}</text>`;
+            if (i % labelStep === 0) {
+                const lbl = entry[keyField].length > 5 ? entry[keyField].slice(5) : entry[keyField];
+                svg += `<text x="${x + barW / 2}" y="${padding.top + chartH + 16}" text-anchor="middle" font-size="9" fill="var(--accent)">${lbl}</text>`;
             }
         });
 
         svg += '</svg>';
         chart.innerHTML += svg;
         this.#contentArea.appendChild(chart);
+    }
+
+    #calcYTicks(maxVal) {
+        if (maxVal <= 0) return [{ value: 0, label: '0' }];
+        if (maxVal <= 5) {
+            const ticks = [];
+            for (let i = 0; i <= maxVal; i++) ticks.push({ value: i, label: String(i) });
+            return ticks;
+        }
+        const step = Math.ceil(maxVal / 4);
+        const ticks = [];
+        for (let i = 0; i <= 4; i++) {
+            const v = step * i;
+            ticks.push({ value: Math.min(v, maxVal), label: String(Math.min(v, maxVal)) });
+        }
+        return ticks;
+    }
+
+    #fillDays(entries, count) {
+        const map = new Map();
+        entries.forEach((e) => map.set(e.date, e.count));
+        const result = [];
+        const now = new Date();
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            result.push({ date: key, count: map.get(key) || 0 });
+        }
+        return result;
+    }
+
+    #fillMonths(entries, count) {
+        const map = new Map();
+        entries.forEach((e) => map.set(e.month, e.count));
+        const result = [];
+        const now = new Date();
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            result.push({ month: key, count: map.get(key) || 0 });
+        }
+        return result;
     }
 
     #initUsersSection() {
