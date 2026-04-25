@@ -91,7 +91,7 @@ export class AdminApi {
 
     async respondToIssue(id, text) {
         const response = await this.#http.post(`/admin/issues/${id}/response`, {
-            response: text
+            content: text
         });
         return this.#parse(response);
     }

@@ -891,12 +891,36 @@ export class AdminPage {
                     </div>`;
             }
 
-            let responseHtml = '';
-            if (issue.response) {
-                responseHtml = `
-                    <div class="admin-issue-detail__response-block">
-                        <h4 class="admin-issue-detail__section-title">Ответ администратора</h4>
-                        <div class="admin-issue-detail__response-text">${this.#esc(issue.response)}</div>
+            let messagesHtml = '';
+            if (issue.messages && issue.messages.length > 0) {
+                const msgs = issue.messages
+                    .map((m) => {
+                        const mDate = new Date(m.created_at).toLocaleDateString('ru-RU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        const author = m.is_admin
+                            ? 'Администратор'
+                            : m.username || `User #${m.user_id}`;
+                        const cls = m.is_admin
+                            ? 'admin-issue-detail__message--admin'
+                            : 'admin-issue-detail__message--user';
+                        return `<div class="admin-issue-detail__message ${cls}">
+                            <div class="admin-issue-detail__message-meta">
+                                <span class="admin-issue-detail__message-author">${this.#esc(author)}</span>
+                                <span class="admin-issue-detail__message-date">${mDate}</span>
+                            </div>
+                            <div class="admin-issue-detail__message-text">${this.#esc(m.content)}</div>
+                        </div>`;
+                    })
+                    .join('');
+                messagesHtml = `
+                    <div class="admin-issue-detail__section">
+                        <h4 class="admin-issue-detail__section-title">Сообщения</h4>
+                        <div class="admin-issue-detail__messages">${msgs}</div>
                     </div>`;
             }
 
@@ -909,7 +933,7 @@ export class AdminPage {
                 </div>
                 <div class="admin-issue-detail__content">${this.#esc(issue.content)}</div>
                 ${attachmentsHtml}
-                ${responseHtml}
+                ${messagesHtml}
                 <div class="admin-issue-detail__actions">
                     <div class="admin-issue-detail__status-row">
                         <label class="admin-issue-detail__section-title">Статус</label>
@@ -923,7 +947,7 @@ export class AdminPage {
                     </div>
                     <div class="admin-issue-detail__response-section">
                         <label class="admin-issue-detail__section-title">Ответить</label>
-                        <textarea class="admin-issue-detail__textarea" placeholder="Введите ответ...">${issue.response ? this.#esc(issue.response) : ''}</textarea>
+                        <textarea class="admin-issue-detail__textarea" placeholder="Введите ответ..."></textarea>
                         <button class="admin-btn" data-role="send-response">Отправить ответ</button>
                     </div>
                 </div>`;

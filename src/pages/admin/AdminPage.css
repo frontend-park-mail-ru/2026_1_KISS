@@ -521,6 +521,55 @@
     white-space: pre-wrap;
 }
 
+.admin-issue-detail__messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.admin-issue-detail__message {
+    padding: 10px 14px;
+    border-radius: 8px;
+    max-width: 85%;
+}
+
+.admin-issue-detail__message--user {
+    background: var(--light-grey);
+    align-self: flex-start;
+}
+
+.admin-issue-detail__message--admin {
+    background: #e0f2f1;
+    align-self: flex-end;
+}
+
+.admin-issue-detail__message-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.admin-issue-detail__message-author {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal-green);
+}
+
+.admin-issue-detail__message-date {
+    font-size: 11px;
+    color: var(--accent);
+}
+
+.admin-issue-detail__message-text {
+    font-size: 13px;
+    color: var(--dark-primary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .admin-issue-detail__actions {
     border-top: 1px solid var(--cell-border);
     padding-top: 24px;
