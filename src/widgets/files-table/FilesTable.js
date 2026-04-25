@@ -145,7 +145,6 @@ export class FilesTable extends BaseComponent {
 
             const nameCell = document.createElement('td');
             nameCell.className = 'files-table__cell files-table__cell_name';
-            nameCell.setAttribute('data-label', 'Название');
             const icon = document.createElement('span');
             icon.className = 'files-table__icon';
             icon.textContent = 'K';
@@ -157,17 +156,14 @@ export class FilesTable extends BaseComponent {
 
             const dateCell = document.createElement('td');
             dateCell.className = 'files-table__cell';
-            dateCell.setAttribute('data-label', 'Дата изменения');
             dateCell.textContent = formatter.format(new Date(nb.updated_at));
 
             const ownerCell = document.createElement('td');
             ownerCell.className = 'files-table__cell';
-            ownerCell.setAttribute('data-label', 'Владелец');
             ownerCell.textContent = nb._isShared ? nb.owner_username || '—' : this.#ownerName;
 
             const kebabCell = document.createElement('td');
             kebabCell.className = 'files-table__cell files-table__kebab-cell';
-            kebabCell.setAttribute('data-label', '');
 
             tr.appendChild(nameCell);
             tr.appendChild(dateCell);
