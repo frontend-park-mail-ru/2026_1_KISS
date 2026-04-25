@@ -45,6 +45,7 @@ export function NotebookHeaderTemplate(ctx) {
                 </div>
                 <div class="header-user-dropdown notebook-header__user-dropdown">
                     <button class="header-user-dropdown__item" data-action="profile">Профиль</button>
+                    <button class="header-user-dropdown__item" data-action="feedback">Обратная связь</button>
                     <button class="header-user-dropdown__item header-user-dropdown__item--danger" data-action="logout">Выйти из аккаунта</button>
                 </div>
             </div>`

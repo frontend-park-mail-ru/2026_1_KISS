@@ -6,6 +6,7 @@ import { EditorSettings } from '../../widgets/editor-settings/EditorSettings.js'
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { ProfilePageTemplate } from './ProfilePage.template.js';
+import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 
 const SECTION_MAP = {
     profile: ProfileSection,
@@ -26,6 +27,7 @@ export class ProfilePage {
     #activeKey = 'profile';
     #activeSection = null;
     #contentArea = null;
+    #feedbackModal = null;
 
     /**
      * @param {HTMLElement} root - root container element
@@ -65,6 +67,10 @@ export class ProfilePage {
                 avatarUrl: this.#user.avatar_url || ''
             },
             onProfile: () => {},
+            onFeedback: () => {
+                if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
+                this.#feedbackModal.open();
+            },
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');

@@ -4,6 +4,7 @@ import { AdminApi } from '../../shared/api/AdminApi.js';
 import { Router } from '../../shared/router/Router.js';
 import { ContextMenu } from '../../shared/components/context-menu/ContextMenu.js';
 import { Modal } from '../../shared/components/modal/Modal.js';
+import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 
 function AdminPageTemplate() {
     return `<main class="admin-page">
@@ -50,6 +51,9 @@ export class AdminPage {
     #currentUserSearch = '';
     #currentNbPage = 1;
     #currentNbSearch = '';
+    #currentIssuePage = 1;
+    #currentIssueSearch = '';
+    #feedbackModal = null;
 
     constructor(root) {
         this.#root = root;
@@ -86,6 +90,10 @@ export class AdminPage {
             },
             onProfile: () => Router.getInstance().navigate('/profile'),
             onAdmin: () => {},
+            onFeedback: () => {
+                if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
+                this.#feedbackModal.open();
+            },
             onLogout: async () => {
                 await this.#httpClient.post('/auth/logout').catch(() => {});
                 Router.getInstance().navigate('/sign');

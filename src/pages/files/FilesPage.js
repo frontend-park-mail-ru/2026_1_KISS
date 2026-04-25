@@ -4,6 +4,7 @@ import { FilesTable } from '../../widgets/files-table/FilesTable.js';
 import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
+import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 
 export class FilesPage {
     #root;
@@ -13,6 +14,7 @@ export class FilesPage {
     #pagination;
     #allNotebooks = [];
     #filters = { owner: null, dateFrom: null, dateTo: null, search: '' };
+    #feedbackModal = null;
     #state = {
         notebooks: [],
         currentPage: 1,
@@ -52,6 +54,10 @@ export class FilesPage {
         const headerConfig = {
             user: { username: this.#state.username, initials, avatarUrl: this.#state.avatarUrl },
             onProfile: () => Router.getInstance().navigate('/profile'),
+            onFeedback: () => {
+                if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
+                this.#feedbackModal.open();
+            },
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');
