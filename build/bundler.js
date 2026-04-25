@@ -4,15 +4,9 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const ENTRY = path.resolve(ROOT, 'src/app/index.js');
 const OUT_DIR = path.resolve(ROOT, 'dist');
-const OUT_JS = path.join(OUT_DIR, 'app.js');
-const OUT_HTML = path.join(OUT_DIR, 'index.html');
 
 const IMPORT_RE = /import\s+(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
-
-const modules = new Map();
-const order = [];
 
 function resolvePath(importPath, fromFile) {
     const dir = path.dirname(fromFile);
@@ -30,58 +24,6 @@ function moduleId(filePath) {
         .relative(ROOT, filePath)
         .replace(/[/\\.]/g, '_')
         .replace(/[^a-zA-Z0-9_]/g, '');
-}
-
-function collectDeps(filePath) {
-    if (modules.has(filePath)) return;
-    if (!fs.existsSync(filePath)) {
-        console.warn(`[bundler] WARN: file not found: ${filePath}`);
-        return;
-    }
-    const code = fs.readFileSync(filePath, 'utf-8');
-    modules.set(filePath, code);
-
-    const deps = [];
-    let match;
-    const re = new RegExp(IMPORT_RE.source, IMPORT_RE.flags);
-    while ((match = re.exec(code)) !== null) {
-        const importPath = match[1];
-        if (importPath.startsWith('.')) {
-            const resolved = resolvePath(importPath, filePath);
-            deps.push(resolved);
-            collectDeps(resolved);
-        }
-    }
-
-    if (!order.includes(filePath)) {
-        order.push(filePath);
-    }
-}
-
-function toposort() {
-    const visited = new Set();
-    const sorted = [];
-
-    function visit(filePath) {
-        if (visited.has(filePath)) return;
-        visited.add(filePath);
-
-        const code = modules.get(filePath) || '';
-        const re = new RegExp(IMPORT_RE.source, IMPORT_RE.flags);
-        let match;
-        while ((match = re.exec(code)) !== null) {
-            if (match[1].startsWith('.')) {
-                const resolved = resolvePath(match[1], filePath);
-                if (modules.has(resolved)) visit(resolved);
-            }
-        }
-        sorted.push(filePath);
-    }
-
-    for (const fp of modules.keys()) {
-        visit(fp);
-    }
-    return sorted;
 }
 
 function wrapModule(filePath, code) {
@@ -119,9 +61,7 @@ function wrapModule(filePath, code) {
 
     transformed = transformed.replace(
         /export\s+(?:default\s+)?(?:class|function)\s+(\w+)/g,
-        (m, _name) => {
-            return m.replace(/^export\s+(default\s+)?/, '');
-        }
+        (m, _name) => m.replace(/^export\s+(default\s+)?/, '')
     );
     transformed = transformed.replace(/export\s+\{[^}]*\}\s*;?/g, '');
     transformed = transformed.replace(/export\s+(const|let|var)\s+/g, '$1 ');
@@ -146,7 +86,6 @@ function wrapModule(filePath, code) {
     }
 
     const hasDefault = /export\s+default\s/.test(code);
-
     let exportsObj = exportNames.map((n) => `${n}`).join(', ');
     if (hasDefault) {
         const defaultMatch = code.match(/export\s+default\s+(?:class|function)\s+(\w+)/);
@@ -158,35 +97,95 @@ function wrapModule(filePath, code) {
     return `// Module: ${path.relative(ROOT, filePath)}\n__modules.${id} = (function() {\n${transformed}\nreturn { ${exportsObj} };\n})();\n`;
 }
 
-function build() {
-    console.log('[bundler] Collecting dependencies...');
-    collectDeps(ENTRY);
+function buildBundle(entry, outJs, htmlSrc, outHtml) {
+    const modules = new Map();
+
+    function collectDeps(filePath) {
+        if (modules.has(filePath)) return;
+        if (!fs.existsSync(filePath)) {
+            console.warn(`[bundler] WARN: file not found: ${filePath}`);
+            return;
+        }
+        const code = fs.readFileSync(filePath, 'utf-8');
+        modules.set(filePath, code);
+
+        const re = new RegExp(IMPORT_RE.source, IMPORT_RE.flags);
+        let match;
+        while ((match = re.exec(code)) !== null) {
+            if (match[1].startsWith('.')) {
+                collectDeps(resolvePath(match[1], filePath));
+            }
+        }
+    }
+
+    function toposort() {
+        const visited = new Set();
+        const sorted = [];
+
+        function visit(filePath) {
+            if (visited.has(filePath)) return;
+            visited.add(filePath);
+            const code = modules.get(filePath) || '';
+            const re = new RegExp(IMPORT_RE.source, IMPORT_RE.flags);
+            let match;
+            while ((match = re.exec(code)) !== null) {
+                if (match[1].startsWith('.')) {
+                    const resolved = resolvePath(match[1], filePath);
+                    if (modules.has(resolved)) visit(resolved);
+                }
+            }
+            sorted.push(filePath);
+        }
+
+        for (const fp of modules.keys()) visit(fp);
+        return sorted;
+    }
+
+    console.log(`[bundler] Building ${path.relative(ROOT, entry)}...`);
+    collectDeps(entry);
 
     const sorted = toposort();
-    console.log(`[bundler] ${sorted.length} modules found`);
-
-    fs.mkdirSync(OUT_DIR, { recursive: true });
+    console.log(`[bundler] ${sorted.length} modules`);
 
     let bundle = '"use strict";\nconst __modules = {};\n\n';
     for (const fp of sorted) {
-        const code = modules.get(fp);
-        bundle += wrapModule(fp, code) + '\n';
+        bundle += wrapModule(fp, modules.get(fp)) + '\n';
     }
 
-    fs.writeFileSync(OUT_JS, bundle, 'utf-8');
+    const outJsName = path.basename(outJs);
+    fs.writeFileSync(outJs, bundle, 'utf-8');
     console.log(
-        `[bundler] -> ${path.relative(ROOT, OUT_JS)} (${(bundle.length / 1024).toFixed(1)} kB)`
+        `[bundler] -> ${path.relative(ROOT, outJs)} (${(bundle.length / 1024).toFixed(1)} kB)`
     );
 
-    const htmlSrc = path.resolve(ROOT, 'src/app/index.html');
-    let html = fs.readFileSync(htmlSrc, 'utf-8');
-    html = html.replace(
-        /<script type="module" src="[^"]*"><\/script>/,
-        '<script src="/app.js"></script>'
+    if (htmlSrc && outHtml && fs.existsSync(htmlSrc)) {
+        let html = fs.readFileSync(htmlSrc, 'utf-8');
+        html = html.replace(
+            /<script type="module" src="[^"]*"><\/script>/,
+            `<script src="/${outJsName}"></script>`
+        );
+        html = html.replace(/href="\/app\/index\.css[^"]*"/, 'href="/app.css"');
+        fs.writeFileSync(outHtml, html, 'utf-8');
+        console.log(`[bundler] -> ${path.relative(ROOT, outHtml)}`);
+    }
+}
+
+function build() {
+    fs.mkdirSync(OUT_DIR, { recursive: true });
+
+    buildBundle(
+        path.resolve(ROOT, 'src/app/index.js'),
+        path.join(OUT_DIR, 'app.js'),
+        path.resolve(ROOT, 'src/app/index.html'),
+        path.join(OUT_DIR, 'index.html')
     );
-    html = html.replace(/href="\/app\/index\.css"/, 'href="/app.css"');
-    fs.writeFileSync(OUT_HTML, html, 'utf-8');
-    console.log(`[bundler] -> ${path.relative(ROOT, OUT_HTML)}`);
+
+    buildBundle(
+        path.resolve(ROOT, 'src/feedback/index.js'),
+        path.join(OUT_DIR, 'feedback.js'),
+        path.resolve(ROOT, 'src/feedback/feedback.html'),
+        path.join(OUT_DIR, 'feedback.html')
+    );
 
     const swSrc = path.resolve(ROOT, 'src/sw.js');
     if (fs.existsSync(swSrc)) {
