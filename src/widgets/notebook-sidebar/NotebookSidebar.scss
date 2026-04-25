@@ -1,7 +1,21 @@
+@import '../../app/styles/breakpoints';
+
 .notebook-sidebar {
     display: flex;
     flex-shrink: 0;
     height: 100%;
+    @include mobile {
+        position: fixed;
+        left: -300px;
+        top: 0;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+        
+        &.notebook-sidebar--mobile-open {
+            left: 0;
+        }
+    }
 }
 
 .notebook-sidebar__icons {
@@ -14,6 +28,12 @@
     background: var(--light-grey);
     border-right: 1px solid var(--cell-border);
     box-sizing: border-box;
+
+    @include mobile {
+        width: 56px;
+        padding: 16px 8px;
+        gap: 8px;
+    }
 }
 
 .notebook-sidebar__icon-btn {
@@ -27,6 +47,10 @@
     background: transparent;
     color: var(--accent);
     cursor: pointer;
+    @include touch-device {
+        width: 44px;
+        height: 44px;
+    }
 }
 
 .notebook-sidebar__icon-btn:hover {
@@ -46,6 +70,10 @@
     background: var(--white);
     border-right: 1px solid var(--cell-border);
     overflow-y: auto;
+    @include mobile {
+        width: calc(100vw - 56px);
+        max-width: 280px;
+    }
 }
 
 .notebook-sidebar__panel--visible {
@@ -114,4 +142,27 @@
     font-size: 13px;
     color: var(--line-number-color);
     margin: 0;
+}
+
+.sidebar-overlay {
+    display: none;
+    
+    @include mobile {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+        
+        &.sidebar-overlay--visible {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
 }

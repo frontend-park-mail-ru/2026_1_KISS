@@ -1,4 +1,4 @@
-
+@import '../../app/styles/breakpoints';
 
 .green-header {
     background-color: var(--teal-green);
@@ -6,6 +6,13 @@
     padding: 10px 10px;
     width: 100%;
     box-sizing: border-box;
+    
+    @include mobile {
+        padding: 12px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
 }
 
 .header-container {
@@ -14,6 +21,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    
+    @include mobile {
+        padding: 0;
+        justify-content: center;
+    }
 }
 
 .logo-link {
@@ -27,11 +39,30 @@
 .logo-image {
     height: 40px;
     width: auto;
+    
+    @include mobile {
+        height: 32px;
+    }
 }
 
 .header-buttons {
     display: flex;
     gap: 1rem;
+}
+
+@include mobile {
+    .header-buttons {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    .green-header button[data-action="login"],
+    .green-header button[data-action="register"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
 }
 
 .header-user-pill {
@@ -42,7 +73,17 @@
     border: 1.5px solid var(--white);
     border-radius: 20px;
     cursor: pointer;
+    
+    @include mobile {
+        padding: 4px 12px;
+
+        .header-user-pill__name {
+            display: none;
+        }
+    }
 }
+
+
 
 .header-user-pill-wrapper {
     position: relative;
@@ -59,6 +100,10 @@
     z-index: 100;
     min-width: 180px;
     overflow: hidden;
+    @include mobile {
+        min-width: 160px;
+        right: -8px;
+    }
 }
 
 .header-user-dropdown_visible {
@@ -75,6 +120,9 @@
     cursor: pointer;
     font-size: 14px;
     color: var(--dark-primary);
+    @include touch-device {
+        padding: 12px 16px;
+    }
 }
 
 .header-user-dropdown__item:hover {
