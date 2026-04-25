@@ -1,31 +1,17 @@
-@import '../../app/styles/breakpoints';
-
 .files-table {
     width: 100%;
     margin-bottom: 24px;
-    @include mobile {
-        margin-bottom: 16px;
-    }
 }
 
 .files-table__table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    @include mobile {
-        display: block;
-    }
 }
 
-.files-table__header:nth-child(1) {
-    width: 50%;
-}
-.files-table__header:nth-child(2) {
-    width: 25%;
-}
-.files-table__header:nth-child(3) {
-    width: 25%;
-}
+.files-table__header:nth-child(1) { width: 50%; }
+.files-table__header:nth-child(2) { width: 25%; }
+.files-table__header:nth-child(3) { width: 25%; }
 
 .files-table__header {
     text-align: left;
@@ -38,48 +24,6 @@
 
 .files-table__header_actions {
     width: 40px;
-}
-
-@include mobile {
-    .files-table__header {
-        display: none;
-    }
-
-    .files-table__row {
-        display: block;
-        border: 1px solid var(--light-grey);
-        border-radius: 12px;
-        margin-bottom: 16px;
-        padding: 12px;
-        background: var(--white);
-    }
-
-    .files-table__cell {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--light-grey);
-
-        &:last-child {
-            border-bottom: none;
-        }
-
-        &:before {
-            content: attr(data-label);
-            font-weight: 600;
-            color: var(--accent);
-            font-size: 12px;
-            width: 35%;
-            flex-shrink: 0;
-        }
-    }
-
-    .files-table__cell_name {
-        &:before {
-            content: 'Название';
-        }
-    }
 }
 
 .files-table__row {
@@ -247,70 +191,4 @@
     cursor: text;
     overflow-x: auto;
     text-overflow: clip;
-}
-
-@include mobile {
-    .files-table__table,
-    .files-table__tbody,
-    .files-table__tr {
-        display: block;
-    }
-
-    .files-table__header {
-        display: none;
-    }
-
-    .files-table__row {
-        display: block;
-        border: 1px solid var(--light-grey);
-        border-radius: 12px;
-        margin-bottom: 16px;
-        padding: 12px;
-        background: var(--white);
-
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
-
-    .files-table__cell {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--light-grey);
-
-        &:last-child {
-            border-bottom: none;
-            justify-content: flex-end;
-        }
-
-        &::before {
-            content: attr(data-label);
-            font-weight: 600;
-            color: var(--accent);
-            font-size: 12px;
-            width: 35%;
-            flex-shrink: 0;
-        }
-    }
-
-    .files-table__cell_name {
-        flex-wrap: wrap;
-
-        &::before {
-            width: 100%;
-            margin-bottom: 8px;
-        }
-    }
-
-    .files-table__kebab-cell {
-        &::before {
-            display: none;
-        }
-    }
-
-    .files-table__empty-state {
-        padding: 40px 20px;
-    }
 }

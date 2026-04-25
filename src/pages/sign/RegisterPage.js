@@ -78,6 +78,11 @@ export class RegisterPage {
         this.#attachEvents();
     }
 
+    /**
+     * Подключает обработчики переключения форм: кнопки header (Войти/Регистрация) и ссылки внутри форм.
+     *
+     * @private
+     */
     #attachEvents() {
         const moveToRegister = (e) => {
             e.preventDefault();
@@ -87,7 +92,6 @@ export class RegisterPage {
             this.#saveState();
             this.update();
         };
-
         const moveToLogin = (e) => {
             e.preventDefault();
             this.#register.unmount();
@@ -96,38 +100,47 @@ export class RegisterPage {
             this.#saveState();
             this.update();
         };
-
-        // Кнопки в хедере
-        if (this.#elements.header && this.#elements.header.loginBtn) {
-            this.#elements.header.loginBtn.addEventListener('click', moveToLogin);
-        }
-        if (this.#elements.header && this.#elements.header.registerBtn) {
-            this.#elements.header.registerBtn.addEventListener('click', moveToRegister);
-        }
-
-        // Ссылки внутри форм
-        if (this.#register && this.#register.goOutBtn) {
+        this.#elements.header.loginBtn.addEventListener('click', moveToLogin);
+        this.#elements.header.registerBtn.addEventListener('click', moveToRegister);
+        if (this.#register) {
             this.#register.goOutBtn.addEventListener('click', moveToLogin);
         }
-        if (this.#login && this.#login.goToRegisterBtn) {
+        if (this.#login) {
             this.#login.goToRegisterBtn.addEventListener('click', moveToRegister);
         }
     }
 
+    /**
+     * Сбрасывает состояние полей активной формы.
+     */
     update() {
-        if (this.#activeElement && this.#activeElement.update) {
-            this.#activeElement.update();
-        }
+        this.#activeElement.update();
     }
 
+    /**
+     * Сохраняет имя активной формы (login/register) в sessionStorage для восстановления при повторном визите.
+     *
+     * @private
+     */
     #saveState() {
         let activeView = REGISTER_STATE;
         if (this.#activeElement === this.#login) {
             activeView = LOGIN_STATE;
         }
-        sessionStorage.setItem(SESSION_ACTIVE_STATE, JSON.stringify({ activeView: activeView }));
+        sessionStorage.setItem(
+            SESSION_ACTIVE_STATE,
+            JSON.stringify({
+                activeView: activeView
+            })
+        );
     }
 
+    /**
+     * Восстанавливает активную форму из sessionStorage.
+     *
+     * @private
+     * @returns {Login|Register} форма для отображения
+     */
     #restoreState() {
         const urlMode = new URLSearchParams(window.location.search).get('mode');
         if (urlMode === LOGIN_STATE) return this.#login;
@@ -146,6 +159,9 @@ export class RegisterPage {
         }
     }
 
+    /**
+     * Размонтирует обе формы и очищает DOM.
+     */
     destroy() {
         if (this.#login) this.#login.unmount();
         if (this.#register) this.#register.unmount();

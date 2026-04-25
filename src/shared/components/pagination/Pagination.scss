@@ -1,14 +1,9 @@
-@import '../../../app/styles/breakpoints';
-
 .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    @include mobile {
-        gap: 4px;
-    }
 }
 
 .pagination__label {
@@ -18,10 +13,6 @@
     font-size: 12px;
     color: var(--dark-primary);
     user-select: none;
-    @include mobile {
-        height: 36px;
-        font-size: 11px;
-    }
 }
 
 .pagination__btn {
@@ -39,23 +30,6 @@
     transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
     padding: 0 12px;
     white-space: nowrap;
-    @include mobile {
-        min-width: 36px;
-        height: 36px;
-        font-size: 11px;
-        padding: 0 8px;
-    }
-    
-    @include touch-device {
-        min-width: 44px;
-        height: 44px;
-    }
-}
-
-@include mobile {
-    .pagination__btn:not(.pagination__btn_active):not(:first-child):not(:last-child) {
-        display: none;
-    }
 }
 
 .pagination__btn:hover:not(:disabled) {
@@ -92,9 +66,3 @@
     letter-spacing: 2px;
     user-select: none;
 }
-
-@include mobile {
-        min-width: 36px;
-        height: 36px;
-        display: none;
-    }
