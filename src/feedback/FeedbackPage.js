@@ -451,11 +451,45 @@ export class FeedbackPage {
                     <span class="feedback-modal__issue-date">${date}</span>
                 </div>
                 <div class="feedback-modal__detail-content">${this.#esc(issue.content)}</div>
-                ${messagesHtml}`;
+                ${messagesHtml}
+                <div class="feedback-modal__reply-section">
+                    <textarea class="feedback-modal__reply-textarea" placeholder="Написать ответ..." maxlength="2000"></textarea>
+                    <div class="feedback-modal__reply-actions">
+                        <span class="feedback-modal__reply-count">0 / 2000</span>
+                        <button class="feedback-modal__reply-btn">Отправить</button>
+                    </div>
+                    <div class="feedback-modal__reply-error" hidden></div>
+                </div>`;
 
             body.querySelector('.feedback-modal__back-btn').addEventListener('click', () =>
                 this.#renderList()
             );
+
+            const replyTextarea = body.querySelector('.feedback-modal__reply-textarea');
+            const replyCount = body.querySelector('.feedback-modal__reply-count');
+            const replyBtn = body.querySelector('.feedback-modal__reply-btn');
+            const replyError = body.querySelector('.feedback-modal__reply-error');
+
+            replyTextarea.addEventListener('input', () => {
+                replyCount.textContent = `${replyTextarea.value.length} / 2000`;
+            });
+
+            replyBtn.addEventListener('click', async () => {
+                const text = replyTextarea.value.trim();
+                if (!text) return;
+                replyBtn.disabled = true;
+                replyBtn.textContent = 'Отправка...';
+                replyError.hidden = true;
+                try {
+                    await this.#issueApi.addMessage(issueId, text);
+                    this.#renderDetail(issueId);
+                } catch (e) {
+                    replyError.textContent = e.message || 'Не удалось отправить';
+                    replyError.hidden = false;
+                    replyBtn.disabled = false;
+                    replyBtn.textContent = 'Отправить';
+                }
+            });
         } catch {
             body.innerHTML =
                 '<div class="feedback-modal__empty">Не удалось загрузить обращение</div>';

@@ -39,6 +39,7 @@ const PLAN_OPTIONS = [
 ];
 
 const ISSUE_STATUS_BADGES = {
+    open: { cls: 'admin-badge--active', label: 'Новое' },
     new: { cls: 'admin-badge--active', label: 'Новое' },
     in_progress: { cls: 'admin-badge--pro', label: 'В работе' },
     resolved: { cls: 'admin-badge--free', label: 'Решено' },
@@ -53,7 +54,7 @@ const ISSUE_CATEGORY_BADGES = {
 };
 
 const ISSUE_STATUS_OPTIONS = [
-    { value: 'new', label: 'Новое' },
+    { value: 'open', label: 'Новое' },
     { value: 'in_progress', label: 'В работе' },
     { value: 'resolved', label: 'Решено' },
     { value: 'closed', label: 'Закрыто' }
@@ -928,7 +929,7 @@ export class AdminPage {
                 <h2 class="admin-page__section-title">Обращение #${issue.id}</h2>
                 <div class="admin-issue-detail__meta">
                     ${catBadge} ${statusBadge}
-                    <span class="admin-table__muted">User ID: ${issue.user_id}</span>
+                    <span class="admin-table__muted">${this.#esc(issue.username || `User #${issue.user_id}`)}</span>
                     <span class="admin-table__muted">${date}</span>
                 </div>
                 <div class="admin-issue-detail__content">${this.#esc(issue.content)}</div>

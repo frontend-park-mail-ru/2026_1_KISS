@@ -55,6 +55,11 @@ export class IssueApi {
         return `${this.#http.baseUrl}/issues/${issueId}/attachments/${attachmentId}`;
     }
 
+    async addMessage(issueId, content) {
+        const response = await this.#http.post(`/issues/${issueId}/messages`, { content });
+        return this.#parse(response);
+    }
+
     #getCookie(name) {
         const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
         return match ? decodeURIComponent(match[1]) : '';
