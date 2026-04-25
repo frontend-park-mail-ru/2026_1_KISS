@@ -33,7 +33,6 @@ const STATUS_LABELS = {
     closed: 'Закрыто'
 };
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_CONTENT_LENGTH = 2000;
 
 export class FeedbackPage {
@@ -146,11 +145,12 @@ export class FeedbackPage {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
         });
 
-        
-        fileInput.addEventListener('change', () => {
-            this.#addFiles(Array.from(fileInput.files), modal);
-            fileInput.value = '';
-        });
+        modal
+            .querySelector('.feedback-modal__history-btn')
+            .addEventListener('click', () => this.#renderList());
+        modal
+            .querySelector('.feedback-modal__submit-btn')
+            .addEventListener('click', () => this.#handleSubmit(modal));
     }
 
     async #handleSubmit(modal) {
