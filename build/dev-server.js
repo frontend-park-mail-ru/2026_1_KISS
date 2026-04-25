@@ -60,6 +60,43 @@ function proxy(clientReq, clientRes) {
     clientReq.pipe(proxyReq, { end: true });
 }
 
+/**
+ * Проксировать WebSocket-апгрейд /api/* на API_TARGET.
+ * После HTTP/1.1 101 Switching Protocols превращаем оба соединения
+ * в простые TCP-сокеты и pipe'аем их в обе стороны.
+ */
+function proxyUpgrade(clientReq, clientSocket, head) {
+    const target = new URL(API_TARGET);
+    const upstreamReq = http.request({
+        hostname: target.hostname,
+        port: target.port || 80,
+        path: clientReq.url,
+        method: clientReq.method,
+        headers: { ...clientReq.headers, host: target.host }
+    });
+
+    upstreamReq.on('upgrade', (upstreamRes, upstreamSocket, upstreamHead) => {
+        const lines = [`HTTP/1.1 ${upstreamRes.statusCode} ${upstreamRes.statusMessage}`];
+        for (const [k, v] of Object.entries(upstreamRes.headers)) {
+            if (Array.isArray(v)) {
+                for (const item of v) lines.push(`${k}: ${item}`);
+            } else {
+                lines.push(`${k}: ${v}`);
+            }
+        }
+        clientSocket.write(lines.join('\r\n') + '\r\n\r\n');
+        if (upstreamHead && upstreamHead.length) clientSocket.write(upstreamHead);
+        upstreamSocket.pipe(clientSocket);
+        clientSocket.pipe(upstreamSocket);
+        upstreamSocket.on('error', () => clientSocket.destroy());
+        clientSocket.on('error', () => upstreamSocket.destroy());
+    });
+
+    upstreamReq.on('error', () => clientSocket.destroy());
+    if (head && head.length) upstreamReq.write(head);
+    upstreamReq.end();
+}
+
 const server = http.createServer((req, res) => {
     const url = new URL(req.url, `http://localhost:${PORT}`);
     const pathname = url.pathname;
@@ -80,6 +117,14 @@ const server = http.createServer((req, res) => {
 
     const fallback = path.join(SRC_ROOT, 'app', 'index.html');
     serveFile(res, fallback);
+});
+
+server.on('upgrade', (req, clientSocket, head) => {
+    if (req.url.startsWith('/api')) {
+        proxyUpgrade(req, clientSocket, head);
+        return;
+    }
+    clientSocket.destroy();
 });
 
 server.listen(PORT, () => {

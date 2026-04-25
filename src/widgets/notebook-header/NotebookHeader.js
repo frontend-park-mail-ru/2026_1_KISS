@@ -75,6 +75,17 @@ export class NotebookHeader extends BaseComponent {
     }
 
     /**
+     * Обновить отображаемое название файла. Игнорируется, если пользователь
+     * сейчас редактирует заголовок (чтобы не перебивать его ввод).
+     * @param {string} filename
+     */
+    setFilename(filename) {
+        if (this.#isEditing) return;
+        const span = this._element.querySelector('.notebook-header__filename');
+        if (span) span.textContent = filename;
+    }
+
+    /**
      * Подключает обработчики: навигация по логотипу на /files, кнопка редактирования названия, user-pill dropdown с действиями профиль/выход.
      *
      * @private
