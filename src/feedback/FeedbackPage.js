@@ -145,12 +145,11 @@ export class FeedbackPage {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
         });
 
-        modal                                                  
-            .querySelector('.feedback-modal__history-btn')     
-            .addEventListener('click', () => this.#renderList()
-        );                                                             
-        modal                                                  
-            .querySelector('.feedback-modal__submit-btn')      
+        modal
+            .querySelector('.feedback-modal__history-btn')
+            .addEventListener('click', () => this.#renderList());
+        modal
+            .querySelector('.feedback-modal__submit-btn')
             .addEventListener('click', () => this.#handleSubmit(modal));
     }
 
