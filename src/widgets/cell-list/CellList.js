@@ -116,7 +116,11 @@ export class CellList extends BaseComponent {
             this.#applyBlockUpdated(event.block);
         } else if (event.type === 'block_added' && event.block) {
             this.#applyBlockAdded(event.block);
-        } else if (event.type === 'block_deleted' && event.block_id !== undefined && event.block_id !== null) {
+        } else if (
+            event.type === 'block_deleted' &&
+            event.block_id !== undefined &&
+            event.block_id !== null
+        ) {
             this.#applyBlockDeleted(event.block_id);
         }
     }
