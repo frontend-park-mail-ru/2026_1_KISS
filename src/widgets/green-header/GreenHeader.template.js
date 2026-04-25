@@ -17,6 +17,7 @@ export function GreenHeaderTemplate(ctx) {
             <div class="header-user-dropdown">
                 <button class="header-user-dropdown__item" data-action="profile">Профиль</button>
                 ${ctx.onAdmin ? '<button class="header-user-dropdown__item" data-action="admin">Админ-панель</button>' : ''}
+                <button class="header-user-dropdown__item" data-action="feedback">Обратная связь</button>
                 <button class="header-user-dropdown__item header-user-dropdown__item--danger" data-action="logout">Выйти из аккаунта</button>
             </div>
         </div>`

@@ -4,6 +4,7 @@ import { AdminApi } from '../../shared/api/AdminApi.js';
 import { Router } from '../../shared/router/Router.js';
 import { ContextMenu } from '../../shared/components/context-menu/ContextMenu.js';
 import { Modal } from '../../shared/components/modal/Modal.js';
+import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 
 function AdminPageTemplate() {
     return `<main class="admin-page">
@@ -14,6 +15,7 @@ function AdminPageTemplate() {
                 <button class="admin-page__sidebar-item admin-page__sidebar-item--active" data-section="stats">Статистика</button>
                 <button class="admin-page__sidebar-item" data-section="users">Пользователи</button>
                 <button class="admin-page__sidebar-item" data-section="notebooks">Блокноты</button>
+                <button class="admin-page__sidebar-item" data-section="issues">Обращения</button>
             </div>
         </nav>
         <div class="admin-page__content"></div>
@@ -36,6 +38,28 @@ const PLAN_OPTIONS = [
     { value: 'admin', label: 'Admin' }
 ];
 
+const ISSUE_STATUS_BADGES = {
+    open: { cls: 'admin-badge--active', label: 'Новое' },
+    new: { cls: 'admin-badge--active', label: 'Новое' },
+    in_progress: { cls: 'admin-badge--pro', label: 'В работе' },
+    resolved: { cls: 'admin-badge--free', label: 'Решено' },
+    closed: { cls: 'admin-badge--freeze', label: 'Закрыто' }
+};
+
+const ISSUE_CATEGORY_BADGES = {
+    bug: { cls: 'admin-badge--banned', label: 'Ошибка' },
+    idea: { cls: 'admin-badge--pro', label: 'Предложение' },
+    problem: { cls: 'admin-badge--freeze', label: 'Проблема' },
+    feedback: { cls: 'admin-badge--active', label: 'Общее мнение' }
+};
+
+const ISSUE_STATUS_OPTIONS = [
+    { value: 'open', label: 'Новое' },
+    { value: 'in_progress', label: 'В работе' },
+    { value: 'resolved', label: 'Решено' },
+    { value: 'closed', label: 'Закрыто' }
+];
+
 export class AdminPage {
     #root;
     #httpClient;
@@ -50,6 +74,9 @@ export class AdminPage {
     #currentUserSearch = '';
     #currentNbPage = 1;
     #currentNbSearch = '';
+    #currentIssuePage = 1;
+    #currentIssueSearch = '';
+    #feedbackModal = null;
 
     constructor(root) {
         this.#root = root;
@@ -86,6 +113,10 @@ export class AdminPage {
             },
             onProfile: () => Router.getInstance().navigate('/profile'),
             onAdmin: () => {},
+            onFeedback: () => {
+                if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
+                this.#feedbackModal.open();
+            },
             onLogout: async () => {
                 await this.#httpClient.post('/auth/logout').catch(() => {});
                 Router.getInstance().navigate('/sign');
@@ -131,6 +162,9 @@ export class AdminPage {
                 break;
             case 'notebooks':
                 this.#initNotebooksSection();
+                break;
+            case 'issues':
+                this.#initIssuesSection();
                 break;
         }
     }
@@ -706,6 +740,250 @@ export class AdminPage {
         if (mod10 === 1) return one;
         if (mod10 >= 2 && mod10 <= 4) return few;
         return many;
+    }
+
+    #initIssuesSection() {
+        this.#currentIssuePage = 1;
+        this.#currentIssueSearch = '';
+
+        const title = document.createElement('h2');
+        title.className = 'admin-page__section-title';
+        title.textContent = 'Обращения';
+        this.#contentArea.appendChild(title);
+
+        const header = document.createElement('div');
+        header.className = 'admin-table-header';
+
+        const searchInput = document.createElement('input');
+        searchInput.className = 'admin-search';
+        searchInput.type = 'text';
+        searchInput.placeholder = 'Поиск по содержанию...';
+        searchInput.addEventListener('input', () => {
+            clearTimeout(this.#searchTimeout);
+            this.#searchTimeout = setTimeout(() => {
+                this.#currentIssueSearch = searchInput.value;
+                this.#currentIssuePage = 1;
+                this.#refreshIssuesTable();
+            }, 300);
+        });
+        header.appendChild(searchInput);
+
+        const countEl = document.createElement('span');
+        countEl.className = 'admin-count';
+        countEl.dataset.role = 'issue-count';
+        header.appendChild(countEl);
+        this.#contentArea.appendChild(header);
+
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'admin-table-container';
+        this.#contentArea.appendChild(tableContainer);
+
+        this.#refreshIssuesTable();
+    }
+
+    async #refreshIssuesTable() {
+        const tableContainer = this.#contentArea.querySelector('.admin-table-container');
+        const countEl = this.#contentArea.querySelector('[data-role="issue-count"]');
+        if (!tableContainer) return;
+        tableContainer.innerHTML = '';
+
+        const limit = 15;
+        const offset = (this.#currentIssuePage - 1) * limit;
+
+        try {
+            const data = await this.#adminApi.getIssues(limit, offset, this.#currentIssueSearch);
+            const issues = data.issues || [];
+            const total = data.total || 0;
+            if (countEl)
+                countEl.textContent = `${total} обращени${this.#plural(total, 'е', 'я', 'й')}`;
+
+            if (issues.length === 0) {
+                tableContainer.innerHTML = '<div class="admin-empty">Обращения не найдены</div>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'admin-table';
+            table.innerHTML = `<colgroup>
+                <col style="width:50px"><col style="width:100px"><col style="width:40%">
+                <col style="width:80px"><col style="width:90px"><col style="width:110px">
+            </colgroup>
+            <thead><tr>
+                <th>ID</th><th>Категория</th><th>Содержание</th>
+                <th>User ID</th><th>Статус</th><th>Дата</th>
+            </tr></thead>`;
+
+            const tbody = document.createElement('tbody');
+            issues.forEach((issue) => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category);
+                const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status);
+                const preview =
+                    issue.content.length > 60
+                        ? issue.content.substring(0, 60) + '...'
+                        : issue.content;
+
+                tr.innerHTML = `
+                    <td class="admin-table__muted">${issue.id}</td>
+                    <td>${catBadge}</td>
+                    <td class="admin-table__cell-truncate" title="${this.#esc(issue.content)}">${this.#esc(preview)}</td>
+                    <td class="admin-table__muted">${issue.user_id}</td>
+                    <td>${statusBadge}</td>
+                    <td class="admin-table__muted">${new Date(issue.created_at).toLocaleDateString('ru-RU')}</td>`;
+
+                tr.addEventListener('click', () => this.#showIssueDetail(issue.id));
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+
+            const totalPages = Math.ceil(total / limit);
+            if (totalPages > 1) {
+                this.#renderPagination(tableContainer, this.#currentIssuePage, totalPages, (p) => {
+                    this.#currentIssuePage = p;
+                    this.#refreshIssuesTable();
+                });
+            }
+        } catch (e) {
+            tableContainer.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc(e.message)}</div>`;
+        }
+    }
+
+    async #showIssueDetail(issueId) {
+        this.#contentArea.innerHTML = '';
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'admin-issue-detail__back-btn';
+        backBtn.innerHTML = '&larr; Назад к обращениям';
+        backBtn.addEventListener('click', () => this.#showSection('issues'));
+        this.#contentArea.appendChild(backBtn);
+
+        const container = document.createElement('div');
+        container.className = 'admin-issue-detail';
+        container.innerHTML = '<div class="admin-empty">Загрузка...</div>';
+        this.#contentArea.appendChild(container);
+
+        try {
+            const issue = await this.#adminApi.getIssue(issueId);
+            const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category);
+            const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status);
+            const date = new Date(issue.created_at).toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let attachmentsHtml = '';
+            if (issue.attachments && issue.attachments.length > 0) {
+                attachmentsHtml = `
+                    <div class="admin-issue-detail__section">
+                        <h4 class="admin-issue-detail__section-title">Вложения</h4>
+                        <div class="admin-issue-detail__attachments">
+                            ${issue.attachments
+                                .map(
+                                    (att) =>
+                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${issueId}/attachments/${att.id}" target="_blank">${this.#esc(att.filename || att.name || 'Файл')}</a>`
+                                )
+                                .join('')}
+                        </div>
+                    </div>`;
+            }
+
+            let messagesHtml = '';
+            if (issue.messages && issue.messages.length > 0) {
+                const msgs = issue.messages
+                    .map((m) => {
+                        const mDate = new Date(m.created_at).toLocaleDateString('ru-RU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        const author = m.is_admin
+                            ? 'Администратор'
+                            : m.username || `User #${m.user_id}`;
+                        const cls = m.is_admin
+                            ? 'admin-issue-detail__message--admin'
+                            : 'admin-issue-detail__message--user';
+                        return `<div class="admin-issue-detail__message ${cls}">
+                            <div class="admin-issue-detail__message-meta">
+                                <span class="admin-issue-detail__message-author">${this.#esc(author)}</span>
+                                <span class="admin-issue-detail__message-date">${mDate}</span>
+                            </div>
+                            <div class="admin-issue-detail__message-text">${this.#esc(m.content)}</div>
+                        </div>`;
+                    })
+                    .join('');
+                messagesHtml = `
+                    <div class="admin-issue-detail__section">
+                        <h4 class="admin-issue-detail__section-title">Сообщения</h4>
+                        <div class="admin-issue-detail__messages">${msgs}</div>
+                    </div>`;
+            }
+
+            container.innerHTML = `
+                <h2 class="admin-page__section-title">Обращение #${issue.id}</h2>
+                <div class="admin-issue-detail__meta">
+                    ${catBadge} ${statusBadge}
+                    <span class="admin-table__muted">${this.#esc(issue.username || `User #${issue.user_id}`)}</span>
+                    <span class="admin-table__muted">${date}</span>
+                </div>
+                <div class="admin-issue-detail__content">${this.#esc(issue.content)}</div>
+                ${attachmentsHtml}
+                ${messagesHtml}
+                <div class="admin-issue-detail__actions">
+                    <div class="admin-issue-detail__status-row">
+                        <label class="admin-issue-detail__section-title">Статус</label>
+                        <select class="admin-search" data-role="status-select">
+                            ${ISSUE_STATUS_OPTIONS.map(
+                                (opt) =>
+                                    `<option value="${opt.value}" ${opt.value === issue.status ? 'selected' : ''}>${opt.label}</option>`
+                            ).join('')}
+                        </select>
+                        <button class="admin-btn" data-role="update-status">Обновить</button>
+                    </div>
+                    <div class="admin-issue-detail__response-section">
+                        <label class="admin-issue-detail__section-title">Ответить</label>
+                        <textarea class="admin-issue-detail__textarea" placeholder="Введите ответ..."></textarea>
+                        <button class="admin-btn" data-role="send-response">Отправить ответ</button>
+                    </div>
+                </div>`;
+
+            const statusSelect = container.querySelector('[data-role="status-select"]');
+            const updateBtn = container.querySelector('[data-role="update-status"]');
+            updateBtn.addEventListener('click', async () => {
+                try {
+                    await this.#adminApi.updateIssueStatus(issueId, statusSelect.value);
+                    this.#showIssueDetail(issueId);
+                } catch (e) {
+                    alert(e.message);
+                }
+            });
+
+            const responseTextarea = container.querySelector('.admin-issue-detail__textarea');
+            const sendBtn = container.querySelector('[data-role="send-response"]');
+            sendBtn.addEventListener('click', async () => {
+                const text = responseTextarea.value.trim();
+                if (!text) return;
+                try {
+                    await this.#adminApi.respondToIssue(issueId, text);
+                    this.#showIssueDetail(issueId);
+                } catch (e) {
+                    alert(e.message);
+                }
+            });
+        } catch (e) {
+            container.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc(e.message)}</div>`;
+        }
+    }
+
+    #issueBadge(badges, key) {
+        const b = badges[key] || { cls: '', label: key };
+        return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 
     destroy() {

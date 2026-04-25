@@ -105,6 +105,10 @@ const server = http.createServer((req, res) => {
         return proxy(req, res);
     }
 
+    if (pathname === '/feedback') {
+        return serveFile(res, path.join(SRC_ROOT, 'feedback', 'feedback.html'));
+    }
+
     const publicPath = path.join(PUBLIC_ROOT, pathname);
     if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
         return serveFile(res, publicPath);

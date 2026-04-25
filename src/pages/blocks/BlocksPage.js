@@ -8,6 +8,7 @@ import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { FindEngine } from '../../shared/search/FindEngine.js';
 import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
+import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
 
 export class BlocksPage {
@@ -29,6 +30,7 @@ export class BlocksPage {
     #execNumbers = new Map(); // blockId -> execution number
     #lastOutputs = new Map(); // blockId -> output object
     #beforeUnloadHandler = null;
+    #feedbackModal = null;
 
     // Find/Replace state
     #findEngine = new FindEngine();
@@ -96,6 +98,10 @@ export class BlocksPage {
             isOwner,
             onRename: isOwner ? (newTitle) => this.#renameNotebook(newTitle) : null,
             onProfile: () => Router.getInstance().navigate('/profile'),
+            onFeedback: () => {
+                if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
+                this.#feedbackModal.open();
+            },
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');

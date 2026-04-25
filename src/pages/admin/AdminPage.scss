@@ -443,6 +443,180 @@
     font-size: 15px;
 }
 
+/* --- Issue Detail --- */
+
+.admin-issue-detail__back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--teal-green);
+    padding: 0;
+    margin-bottom: 16px;
+}
+
+.admin-issue-detail__back-btn:hover {
+    text-decoration: underline;
+}
+
+.admin-issue-detail__meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.admin-issue-detail__content {
+    background: var(--light-grey);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--dark-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 24px;
+}
+
+.admin-issue-detail__section {
+    margin-bottom: 20px;
+}
+
+.admin-issue-detail__section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-primary);
+    margin: 0 0 8px;
+}
+
+.admin-issue-detail__attachments {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-issue-detail__attachment {
+    color: var(--teal-green);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.admin-issue-detail__attachment:hover {
+    text-decoration: underline;
+}
+
+.admin-issue-detail__response-block {
+    background: #e0f2f1;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.admin-issue-detail__response-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--dark-primary);
+    white-space: pre-wrap;
+}
+
+.admin-issue-detail__messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.admin-issue-detail__message {
+    padding: 10px 14px;
+    border-radius: 8px;
+    max-width: 85%;
+}
+
+.admin-issue-detail__message--user {
+    background: var(--light-grey);
+    align-self: flex-start;
+}
+
+.admin-issue-detail__message--admin {
+    background: #e0f2f1;
+    align-self: flex-end;
+}
+
+.admin-issue-detail__message-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.admin-issue-detail__message-author {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal-green);
+}
+
+.admin-issue-detail__message-date {
+    font-size: 11px;
+    color: var(--accent);
+}
+
+.admin-issue-detail__message-text {
+    font-size: 13px;
+    color: var(--dark-primary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.admin-issue-detail__actions {
+    border-top: 1px solid var(--cell-border);
+    padding-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-issue-detail__status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-issue-detail__status-row .admin-search {
+    width: 180px;
+}
+
+.admin-issue-detail__response-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-issue-detail__textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 1px solid var(--cell-border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--dark-primary);
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.admin-issue-detail__textarea:focus {
+    border-color: var(--teal-green);
+}
+
+.admin-issue-detail__response-section .admin-btn {
+    align-self: flex-end;
+}
+
 /* --- Responsive --- */
 
 @media (max-width: 768px) {

@@ -49,6 +49,7 @@ export class GreenHeader {
         this.#config.onProfile = config.onProfile || null;
         this.#config.onLogout = config.onLogout || null;
         this.#config.onAdmin = config.onAdmin || null;
+        this.#config.onFeedback = config.onFeedback || null;
     }
 
     /**
@@ -90,6 +91,8 @@ export class GreenHeader {
                 this.#config.onProfile();
             } else if (action === 'admin' && this.#config.onAdmin) {
                 this.#config.onAdmin();
+            } else if (action === 'feedback' && this.#config.onFeedback) {
+                this.#config.onFeedback();
             } else if (action === 'logout' && this.#config.onLogout) {
                 this.#config.onLogout();
             }

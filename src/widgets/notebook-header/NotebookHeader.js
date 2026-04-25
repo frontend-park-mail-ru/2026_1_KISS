@@ -142,6 +142,8 @@ export class NotebookHeader extends BaseComponent {
                     const action = item.dataset.action;
                     if (action === 'profile' && this.#config.onProfile) {
                         this.#config.onProfile();
+                    } else if (action === 'feedback' && this.#config.onFeedback) {
+                        this.#config.onFeedback();
                     } else if (action === 'logout' && this.#config.onLogout) {
                         this.#config.onLogout();
                     }
