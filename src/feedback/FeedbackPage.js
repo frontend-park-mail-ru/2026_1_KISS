@@ -40,7 +40,6 @@ export class FeedbackPage {
     #root;
     #issueApi;
     #selectedCategory = null;
-    #attachedFiles = [];
     #escHandler = null;
 
     constructor(root) {
@@ -52,7 +51,6 @@ export class FeedbackPage {
         window.addEventListener('message', (e) => {
             if (e.data?.type === 'feedback:open') {
                 this.#selectedCategory = null;
-                this.#attachedFiles = [];
                 this.#renderForm();
             }
         });
@@ -115,20 +113,6 @@ export class FeedbackPage {
                     <textarea class="feedback-modal__textarea" maxlength="${MAX_CONTENT_LENGTH}" placeholder="Расскажите подробнее, что произошло / что можно улучшить...\nЧто вы делали? Что ожидали? Что пошло не так?"></textarea>
                     <span class="feedback-modal__char-count">0 / ${MAX_CONTENT_LENGTH}</span>
                 </div>
-                <div class="feedback-modal__field">
-                    <label class="feedback-modal__label">Приложить файлы <span class="feedback-modal__optional">(необязательно)</span></label>
-                    <div class="feedback-modal__dropzone">
-                        <input type="file" class="feedback-modal__file-input" multiple accept="image/*,.pdf,.doc,.docx,.txt,.zip" />
-                        <div class="feedback-modal__dropzone-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-                            </svg>
-                        </div>
-                        <p class="feedback-modal__dropzone-text">Нажмите или перетащите файл сюда</p>
-                        <span class="feedback-modal__dropzone-hint">Поддерживаются изображения и документы до 10 МБ</span>
-                    </div>
-                    <div class="feedback-modal__file-list"></div>
-                </div>
                 <div class="feedback-modal__error" hidden></div>
                 <div class="feedback-modal__actions">
                     <button class="feedback-modal__history-btn">Мои обращения</button>
@@ -162,83 +146,10 @@ export class FeedbackPage {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
         });
 
-        const dropzone = modal.querySelector('.feedback-modal__dropzone');
-        const fileInput = modal.querySelector('.feedback-modal__file-input');
-        const fileList = modal.querySelector('.feedback-modal__file-list');
-
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('feedback-modal__dropzone--dragover');
-        });
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('feedback-modal__dropzone--dragover');
-        });
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('feedback-modal__dropzone--dragover');
-            this.#addFiles(Array.from(e.dataTransfer.files), modal);
-        });
+        
         fileInput.addEventListener('change', () => {
             this.#addFiles(Array.from(fileInput.files), modal);
             fileInput.value = '';
-        });
-
-        fileList.addEventListener('click', (e) => {
-            const btn = e.target.closest('.feedback-modal__file-remove');
-            if (!btn) return;
-            this.#attachedFiles.splice(parseInt(btn.dataset.idx, 10), 1);
-            this.#renderFileList(modal);
-        });
-
-        modal
-            .querySelector('.feedback-modal__history-btn')
-            .addEventListener('click', () => this.#renderList());
-        modal
-            .querySelector('.feedback-modal__submit-btn')
-            .addEventListener('click', () => this.#handleSubmit(modal));
-    }
-
-    #addFiles(newFiles, modal) {
-        const errorEl = modal.querySelector('.feedback-modal__error');
-        errorEl.hidden = true;
-
-        const errors = [];
-        for (const file of newFiles) {
-            if (file.size > MAX_FILE_SIZE) {
-                errors.push(`«${file.name}» превышает 10 МБ`);
-                continue;
-            }
-            if (
-                !this.#attachedFiles.some(
-                    (f) =>
-                        f.name === file.name &&
-                        f.size === file.size &&
-                        f.lastModified === file.lastModified
-                )
-            ) {
-                this.#attachedFiles.push(file);
-            }
-        }
-
-        if (errors.length > 0) {
-            errorEl.textContent = errors.join('; ');
-            errorEl.hidden = false;
-        }
-        this.#renderFileList(modal);
-    }
-
-    #renderFileList(modal) {
-        const list = modal.querySelector('.feedback-modal__file-list');
-        list.innerHTML = '';
-        this.#attachedFiles.forEach((file, idx) => {
-            const item = document.createElement('div');
-            item.className = 'feedback-modal__file-item';
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-            item.innerHTML = `
-                <span class="feedback-modal__file-name">${this.#esc(file.name)}</span>
-                <span class="feedback-modal__file-size">${sizeMB} МБ</span>
-                <button class="feedback-modal__file-remove" data-idx="${idx}">&times;</button>`;
-            list.appendChild(item);
         });
     }
 
@@ -265,7 +176,7 @@ export class FeedbackPage {
         submitBtn.textContent = 'Отправка...';
 
         try {
-            await this.#issueApi.createIssue(this.#selectedCategory, content, this.#attachedFiles);
+            await this.#issueApi.createIssue(this.#selectedCategory, content);
             this.#renderSuccess();
         } catch (e) {
             errorEl.textContent = e.message || 'Не удалось отправить обращение';
@@ -340,7 +251,6 @@ export class FeedbackPage {
             .addEventListener('click', () => this.#close());
         modal.querySelector('.feedback-modal__new-btn').addEventListener('click', () => {
             this.#selectedCategory = null;
-            this.#attachedFiles = [];
             this.#renderForm();
         });
 
