@@ -72,6 +72,10 @@ export class HttpClient {
         return this.request('DELETE', url);
     }
 
+    patch(url, data) {
+        return this.request('PATCH', url, data);
+    }
+
     /**
      * @param {string} url - API endpoint
      * @param {File} file - File object to upload

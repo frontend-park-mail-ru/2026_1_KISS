@@ -70,4 +70,29 @@ export class AdminApi {
         );
         return this.#parse(response);
     }
+
+    async getIssues(limit = 20, offset = 0, search = '', userId = null) {
+        let url = `/admin/issues?limit=${limit}&offset=${offset}`;
+        if (search) url += `&q=${encodeURIComponent(search)}`;
+        if (userId) url += `&userid=${userId}`;
+        const response = await this.#http.get(url);
+        return this.#parse(response);
+    }
+
+    async getIssue(id) {
+        const response = await this.#http.get(`/admin/issues/${id}`);
+        return this.#parse(response);
+    }
+
+    async updateIssueStatus(id, status) {
+        const response = await this.#http.patch(`/admin/issues/${id}/status`, { status });
+        return this.#parse(response);
+    }
+
+    async respondToIssue(id, text) {
+        const response = await this.#http.post(`/admin/issues/${id}/response`, {
+            response: text
+        });
+        return this.#parse(response);
+    }
 }
