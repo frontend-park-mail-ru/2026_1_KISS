@@ -28,6 +28,7 @@
 @import '../pages/admin/AdminPage.css?v=2';
 @import '../shared/components/context-menu/ContextMenu.css?v=2';
 @import '../shared/components/modal/Modal.css?v=2';
+@import '../widgets/feedback-modal/FeedbackModal.css';
 
 html, body {
     margin: 0;
