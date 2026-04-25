@@ -95,4 +95,9 @@ export class AdminApi {
         });
         return this.#parse(response);
     }
+
+    async getIssueStats() {
+        const response = await this.#http.get('/admin/issues/stats');
+        return this.#parse(response);
+    }
 }
