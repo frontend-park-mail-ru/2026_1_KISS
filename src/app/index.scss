@@ -27,6 +27,7 @@
 @use '../pages/admin/AdminPage';
 @use '../shared/components/context-menu/ContextMenu';
 @use '../shared/components/modal/Modal';
+@use '../widgets/feedback-modal/FeedbackModal';
 
 html, body {
     margin: 0;
