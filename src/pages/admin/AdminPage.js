@@ -790,19 +790,14 @@ export class AdminPage {
         const offset = (this.#currentIssuePage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getIssues(
-                limit,
-                offset,
-                this.#currentIssueSearch
-            );
+            const data = await this.#adminApi.getIssues(limit, offset, this.#currentIssueSearch);
             const issues = data.issues || [];
             const total = data.total || 0;
             if (countEl)
                 countEl.textContent = `${total} обращени${this.#plural(total, 'е', 'я', 'й')}`;
 
             if (issues.length === 0) {
-                tableContainer.innerHTML =
-                    '<div class="admin-empty">Обращения не найдены</div>';
+                tableContainer.innerHTML = '<div class="admin-empty">Обращения не найдены</div>';
                 return;
             }
 
@@ -821,14 +816,8 @@ export class AdminPage {
             issues.forEach((issue) => {
                 const tr = document.createElement('tr');
                 tr.style.cursor = 'pointer';
-                const catBadge = this.#issueBadge(
-                    ISSUE_CATEGORY_BADGES,
-                    issue.category
-                );
-                const statusBadge = this.#issueBadge(
-                    ISSUE_STATUS_BADGES,
-                    issue.status
-                );
+                const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category);
+                const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status);
                 const preview =
                     issue.content.length > 60
                         ? issue.content.substring(0, 60) + '...'

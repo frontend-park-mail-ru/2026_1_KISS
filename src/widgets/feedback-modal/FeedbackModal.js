@@ -42,7 +42,6 @@ export class FeedbackModal extends BaseComponent {
     #issueApi;
     #selectedCategory = null;
     #attachedFiles = [];
-    #view = 'form';
 
     constructor() {
         const el = document.createElement('div');
@@ -53,7 +52,6 @@ export class FeedbackModal extends BaseComponent {
     }
 
     open() {
-        this.#view = 'form';
         this.#selectedCategory = null;
         this.#attachedFiles = [];
         this.#renderForm();
@@ -254,11 +252,7 @@ export class FeedbackModal extends BaseComponent {
         submitBtn.textContent = 'Отправка...';
 
         try {
-            await this.#issueApi.createIssue(
-                this.#selectedCategory,
-                content,
-                this.#attachedFiles
-            );
+            await this.#issueApi.createIssue(this.#selectedCategory, content, this.#attachedFiles);
             this.#renderSuccess();
         } catch (e) {
             errorEl.textContent = e.message || 'Не удалось отправить обращение';
@@ -362,7 +356,8 @@ export class FeedbackModal extends BaseComponent {
             const issues = Array.isArray(data) ? data : data?.issues || [];
 
             if (issues.length === 0) {
-                listContent.innerHTML = '<div class="feedback-modal__empty">У вас пока нет обращений</div>';
+                listContent.innerHTML =
+                    '<div class="feedback-modal__empty">У вас пока нет обращений</div>';
                 return;
             }
 
@@ -390,7 +385,8 @@ export class FeedbackModal extends BaseComponent {
                 listContent.appendChild(card);
             });
         } catch {
-            listContent.innerHTML = '<div class="feedback-modal__empty">Не удалось загрузить обращения</div>';
+            listContent.innerHTML =
+                '<div class="feedback-modal__empty">Не удалось загрузить обращения</div>';
         }
     }
 
@@ -483,7 +479,8 @@ export class FeedbackModal extends BaseComponent {
             const backBtn = body.querySelector('.feedback-modal__back-btn');
             this._addListener(backBtn, 'click', () => this.#renderList());
         } catch {
-            body.innerHTML = '<div class="feedback-modal__empty">Не удалось загрузить обращение</div>';
+            body.innerHTML =
+                '<div class="feedback-modal__empty">Не удалось загрузить обращение</div>';
         }
     }
 
