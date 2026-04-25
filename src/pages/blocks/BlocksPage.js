@@ -8,6 +8,7 @@ import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { FindEngine } from '../../shared/search/FindEngine.js';
 import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
+import { NotebookWS } from '../../shared/api/NotebookWS.js';
 
 export class BlocksPage {
     #root;
@@ -34,6 +35,9 @@ export class BlocksPage {
 
     /** @type {ShareModal} */
     #shareModal = null;
+
+    /** @type {?NotebookWS} */
+    #ws = null;
 
     constructor(root, params) {
         this.#root = root;
@@ -136,7 +140,8 @@ export class BlocksPage {
             onRunCell: (blockId) => this.#runSingleBlock(blockId),
             onRerender: () => this.#reapplyCellState(),
             onDeleteCell: (blockId) => this.#deleteBlock(blockId),
-            onSaveContent: (blockId, content) => this.#saveTextCellContent(blockId, content)
+            onSaveContent: (blockId, content) => this.#saveTextCellContent(blockId, content),
+            onCodeContentChange: (blockId, content) => this.#saveCodeCellContent(blockId, content)
         });
         this.#cellList.mount();
 
@@ -150,6 +155,90 @@ export class BlocksPage {
             if (this.#notebookId) this.#runnerApi.stopSessionBeacon(this.#notebookId);
         };
         window.addEventListener('beforeunload', this.#beforeUnloadHandler);
+
+        this.#openWebSocket();
+    }
+
+    #openWebSocket() {
+        // Первый onConnect срабатывает сразу после buildLayout, ноутбук
+        // только что загружен — пропускаем resync, чтобы не перерисовать
+        // свежие ячейки. Resync нужен лишь при переподключениях.
+        let skipNextResync = true;
+        this.#ws = new NotebookWS(this.#notebookId, {
+            onEvent: (event) => this.#handleWSEvent(event),
+            onConnect: () => {
+                if (skipNextResync) {
+                    skipNextResync = false;
+                    return;
+                }
+                this.#resyncFromServer();
+            },
+            onClose: () => {}
+        });
+        this.#ws.connect();
+    }
+
+    /**
+     * Обработка события сервера. Не фильтруем по actor_id — это блокировало
+     * бы корректные апдейты во второй вкладке того же пользователя. Защита
+     * от перетирания каретки сделана в applyRemoteEvent (skip, если фокус
+     * сейчас в этой ячейке) и в applyBlockAdded/Deleted через дедуп по id.
+     * @param {{type: string, actor_id?: number, block?: object, block_id?: number, message?: string}} event
+     */
+    #handleWSEvent(event) {
+        if (!event || !event.type) return;
+        if (event.type === 'error') {
+            console.warn('WS error:', event.message);
+            return;
+        }
+
+        switch (event.type) {
+            case 'block_added':
+            case 'block_updated':
+            case 'block_deleted':
+                this.#cellList.applyRemoteEvent(event);
+                break;
+            case 'notebook_updated':
+                this.#resyncFromServer();
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Перезагрузить ноутбук с сервера. Нужно после reconnect (события
+     * могли быть пропущены — Hub дропает при переполнении буфера) и
+     * после notebook_updated. Если фокус в одной из ячеек — не делаем
+     * full re-render, ограничиваемся обновлением метаданных.
+     */
+    async #resyncFromServer() {
+        if (!this.#notebookId) return;
+        try {
+            const response = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
+            if (!response.ok) return;
+            const { data: notebook } = await response.json();
+            const newTitle = notebook.title || 'Untitled';
+            if (this.#notebook && newTitle !== this.#notebook.title && this.#header) {
+                this.#header.setFilename(newTitle);
+            }
+            this.#notebook = notebook;
+            if (!this.#cellList.containsActiveElement()) {
+                this.#cellList.updateBlocks(notebook.blocks || []);
+            }
+        } catch {
+            /* tolerate */
+        }
+    }
+
+    async #saveCodeCellContent(blockId, content) {
+        try {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
+                content
+            });
+        } catch {
+            /* tolerate */
+        }
     }
 
     async #saveTextCellContent(blockId, content) {
@@ -475,6 +564,10 @@ export class BlocksPage {
         if (this.#beforeUnloadHandler) {
             window.removeEventListener('beforeunload', this.#beforeUnloadHandler);
             this.#beforeUnloadHandler = null;
+        }
+        if (this.#ws) {
+            this.#ws.close();
+            this.#ws = null;
         }
         if (this.#shareModal) this.#shareModal.close();
         if (this.#cellList) this.#cellList.unmount();

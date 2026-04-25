@@ -33,6 +33,15 @@ export class CodeCell extends BaseComponent {
     #onRun;
     #isRunning = false;
 
+    /** @type {?Function} */
+    #onContentChange = null;
+
+    /** @type {?number} */
+    #contentChangeTimer = null;
+
+    /** Задержка дебаунса автосейва кода через WebSocket (мс). */
+    static #CONTENT_DEBOUNCE_MS = 400;
+
     /**
      * @param {HTMLElement} parent
      * @param {Object} options
@@ -41,8 +50,12 @@ export class CodeCell extends BaseComponent {
      * @param {Function} [options.onMoveDown] -- вызывается при перемещении вниз
      * @param {Function} [options.onCopy] -- вызывается при копировании
      * @param {Function} [options.onRun] -- вызывается при запуске кода
+     * @param {Function} [options.onContentChange] -- (id, content) при изменении кода (debounced)
      */
-    constructor(parent, { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onRun }) {
+    constructor(
+        parent,
+        { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onRun, onContentChange }
+    ) {
         super(null, parent);
         this.#blockData = blockData;
         this.#onMoveUp = onMoveUp;
@@ -50,6 +63,7 @@ export class CodeCell extends BaseComponent {
         this.#onCopy = onCopy;
         this.#onDelete = onDelete;
         this.#onRun = onRun;
+        this.#onContentChange = onContentChange || null;
         this.#render();
     }
 
@@ -76,8 +90,36 @@ export class CodeCell extends BaseComponent {
     }
 
     unmount() {
+        if (this.#contentChangeTimer) {
+            clearTimeout(this.#contentChangeTimer);
+            this.#contentChangeTimer = null;
+        }
         if (!this._isMounted) return;
         super.unmount();
+    }
+
+    /**
+     * Запланировать оповещение onContentChange — debounced, чтобы каждое
+     * нажатие не летело на бэк.
+     * @private
+     */
+    #scheduleContentChange() {
+        if (!this.#onContentChange) return;
+        if (this.#contentChangeTimer) clearTimeout(this.#contentChangeTimer);
+        this.#contentChangeTimer = setTimeout(() => {
+            this.#contentChangeTimer = null;
+            this.#onContentChange(this.#blockData.id, this.getContent());
+        }, CodeCell.#CONTENT_DEBOUNCE_MS);
+    }
+
+    /**
+     * Сбросить отложенный onContentChange — например, перед вытолкнутым
+     * сохранением «вручную» (Run, ручной save) во избежание двойной отправки.
+     */
+    flushContentChange() {
+        if (!this.#contentChangeTimer) return;
+        clearTimeout(this.#contentChangeTimer);
+        this.#contentChangeTimer = null;
     }
 
     /**
@@ -91,6 +133,7 @@ export class CodeCell extends BaseComponent {
         this._addListener(textarea, 'input', () => {
             this.#updateLineNumbers();
             this.#autoResize();
+            this.#scheduleContentChange();
         });
 
         this._addListener(textarea, 'keydown', (e) => {
