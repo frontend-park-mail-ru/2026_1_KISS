@@ -373,8 +373,15 @@ export class FeedbackPage {
                         <span class="feedback-modal__badge feedback-modal__badge--${issue.category}">${cat ? cat.sublabel : issue.category}</span>
                         <span class="feedback-modal__badge feedback-modal__badge--${issue.status}">${this.#esc(statusLabel)}</span>
                         <span class="feedback-modal__issue-date">${date}</span>
+                        <button class="feedback-modal__issue-delete-btn" type="button">Удалить</button>
                     </div>
                     <div class="feedback-modal__issue-preview">${this.#esc(preview)}</div>`;
+
+                const deleteBtn = card.querySelector('.feedback-modal__issue-delete-btn');
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await this.#handleIssueDelete(issue.id, card, listContent, deleteBtn);
+                });
 
                 card.addEventListener('click', () => this.#renderDetail(issue.id));
                 listContent.appendChild(card);
@@ -382,6 +389,30 @@ export class FeedbackPage {
         } catch {
             listContent.innerHTML =
                 '<div class="feedback-modal__empty">Не удалось загрузить обращения</div>';
+        }
+    }
+
+    async #handleIssueDelete(issueId, card, listContent, btn) {
+        if (!window.confirm('Удалить это обращение?')) {
+            return;
+        }
+
+        const initialText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Удаление...';
+
+        try {
+            await this.#issueApi.deleteIssue(issueId);
+            card.remove();
+
+            if (!listContent.querySelector('.feedback-modal__issue-card')) {
+                listContent.innerHTML =
+                    '<div class="feedback-modal__empty">У вас пока нет обращений</div>';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = initialText;
+            window.alert(e.message || 'Не удалось удалить обращение');
         }
     }
 

@@ -382,6 +382,29 @@
     margin-bottom: 8px;
 }
 
+.feedback-modal__issue-delete-btn {
+    margin-left: auto;
+    border: 1px solid var(--error-red);
+    background: transparent;
+    color: var(--error-red);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.feedback-modal__issue-delete-btn:hover {
+    background: var(--error-red);
+    color: var(--white);
+}
+
+.feedback-modal__issue-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
 .feedback-modal__badge {
     display: inline-block;
     padding: 2px 8px;

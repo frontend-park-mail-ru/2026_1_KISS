@@ -51,6 +51,11 @@ export class IssueApi {
         return this.#parse(response);
     }
 
+    async deleteIssue(id) {
+        const response = await this.#http.delete(`/issues/${id}`);
+        return this.#parse(response);
+    }
+
     getAttachmentUrl(issueId, attachmentId) {
         return `${this.#http.baseUrl}/issues/${issueId}/attachments/${attachmentId}`;
     }
