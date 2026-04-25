@@ -215,6 +215,62 @@ export class AdminPage {
             const mauFilled = this.#fillMonths(activityData.mau || [], 12);
             this.#renderTimeSeriesChart('DAU (последние 30 дней)', dauFilled, 'date', 'count');
             this.#renderTimeSeriesChart('MAU (последние 12 месяцев)', mauFilled, 'month', 'count');
+
+            const issueStats = await this.#adminApi.getIssueStats().catch(() => null);
+            if (issueStats) {
+                const issueTitle = document.createElement('h2');
+                issueTitle.className = 'admin-page__section-title';
+                issueTitle.style.marginTop = '32px';
+                issueTitle.textContent = 'Обращения';
+                this.#contentArea.appendChild(issueTitle);
+
+                const issueCards = [
+                    {
+                        label: 'Всего',
+                        value: issueStats.total || 0,
+                        tooltip: 'Общее количество обращений от пользователей'
+                    },
+                    {
+                        label: 'Открыто',
+                        value: issueStats.open || 0,
+                        tooltip: 'Обращения, ожидающие рассмотрения'
+                    },
+                    {
+                        label: 'В работе',
+                        value: issueStats.in_progress || 0,
+                        tooltip: 'Обращения, находящиеся в работе'
+                    },
+                    {
+                        label: 'Закрыто',
+                        value: issueStats.closed || 0,
+                        tooltip: 'Решённые обращения'
+                    }
+                ];
+
+                const issueGrid = document.createElement('div');
+                issueGrid.className = 'admin-stats-grid';
+                issueCards.forEach(({ label, value, tooltip }) => {
+                    const card = document.createElement('div');
+                    card.className = 'admin-stat-card';
+                    card.innerHTML = `<div class="admin-stat-card__value">${value}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
+                    issueGrid.appendChild(card);
+                });
+                this.#contentArea.appendChild(issueGrid);
+
+                const cat = issueStats.by_category || {};
+                const categoryData = [
+                    { label: 'Ошибки', count: cat.bug || 0 },
+                    { label: 'Предложения', count: cat.idea || 0 },
+                    { label: 'Проблемы', count: cat.problem || 0 },
+                    { label: 'Общее', count: cat.feedback || 0 }
+                ];
+                this.#renderTimeSeriesChart(
+                    'Обращения по категориям',
+                    categoryData,
+                    'label',
+                    'count'
+                );
+            }
         } catch (e) {
             this.#contentArea.innerHTML += `<div class="admin-empty">Ошибка загрузки: ${this.#esc(e.message)}</div>`;
         }
