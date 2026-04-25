@@ -1,0 +1,59 @@
+@import './breakpoints';
+
+.hamburger-btn {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1002;
+    width: 44px;
+    height: 44px;
+    background: var(--teal-green);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    
+    @include mobile {
+        display: flex;
+    }
+    
+    span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: white;
+        border-radius: 2px;
+        transition: transform 0.3s ease;
+    }
+    
+    &.hamburger-btn--open {
+        span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        span:nth-child(2) {
+            opacity: 0;
+        }
+        span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+    }
+}
+
+.hide-mobile {
+    @include mobile {
+        display: none !important;
+    }
+}
+
+.show-mobile {
+    display: none !important;
+    
+    @include mobile {
+        display: block !important;
+    }
+}

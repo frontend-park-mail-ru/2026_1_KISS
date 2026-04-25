@@ -1,3 +1,13 @@
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export function FilesTableTemplate() {
     return `<div class="files-table">
     <table class="files-table__table">
@@ -36,4 +46,26 @@ export function FilesTableTemplate() {
         <div class="files-table__empty-text">Начни работу</div>
     </div>
 </div>`;
+}
+
+export function renderFileRow(file) {
+    const formattedDate = file.updated_at
+        ? new Date(file.updated_at).toLocaleDateString('ru-RU')
+        : '—';
+
+    const firstLetter = file.title ? file.title.charAt(0).toUpperCase() : 'Ф';
+
+    return `
+        <tr class="files-table__row" data-file-id="${file.id}">
+            <td class="files-table__cell files-table__cell_name" data-label="Название">
+                <span class="files-table__icon">${firstLetter}</span>
+                <span class="files-table__title">${escapeHtml(file.title || 'Без названия')}</span>
+            </td>
+            <td class="files-table__cell" data-label="Дата изменения">${formattedDate}</td>
+            <td class="files-table__cell" data-label="Владелец">${escapeHtml(file.owner || '—')}</td>
+            <td class="files-table__cell files-table__kebab-cell" data-label="">
+                <button class="kebab-menu__trigger" data-file-id="${file.id}">⋮</button>
+            </td>
+        </tr>
+    `;
 }
