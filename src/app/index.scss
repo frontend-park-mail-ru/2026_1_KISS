@@ -28,7 +28,8 @@
 @use '../shared/components/context-menu/ContextMenu';
 @use '../shared/components/modal/Modal';
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -46,8 +47,8 @@ html, body {
 
 @media (max-width: 767px) {
     .green-header .header-buttons,
-    .green-header button[data-action="login"],
-    .green-header button[data-action="register"],
+    .green-header button[data-action='login'],
+    .green-header button[data-action='register'],
     .header-buttons {
         display: none !important;
         visibility: hidden !important;

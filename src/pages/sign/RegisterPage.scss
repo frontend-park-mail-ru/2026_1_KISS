@@ -15,7 +15,7 @@
     max-width: 500px;
     width: 100%;
     margin: 0 auto;
-    
+
     @include mobile {
         padding: 20px 16px;
         padding-bottom: 40px;
@@ -28,7 +28,7 @@
     margin-bottom: 2rem;
     font-size: 2rem;
     font-weight: 600;
-    
+
     @include mobile {
         font-size: 1.5rem;
         margin-bottom: 1.5rem;
@@ -37,7 +37,7 @@
 
 .mobile-auth-buttons {
     display: none;
-    
+
     @include mobile {
         display: flex;
         position: fixed;
@@ -63,16 +63,16 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    
+
     &:active {
         background: var(--light-grey);
     }
-    
+
     &.active {
         color: var(--teal-green);
         border-bottom: 3px solid var(--teal-green);
     }
-    
+
     &:first-child {
         border-right: 1px solid var(--light-grey);
     }
@@ -82,7 +82,7 @@
 .login-form-container,
 .form-container {
     width: 100%;
-    
+
     @include mobile {
         width: 100%;
         max-width: 100%;
@@ -103,7 +103,7 @@
     display: flex;
     justify-content: center;
     gap: 8px;
-    
+
     @include mobile {
         margin-top: 24px;
         flex-wrap: wrap;
@@ -115,26 +115,25 @@
     font-size: 14px;
 }
 
-
-
 @include mobile {
-    input, .input-wrapper input {
+    input,
+    .input-wrapper input {
         font-size: 16px !important;
         padding: 12px !important;
         height: auto !important;
     }
-    
+
     .accent-btn {
         padding: 12px !important;
         font-size: 16px !important;
         min-height: 48px;
     }
-    
+
     .simple-btn {
         padding: 8px 12px;
         font-size: 14px;
     }
-    
+
     button {
         min-height: 44px;
     }

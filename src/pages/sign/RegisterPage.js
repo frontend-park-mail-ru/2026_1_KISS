@@ -78,7 +78,6 @@ export class RegisterPage {
         this.#attachEvents();
     }
 
-    
     #attachEvents() {
         const moveToRegister = (e) => {
             e.preventDefault();
@@ -88,7 +87,7 @@ export class RegisterPage {
             this.#saveState();
             this.update();
         };
-        
+
         const moveToLogin = (e) => {
             e.preventDefault();
             this.#register.unmount();
@@ -97,7 +96,7 @@ export class RegisterPage {
             this.#saveState();
             this.update();
         };
-        
+
         // Кнопки в хедере
         if (this.#elements.header && this.#elements.header.loginBtn) {
             this.#elements.header.loginBtn.addEventListener('click', moveToLogin);
@@ -105,7 +104,7 @@ export class RegisterPage {
         if (this.#elements.header && this.#elements.header.registerBtn) {
             this.#elements.header.registerBtn.addEventListener('click', moveToRegister);
         }
-        
+
         // Ссылки внутри форм
         if (this.#register && this.#register.goOutBtn) {
             this.#register.goOutBtn.addEventListener('click', moveToLogin);
@@ -126,10 +125,7 @@ export class RegisterPage {
         if (this.#activeElement === this.#login) {
             activeView = LOGIN_STATE;
         }
-        sessionStorage.setItem(
-            SESSION_ACTIVE_STATE,
-            JSON.stringify({ activeView: activeView })
-        );
+        sessionStorage.setItem(SESSION_ACTIVE_STATE, JSON.stringify({ activeView: activeView }));
     }
 
     #restoreState() {

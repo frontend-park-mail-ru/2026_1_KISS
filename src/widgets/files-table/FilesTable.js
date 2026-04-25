@@ -139,7 +139,6 @@ export class FilesTable extends BaseComponent {
         const tbody = this._element.querySelector('.files-table__body');
         tbody.innerHTML = '';
 
-
         sorted.forEach((nb) => {
             const tr = document.createElement('tr');
             tr.className = 'files-table__row';
@@ -158,12 +157,12 @@ export class FilesTable extends BaseComponent {
 
             const dateCell = document.createElement('td');
             dateCell.className = 'files-table__cell';
-            dateCell.setAttribute('data-label', 'Дата изменения'); 
+            dateCell.setAttribute('data-label', 'Дата изменения');
             dateCell.textContent = formatter.format(new Date(nb.updated_at));
 
             const ownerCell = document.createElement('td');
             ownerCell.className = 'files-table__cell';
-            ownerCell.setAttribute('data-label', 'Владелец'); 
+            ownerCell.setAttribute('data-label', 'Владелец');
             ownerCell.textContent = nb._isShared ? nb.owner_username || '—' : this.#ownerName;
 
             const kebabCell = document.createElement('td');

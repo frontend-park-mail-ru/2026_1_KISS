@@ -6,7 +6,6 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
-
 }
 
 export function FilesTableTemplate() {
@@ -50,12 +49,12 @@ export function FilesTableTemplate() {
 }
 
 export function renderFileRow(file) {
-    const formattedDate = file.updated_at 
+    const formattedDate = file.updated_at
         ? new Date(file.updated_at).toLocaleDateString('ru-RU')
         : '—';
-    
+
     const firstLetter = file.title ? file.title.charAt(0).toUpperCase() : 'Ф';
-    
+
     return `
         <tr class="files-table__row" data-file-id="${file.id}">
             <td class="files-table__cell files-table__cell_name" data-label="Название">
@@ -70,4 +69,3 @@ export function renderFileRow(file) {
         </tr>
     `;
 }
-
