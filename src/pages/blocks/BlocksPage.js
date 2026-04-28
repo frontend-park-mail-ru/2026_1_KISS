@@ -155,8 +155,8 @@ export class BlocksPage {
         this.#root.appendChild(page);
 
         const blocks = this.#notebook.blocks || [];
-        this.#cellList.updateBlocks(blocks);
         this.#loadSavedOutputs(blocks);
+        this.#cellList.updateBlocks(blocks);
 
         // Остановка runner-сессии при закрытии вкладки / F5
         this.#beforeUnloadHandler = () => {
@@ -232,8 +232,8 @@ export class BlocksPage {
             }
             this.#notebook = notebook;
             if (!this.#cellList.containsActiveElement()) {
-                this.#cellList.updateBlocks(notebook.blocks || []);
                 this.#loadSavedOutputs(notebook.blocks || []);
+                this.#cellList.updateBlocks(notebook.blocks || []);
             }
         } catch {
             /* tolerate */
