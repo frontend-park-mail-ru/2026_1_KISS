@@ -11,10 +11,11 @@ export class CellList extends BaseComponent {
     #onDeleteCell;
     #onSaveContent;
     #onCodeContentChange;
+    #onReorder;
 
     constructor(
         parent,
-        { onRunCell, onRerender, onDeleteCell, onSaveContent, onCodeContentChange } = {}
+        { onRunCell, onRerender, onDeleteCell, onSaveContent, onCodeContentChange, onReorder } = {}
     ) {
         super(null, parent);
         this.#onRunCell = onRunCell;
@@ -22,6 +23,7 @@ export class CellList extends BaseComponent {
         this.#onDeleteCell = onDeleteCell;
         this.#onSaveContent = onSaveContent;
         this.#onCodeContentChange = onCodeContentChange;
+        this.#onReorder = onReorder;
         this.#render();
     }
 
@@ -224,6 +226,10 @@ export class CellList extends BaseComponent {
         this.#blocks[newIndex] = temp;
 
         this.updateBlocks(this.#blocks);
+
+        if (this.#onReorder) {
+            this.#onReorder(this.#blocks.map((b) => b.id));
+        }
     }
 
     #copyBlock(id) {

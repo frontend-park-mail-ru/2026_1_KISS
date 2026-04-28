@@ -147,7 +147,8 @@ export class BlocksPage {
             onRerender: () => this.#reapplyCellState(),
             onDeleteCell: (blockId) => this.#deleteBlock(blockId),
             onSaveContent: (blockId, content) => this.#saveTextCellContent(blockId, content),
-            onCodeContentChange: (blockId, content) => this.#saveCodeCellContent(blockId, content)
+            onCodeContentChange: (blockId, content) => this.#saveCodeCellContent(blockId, content),
+            onReorder: (blockIds) => this.#reorderBlocks(blockIds)
         });
         this.#cellList.mount();
 
@@ -155,6 +156,7 @@ export class BlocksPage {
 
         const blocks = this.#notebook.blocks || [];
         this.#cellList.updateBlocks(blocks);
+        this.#loadSavedOutputs(blocks);
 
         // Остановка runner-сессии при закрытии вкладки / F5
         this.#beforeUnloadHandler = () => {
@@ -231,6 +233,7 @@ export class BlocksPage {
             this.#notebook = notebook;
             if (!this.#cellList.containsActiveElement()) {
                 this.#cellList.updateBlocks(notebook.blocks || []);
+                this.#loadSavedOutputs(notebook.blocks || []);
             }
         } catch {
             /* tolerate */
@@ -446,6 +449,34 @@ export class BlocksPage {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
                 content: cell.getContent()
+            });
+        } catch {
+            /* tolerate */
+        }
+    }
+
+    #loadSavedOutputs(blocks) {
+        for (const block of blocks) {
+            if (!block.outputs || block.outputs.length === 0) continue;
+            if (this.#lastOutputs.has(block.id)) continue;
+            const out = {};
+            for (const o of block.outputs) {
+                if (o.output_type === 'stdout') out.stdout = [o.content];
+                else if (o.output_type === 'stderr') out.stderr = [o.content];
+                else if (o.output_type === 'result') out.result = o.content;
+                else {
+                    if (!out.outputs) out.outputs = [];
+                    out.outputs.push({ mime_type: o.output_type, data: o.content });
+                }
+            }
+            this.#lastOutputs.set(block.id, out);
+        }
+    }
+
+    async #reorderBlocks(blockIds) {
+        try {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/reorder`, {
+                block_ids: blockIds
             });
         } catch {
             /* tolerate */
