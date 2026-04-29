@@ -97,6 +97,9 @@ export class BlocksPage {
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             isOwner,
             onRename: isOwner ? (newTitle) => this.#renameNotebook(newTitle) : null,
+            onSave: () => this.#saveAll(),
+            onSaveAs: () => this.#exportAsIpynb(),
+            onOpen: () => this.#importNotebook(),
             onProfile: () => Router.getInstance().navigate('/profile'),
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
@@ -258,6 +261,15 @@ export class BlocksPage {
         } catch {
             /* tolerate */
         }
+    }
+
+    async #saveAll() {
+        this.#header.showSaveIndicator();
+        const cells = this.#cellList.getAllCells();
+        const promises = cells.map((cell) =>
+            this.#maybeSaveCellContent(cell.getBlockId(), cell)
+        );
+        await Promise.all(promises);
     }
 
     async #saveAllTextCells() {
@@ -471,6 +483,157 @@ export class BlocksPage {
             }
             this.#lastOutputs.set(block.id, out);
         }
+    }
+
+    async #exportAsIpynb() {
+        await this.#saveAll();
+        const cells = this.#cellList.getAllCells();
+        const ipynbCells = cells.map((cell) => {
+            const blockId = cell.getBlockId();
+            const content = cell.getContent();
+            const isCode = cell instanceof CodeCell;
+            const source = content
+                ? content.split('\n').map((l, i, a) => (i < a.length - 1 ? l + '\n' : l))
+                : [];
+
+            if (!isCode) {
+                return { cell_type: 'markdown', metadata: {}, source };
+            }
+
+            const out = this.#lastOutputs.get(blockId);
+            const outputs = [];
+            if (out) {
+                if (out.stdout?.length) {
+                    outputs.push({
+                        output_type: 'stream',
+                        name: 'stdout',
+                        text: out.stdout.map((s) => s + '\n')
+                    });
+                }
+                if (out.stderr?.length) {
+                    outputs.push({
+                        output_type: 'stream',
+                        name: 'stderr',
+                        text: out.stderr.map((s) => s + '\n')
+                    });
+                }
+                if (out.result) {
+                    outputs.push({
+                        output_type: 'execute_result',
+                        execution_count: null,
+                        data: { 'text/plain': [out.result] },
+                        metadata: {}
+                    });
+                }
+                if (out.outputs) {
+                    for (const o of out.outputs) {
+                        outputs.push({
+                            output_type: 'display_data',
+                            data: { [o.mime_type]: o.data },
+                            metadata: {}
+                        });
+                    }
+                }
+            }
+            return {
+                cell_type: 'code',
+                execution_count: null,
+                metadata: {},
+                source,
+                outputs
+            };
+        });
+
+        const ipynb = {
+            nbformat: 4,
+            nbformat_minor: 5,
+            metadata: {
+                kernelspec: {
+                    display_name: 'Python 3',
+                    language: 'python',
+                    name: 'python3'
+                },
+                language_info: { name: 'python', version: '3.13' }
+            },
+            cells: ipynbCells
+        };
+
+        const blob = new Blob([JSON.stringify(ipynb, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (this.#notebook?.title || 'Untitled') + '.ipynb';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    #importNotebook() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.ipynb';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const ipynb = JSON.parse(text);
+
+                const blocks = (ipynb.cells || []).map((cell, i) => {
+                    const content = Array.isArray(cell.source)
+                        ? cell.source.join('')
+                        : cell.source || '';
+                    const type = cell.cell_type === 'code' ? 'code' : 'text';
+                    const language = type === 'code' ? 'python' : 'markdown';
+                    const outputs = [];
+
+                    if (type === 'code' && cell.outputs) {
+                        let pos = 0;
+                        for (const o of cell.outputs) {
+                            if (o.output_type === 'stream') {
+                                const t = Array.isArray(o.text) ? o.text.join('') : o.text || '';
+                                outputs.push({
+                                    output_type: o.name || 'stdout',
+                                    content: t,
+                                    position: pos++
+                                });
+                            } else if (
+                                o.output_type === 'execute_result' ||
+                                o.output_type === 'display_data'
+                            ) {
+                                if (o.data) {
+                                    for (const [mime, val] of Object.entries(o.data)) {
+                                        const c = Array.isArray(val) ? val.join('') : String(val);
+                                        outputs.push({
+                                            output_type: mime === 'text/plain' ? 'result' : mime,
+                                            content: c,
+                                            position: pos++
+                                        });
+                                    }
+                                }
+                            } else if (o.output_type === 'error') {
+                                const tb = (o.traceback || []).join('\n');
+                                outputs.push({
+                                    output_type: 'stderr',
+                                    content: tb,
+                                    position: pos++
+                                });
+                            }
+                        }
+                    }
+                    return { type, language, content, position: i, outputs };
+                });
+
+                const title = file.name.replace(/\.ipynb$/, '') || 'Imported';
+                const resp = await this.#httpClient.post('/notebooks/import', { title, blocks });
+                if (resp.ok) {
+                    const { data: notebook } = await resp.json();
+                    Router.getInstance().navigate(`/notebooks/${notebook.id}`);
+                }
+            } catch (err) {
+                console.error('Failed to import notebook:', err);
+            }
+        };
+        input.click();
     }
 
     async #reorderBlocks(blockIds) {
