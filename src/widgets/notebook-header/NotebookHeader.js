@@ -122,6 +122,20 @@ export class NotebookHeader extends BaseComponent {
             });
         }
 
+        const fileDropdown = this._element.querySelector('.notebook-header__dropdown');
+        if (fileDropdown) {
+            this._addListener(fileDropdown, 'click', (e) => {
+                e.stopPropagation();
+                const item = e.target.closest('[data-action]');
+                if (!item) return;
+                const action = item.dataset.action;
+                if (action === 'save' && this.#config.onSave) this.#config.onSave();
+                else if (action === 'save-as' && this.#config.onSaveAs) this.#config.onSaveAs();
+                else if (action === 'open' && this.#config.onOpen) this.#config.onOpen();
+                this.#closeMenu();
+            });
+        }
+
         const pill = this._element.querySelector('.notebook-header__user-pill');
         if (pill) {
             this._addListener(pill, 'click', (e) => {
@@ -151,6 +165,13 @@ export class NotebookHeader extends BaseComponent {
                 });
             }
         }
+    }
+
+    showSaveIndicator() {
+        const cloudBtn = this._element.querySelector('[title="Облако"]');
+        if (!cloudBtn) return;
+        cloudBtn.classList.add('notebook-header__icon-btn--saving');
+        setTimeout(() => cloudBtn.classList.remove('notebook-header__icon-btn--saving'), 1500);
     }
 
     /**
