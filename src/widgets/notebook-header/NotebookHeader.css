@@ -174,3 +174,12 @@
 .notebook-header__dropdown-item:hover {
     background: var(--light-grey);
 }
+
+@keyframes cloud-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.notebook-header__icon-btn--saving {
+    animation: cloud-pulse 0.5s ease-in-out 3;
+}
