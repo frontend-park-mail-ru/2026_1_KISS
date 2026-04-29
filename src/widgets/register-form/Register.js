@@ -5,7 +5,6 @@
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
-import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { RegisterTemplate } from './Register.template.js';
 
@@ -153,32 +152,27 @@ export class Register extends BaseComponent {
             return;
         }
 
-        const email = this.#inputs[1].getValue();
-        const password = this.#inputs[2].getValue();
-
-        const loginResponse = await this.#httpClient.post('/auth/login', {
-            email,
-            password
-        });
-        if (!loginResponse.ok) {
-            let loginData;
-            try {
-                loginData = await loginResponse.json();
-            } catch (_e) {
-                loginData = {};
-            }
-            this.#inputs[1].showError(translateError(loginData.error));
-            return;
-        }
-
-        Router.getInstance().navigate('/files');
+        this.#showEmailSent(formData.email);
     }
 
-    /**
-     * Валидирует все поля и дополнительно проверяет совпадение паролей.
-     *
-     * @returns {boolean} true если все поля валидны и пароли совпадают
-     */
+    #showEmailSent(email) {
+        this._element.innerHTML = `
+            <div class="email-sent">
+                <div class="email-sent__icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--teal-green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2"/>
+                        <path d="M22 4L12 13L2 4"/>
+                    </svg>
+                </div>
+                <h2 class="email-sent__title">Проверьте почту</h2>
+                <p class="email-sent__text">
+                    На <strong>${email}</strong> отправлено письмо с ссылкой для подтверждения аккаунта.
+                </p>
+                <p class="email-sent__hint">Если письмо не пришло, проверьте папку "Спам"</p>
+                <a class="simple-btn email-sent__btn" href="" id="go-out-btn">Войти</a>
+            </div>`;
+    }
+
     validateFields() {
         let allValid = true;
         this.#inputs.forEach((input) => {

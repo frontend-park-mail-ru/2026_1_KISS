@@ -30,3 +30,42 @@
     margin-left: 4px;
     min-height: 1rem;
 }
+
+.email-sent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 20px 0;
+}
+
+.email-sent__icon {
+    margin-bottom: 4px;
+}
+
+.email-sent__title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--dark-primary, #191726);
+    margin: 0;
+}
+
+.email-sent__text {
+    font-size: 15px;
+    color: var(--accent);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.email-sent__hint {
+    font-size: 13px;
+    color: var(--accent);
+    opacity: 0.7;
+    margin: 0;
+}
+
+.email-sent__btn {
+    margin-top: 8px;
+    width: 100%;
+}
