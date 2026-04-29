@@ -463,9 +463,13 @@ export class AdminPage {
                 const tr = document.createElement('tr');
                 const badge = this.#planBadge(user.plan);
                 const isBanned = user.status === 'banned';
-                const statusBadge = isBanned
-                    ? '<span class="admin-badge admin-badge--banned">banned</span>'
-                    : '';
+                let statusBadge = '';
+                if (isBanned) {
+                    statusBadge = '<span class="admin-badge admin-badge--banned">banned</span>';
+                } else if (!user.is_verified) {
+                    statusBadge =
+                        '<span class="admin-badge admin-badge--freeze">не подтверждён</span>';
+                }
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${user.id}</td>
