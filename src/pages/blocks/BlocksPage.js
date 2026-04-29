@@ -266,9 +266,7 @@ export class BlocksPage {
     async #saveAll() {
         this.#header.showSaveIndicator();
         const cells = this.#cellList.getAllCells();
-        const promises = cells.map((cell) =>
-            this.#maybeSaveCellContent(cell.getBlockId(), cell)
-        );
+        const promises = cells.map((cell) => this.#maybeSaveCellContent(cell.getBlockId(), cell));
         await Promise.all(promises);
     }
 
