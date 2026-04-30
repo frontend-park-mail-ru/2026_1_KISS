@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ES2022",
+        "moduleResolution": "bundler",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "strict": true,
+        "noEmit": false,
+        "outDir": ".ts-out",
+        "rootDir": "src",
+        "declaration": false,
+        "sourceMap": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "useDefineForClassFields": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules", "dist", ".ts-out"]
+}

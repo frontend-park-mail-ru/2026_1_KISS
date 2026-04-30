@@ -4,20 +4,25 @@
     "description": "НИКАКИЕ БИБЛИОТЕКИ НЕЛЬЗЯ ПОДКЛЮЧАТЬ / DO NOT ADD ANY LIBRARIES",
     "type": "module",
     "scripts": {
-        "dev": "node build/dev-server.js",
+        "dev": "tsc --watch & node build/dev-server.js",
         "start": "node build/dev-server.js",
-        "build": "node build/bundler.js && node build/css-concat.js",
+        "build": "tsc && node build/bundler.js --src-dir=.ts-out && node build/css-concat.js",
+        "typecheck": "tsc --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "format": "prettier --write \"src/**/*.js\" \"build/**/*.js\" \".prettierrc.js\"",
-        "format:check": "prettier --check \"src/**/*.js\" \"build/**/*.js\" \".prettierrc.js\""
+        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\" \"build/**/*.js\" \".prettierrc.js\"",
+        "format:check": "prettier --check \"src/**/*.ts\" \"src/**/*.js\" \"build/**/*.js\" \".prettierrc.js\""
     },
     "license": "ISC",
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@typescript-eslint/eslint-plugin": "^8.59.1",
+        "@typescript-eslint/parser": "^8.59.1",
         "eslint": "^10.0.3",
         "eslint-config-prettier": "^10.1.8",
         "globals": "^17.4.0",
-        "prettier": "^3.5.1"
+        "prettier": "^3.5.1",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.59.1"
     }
 }
