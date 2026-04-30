@@ -8,7 +8,10 @@ export default [
         ignores: ['node_modules/', 'dist/', 'test-results/', 'playwright-report/', '.ts-out/']
     },
 
-    ...tseslint.configs.recommended,
+    ...tseslint.configs.recommended.map((config) => ({
+        ...config,
+        files: ['src/**/*.ts']
+    })),
 
     {
         files: ['src/**/*.ts'],
