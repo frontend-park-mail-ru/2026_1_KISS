@@ -93,7 +93,7 @@ export class AdminPage {
                 Router.getInstance()!.navigate('/sign');
                 return;
             }
-            const { data: user } = await response.json() as { data: Record<string, unknown> };
+            const { data: user } = (await response.json()) as { data: Record<string, unknown> };
             if (!user.is_admin) {
                 Router.getInstance()!.navigate('/files');
                 return;
@@ -176,7 +176,7 @@ export class AdminPage {
         this.#contentArea!.appendChild(title);
 
         try {
-            const stats = await this.#adminApi.getStats() as Record<string, unknown>;
+            const stats = (await this.#adminApi.getStats()) as Record<string, unknown>;
             const cards = [
                 {
                     label: 'Пользователи',
@@ -210,13 +210,25 @@ export class AdminPage {
             });
             this.#contentArea!.appendChild(grid);
 
-            const activityData = await this.#adminApi.getActivityStats(30, 12) as Record<string, unknown>;
-            const dauFilled = this.#fillDays((activityData.dau as { date: string; count: number }[]) || [], 30);
-            const mauFilled = this.#fillMonths((activityData.mau as { month: string; count: number }[]) || [], 12);
+            const activityData = (await this.#adminApi.getActivityStats(30, 12)) as Record<
+                string,
+                unknown
+            >;
+            const dauFilled = this.#fillDays(
+                (activityData.dau as { date: string; count: number }[]) || [],
+                30
+            );
+            const mauFilled = this.#fillMonths(
+                (activityData.mau as { month: string; count: number }[]) || [],
+                12
+            );
             this.#renderTimeSeriesChart('DAU (последние 30 дней)', dauFilled, 'date', 'count');
             this.#renderTimeSeriesChart('MAU (последние 12 месяцев)', mauFilled, 'month', 'count');
 
-            const issueStats = await this.#adminApi.getIssueStats().catch(() => null) as Record<string, unknown> | null;
+            const issueStats = (await this.#adminApi.getIssueStats().catch(() => null)) as Record<
+                string,
+                unknown
+            > | null;
             if (issueStats) {
                 const issueTitle = document.createElement('h2');
                 issueTitle.className = 'admin-page__section-title';
@@ -276,7 +288,12 @@ export class AdminPage {
         }
     }
 
-    #renderTimeSeriesChart(titleText: string, data: Record<string, unknown>[], keyField: string, valueField: string): void {
+    #renderTimeSeriesChart(
+        titleText: string,
+        data: Record<string, unknown>[],
+        keyField: string,
+        valueField: string
+    ): void {
         const chart = document.createElement('div');
         chart.className = 'admin-chart';
         chart.innerHTML = `<div class="admin-chart__title">${this.#esc(titleText)}</div>`;
@@ -359,7 +376,10 @@ export class AdminPage {
         return ticks;
     }
 
-    #fillDays(entries: { date: string; count: number }[], count: number): { date: string; count: number }[] {
+    #fillDays(
+        entries: { date: string; count: number }[],
+        count: number
+    ): { date: string; count: number }[] {
         const map = new Map<string, number>();
         entries.forEach((e) => map.set(e.date, e.count));
         const result: { date: string; count: number }[] = [];
@@ -373,7 +393,10 @@ export class AdminPage {
         return result;
     }
 
-    #fillMonths(entries: { month: string; count: number }[], count: number): { month: string; count: number }[] {
+    #fillMonths(
+        entries: { month: string; count: number }[],
+        count: number
+    ): { month: string; count: number }[] {
         const map = new Map<string, number>();
         entries.forEach((e) => map.set(e.month, e.count));
         const result: { month: string; count: number }[] = [];
@@ -435,8 +458,13 @@ export class AdminPage {
         const offset = (this.#currentUserPage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getUsers(limit, offset, this.#currentUserSearch) as Record<string, unknown>;
-            const users: Record<string, unknown>[] = (data.users as Record<string, unknown>[]) || [];
+            const data = (await this.#adminApi.getUsers(
+                limit,
+                offset,
+                this.#currentUserSearch
+            )) as Record<string, unknown>;
+            const users: Record<string, unknown>[] =
+                (data.users as Record<string, unknown>[]) || [];
             const total: number = (data.total as number) || 0;
             if (countEl)
                 countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
@@ -493,10 +521,15 @@ export class AdminPage {
 
             const totalPages = Math.ceil(total / limit);
             if (totalPages > 1) {
-                this.#renderPagination(tableContainer as HTMLElement, this.#currentUserPage, totalPages, (p: number) => {
-                    this.#currentUserPage = p;
-                    this.#refreshUsersTable();
-                });
+                this.#renderPagination(
+                    tableContainer as HTMLElement,
+                    this.#currentUserPage,
+                    totalPages,
+                    (p: number) => {
+                        this.#currentUserPage = p;
+                        this.#refreshUsersTable();
+                    }
+                );
             }
         } catch (e: unknown) {
             tableContainer.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc((e as Error).message)}</div>`;
@@ -537,7 +570,12 @@ export class AdminPage {
 
     async #editUsername(user: Record<string, unknown>): Promise<void> {
         const result = await this.#modal!.open('Изменить имя', [
-            { name: 'username', label: 'Имя пользователя', type: 'text', value: user.username as string }
+            {
+                name: 'username',
+                label: 'Имя пользователя',
+                type: 'text',
+                value: user.username as string
+            }
         ]);
         if (!result || result.username === user.username) return;
         try {
@@ -672,8 +710,13 @@ export class AdminPage {
         const offset = (this.#currentNbPage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getNotebooks(limit, offset, this.#currentNbSearch) as Record<string, unknown>;
-            const notebooks: Record<string, unknown>[] = (data.notebooks as Record<string, unknown>[]) || [];
+            const data = (await this.#adminApi.getNotebooks(
+                limit,
+                offset,
+                this.#currentNbSearch
+            )) as Record<string, unknown>;
+            const notebooks: Record<string, unknown>[] =
+                (data.notebooks as Record<string, unknown>[]) || [];
             const total: number = (data.total as number) || 0;
             if (countEl)
                 countEl.textContent = `${total} блокнот${this.#plural(total, '', 'а', 'ов')}`;
@@ -717,7 +760,9 @@ export class AdminPage {
                             handler: async () => {
                                 if (confirm(`Удалить блокнот "${nb.title}"?`)) {
                                     try {
-                                        await this.#adminApi.deleteNotebook(nb.id as string | number);
+                                        await this.#adminApi.deleteNotebook(
+                                            nb.id as string | number
+                                        );
                                         this.#refreshNotebooksTable();
                                     } catch (err: unknown) {
                                         alert((err as Error).message);
@@ -734,17 +779,27 @@ export class AdminPage {
 
             const totalPages = Math.ceil(total / limit);
             if (totalPages > 1) {
-                this.#renderPagination(tableContainer as HTMLElement, this.#currentNbPage, totalPages, (p: number) => {
-                    this.#currentNbPage = p;
-                    this.#refreshNotebooksTable();
-                });
+                this.#renderPagination(
+                    tableContainer as HTMLElement,
+                    this.#currentNbPage,
+                    totalPages,
+                    (p: number) => {
+                        this.#currentNbPage = p;
+                        this.#refreshNotebooksTable();
+                    }
+                );
             }
         } catch (e: unknown) {
             tableContainer.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc((e as Error).message)}</div>`;
         }
     }
 
-    #renderPagination(container: HTMLElement, current: number, total: number, onPage: (p: number) => void): void {
+    #renderPagination(
+        container: HTMLElement,
+        current: number,
+        total: number,
+        onPage: (p: number) => void
+    ): void {
         const nav = document.createElement('div');
         nav.className = 'admin-pagination';
 
@@ -869,8 +924,13 @@ export class AdminPage {
         const offset = (this.#currentIssuePage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getIssues(limit, offset, this.#currentIssueSearch) as Record<string, unknown>;
-            const issues: Record<string, unknown>[] = (data.issues as Record<string, unknown>[]) || [];
+            const data = (await this.#adminApi.getIssues(
+                limit,
+                offset,
+                this.#currentIssueSearch
+            )) as Record<string, unknown>;
+            const issues: Record<string, unknown>[] =
+                (data.issues as Record<string, unknown>[]) || [];
             const total: number = (data.total as number) || 0;
             if (countEl)
                 countEl.textContent = `${total} обращени${this.#plural(total, 'е', 'я', 'й')}`;
@@ -898,10 +958,7 @@ export class AdminPage {
                 const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category as string);
                 const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status as string);
                 const content = issue.content as string;
-                const preview =
-                    content.length > 60
-                        ? content.substring(0, 60) + '...'
-                        : content;
+                const preview = content.length > 60 ? content.substring(0, 60) + '...' : content;
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${issue.id}</td>
@@ -919,10 +976,15 @@ export class AdminPage {
 
             const totalPages = Math.ceil(total / limit);
             if (totalPages > 1) {
-                this.#renderPagination(tableContainer as HTMLElement, this.#currentIssuePage, totalPages, (p: number) => {
-                    this.#currentIssuePage = p;
-                    this.#refreshIssuesTable();
-                });
+                this.#renderPagination(
+                    tableContainer as HTMLElement,
+                    this.#currentIssuePage,
+                    totalPages,
+                    (p: number) => {
+                        this.#currentIssuePage = p;
+                        this.#refreshIssuesTable();
+                    }
+                );
             }
         } catch (e: unknown) {
             tableContainer.innerHTML = `<div class="admin-empty">Ошибка: ${this.#esc((e as Error).message)}</div>`;
@@ -944,7 +1006,7 @@ export class AdminPage {
         this.#contentArea!.appendChild(container);
 
         try {
-            const issue = await this.#adminApi.getIssue(issueId) as Record<string, unknown>;
+            const issue = (await this.#adminApi.getIssue(issueId)) as Record<string, unknown>;
             const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category as string);
             const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status as string);
             const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU', {
@@ -1034,8 +1096,12 @@ export class AdminPage {
                     </div>
                 </div>`;
 
-            const statusSelect = container.querySelector('[data-role="status-select"]') as HTMLSelectElement;
-            const updateBtn = container.querySelector('[data-role="update-status"]') as HTMLButtonElement;
+            const statusSelect = container.querySelector(
+                '[data-role="status-select"]'
+            ) as HTMLSelectElement;
+            const updateBtn = container.querySelector(
+                '[data-role="update-status"]'
+            ) as HTMLButtonElement;
             updateBtn.addEventListener('click', async () => {
                 try {
                     await this.#adminApi.updateIssueStatus(issueId, statusSelect.value);
@@ -1045,8 +1111,12 @@ export class AdminPage {
                 }
             });
 
-            const responseTextarea = container.querySelector('.admin-issue-detail__textarea') as HTMLTextAreaElement;
-            const sendBtn = container.querySelector('[data-role="send-response"]') as HTMLButtonElement;
+            const responseTextarea = container.querySelector(
+                '.admin-issue-detail__textarea'
+            ) as HTMLTextAreaElement;
+            const sendBtn = container.querySelector(
+                '[data-role="send-response"]'
+            ) as HTMLButtonElement;
             sendBtn.addEventListener('click', async () => {
                 const text = responseTextarea.value.trim();
                 if (!text) return;

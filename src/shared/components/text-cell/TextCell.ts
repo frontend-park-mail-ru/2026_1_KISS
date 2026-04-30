@@ -19,7 +19,10 @@ export class TextCell extends BaseComponent {
     #onDelete?: (id: string) => void;
     #onContentChange?: (id: string, content: string) => void;
 
-    constructor(parent: HTMLElement, { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onContentChange }: TextCellOptions) {
+    constructor(
+        parent: HTMLElement,
+        { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onContentChange }: TextCellOptions
+    ) {
         super(null, parent);
         this.#blockData = blockData;
         this.#onMoveUp = onMoveUp;

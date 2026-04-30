@@ -23,7 +23,10 @@ export class NotebookSidebar extends BaseComponent {
     #onReplace: NotebookSidebarCallbacks['onReplace'];
     #onReplaceAll: NotebookSidebarCallbacks['onReplaceAll'];
 
-    constructor(parent: HTMLElement, { onFind, onNext, onPrev, onReplace, onReplaceAll }: NotebookSidebarCallbacks = {}) {
+    constructor(
+        parent: HTMLElement,
+        { onFind, onNext, onPrev, onReplace, onReplaceAll }: NotebookSidebarCallbacks = {}
+    ) {
         super(null, parent);
         this.#onFind = onFind;
         this.#onNext = onNext;
@@ -57,9 +60,15 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     getFindQuery(): FindQuery {
-        const findInput = this._element.querySelector('.notebook-sidebar__find-input') as HTMLInputElement | null;
-        const replaceInput = this._element.querySelector('.notebook-sidebar__replace-input') as HTMLInputElement | null;
-        const caseToggle = this._element.querySelector('.notebook-sidebar__case-toggle') as HTMLInputElement | null;
+        const findInput = this._element.querySelector(
+            '.notebook-sidebar__find-input'
+        ) as HTMLInputElement | null;
+        const replaceInput = this._element.querySelector(
+            '.notebook-sidebar__replace-input'
+        ) as HTMLInputElement | null;
+        const caseToggle = this._element.querySelector(
+            '.notebook-sidebar__case-toggle'
+        ) as HTMLInputElement | null;
         return {
             query: findInput ? findInput.value : '',
             replacement: replaceInput ? replaceInput.value : '',

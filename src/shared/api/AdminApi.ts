@@ -71,7 +71,12 @@ export class AdminApi {
         return this.#parse(response);
     }
 
-    async getIssues(limit = 20, offset = 0, search = '', userId: string | number | null = null): Promise<unknown> {
+    async getIssues(
+        limit = 20,
+        offset = 0,
+        search = '',
+        userId: string | number | null = null
+    ): Promise<unknown> {
         let url = `/admin/issues?limit=${limit}&offset=${offset}`;
         if (search) url += `&q=${encodeURIComponent(search)}`;
         if (userId) url += `&userid=${userId}`;

@@ -28,10 +28,16 @@ export class BaseComponent {
         this._isMounted = false;
     }
 
-    protected _addListener(element: EventTarget | null, event: string, handler: EventListener): void {
+    protected _addListener(
+        element: EventTarget | null,
+        event: string,
+        handler: EventListener
+    ): void {
         if (!element) return;
 
-        const wrappedHandler = (handler as (...args: unknown[]) => void).bind(this) as EventListener;
+        const wrappedHandler = (handler as (...args: unknown[]) => void).bind(
+            this
+        ) as EventListener;
         element.addEventListener(event, wrappedHandler);
 
         this._listeners.push({

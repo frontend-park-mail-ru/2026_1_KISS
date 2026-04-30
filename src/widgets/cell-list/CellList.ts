@@ -31,7 +31,14 @@ export class CellList extends BaseComponent {
 
     constructor(
         parent: HTMLElement,
-        { onRunCell, onRerender, onDeleteCell, onSaveContent, onCodeContentChange, onReorder }: CellListCallbacks = {}
+        {
+            onRunCell,
+            onRerender,
+            onDeleteCell,
+            onSaveContent,
+            onCodeContentChange,
+            onReorder
+        }: CellListCallbacks = {}
     ) {
         super(null, parent);
         this.#onRunCell = onRunCell;
@@ -86,7 +93,11 @@ export class CellList extends BaseComponent {
         if (this.#onRerender) this.#onRerender();
     }
 
-    #createCell(container: HTMLElement, block: BlockData, cellCallbacks: Record<string, unknown>): CodeCell | TextCell {
+    #createCell(
+        container: HTMLElement,
+        block: BlockData,
+        cellCallbacks: Record<string, unknown>
+    ): CodeCell | TextCell {
         if (block.type === 'code') {
             return new CodeCell(container, {
                 ...cellCallbacks,
@@ -118,7 +129,9 @@ export class CellList extends BaseComponent {
         };
     }
 
-    applyRemoteEvent(event: { type: string; block?: BlockData; block_id?: string | number } | null): void {
+    applyRemoteEvent(
+        event: { type: string; block?: BlockData; block_id?: string | number } | null
+    ): void {
         if (!event) return;
         if (event.type === 'block_updated' && event.block) {
             this.#applyBlockUpdated(event.block);
@@ -146,8 +159,13 @@ export class CellList extends BaseComponent {
         const root = cell.getElement();
         if (root && root.contains(document.activeElement)) return;
 
-        if (typeof (cell as unknown as { setContent: (c: string) => void }).setContent === 'function') {
-            (cell as unknown as { setContent: (c: string) => void }).setContent(block.content || '');
+        if (
+            typeof (cell as unknown as { setContent: (c: string) => void }).setContent ===
+            'function'
+        ) {
+            (cell as unknown as { setContent: (c: string) => void }).setContent(
+                block.content || ''
+            );
         }
     }
 
@@ -193,7 +211,9 @@ export class CellList extends BaseComponent {
 
         if (this.#blocks.length === 0) {
             const container = this._element.querySelector('.cell-list__cells') as HTMLElement;
-            const emptyState = this._element.querySelector('.cell-list__empty-state') as HTMLElement;
+            const emptyState = this._element.querySelector(
+                '.cell-list__empty-state'
+            ) as HTMLElement;
             container.style.display = 'none';
             emptyState.style.display = '';
         }

@@ -67,7 +67,8 @@ export class FeedbackPage {
     }
 
     #setEsc(fn: () => void): void {
-        if (this.#escHandler) document.removeEventListener('keydown', this.#escHandler as EventListener);
+        if (this.#escHandler)
+            document.removeEventListener('keydown', this.#escHandler as EventListener);
         this.#escHandler = (e: KeyboardEvent) => {
             if (e.key === 'Escape') fn();
         };
@@ -258,7 +259,9 @@ export class FeedbackPage {
 
         try {
             const data = await this.#issueApi.getIssues();
-            const issues: Record<string, unknown>[] = Array.isArray(data) ? data : (data as Record<string, unknown>)?.issues as Record<string, unknown>[] || [];
+            const issues: Record<string, unknown>[] = Array.isArray(data)
+                ? data
+                : ((data as Record<string, unknown>)?.issues as Record<string, unknown>[]) || [];
 
             if (issues.length === 0) {
                 listContent.innerHTML =
@@ -271,13 +274,11 @@ export class FeedbackPage {
                 const card = document.createElement('div');
                 card.className = 'feedback-modal__issue-card';
                 const cat = CATEGORIES.find((c) => c.value === issue.category);
-                const statusLabel = STATUS_LABELS[issue.status as string] || (issue.status as string);
+                const statusLabel =
+                    STATUS_LABELS[issue.status as string] || (issue.status as string);
                 const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU');
                 const content = issue.content as string;
-                const preview =
-                    content.length > 100
-                        ? content.substring(0, 100) + '...'
-                        : content;
+                const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
 
                 card.innerHTML = `
                     <div class="feedback-modal__issue-meta">
@@ -288,10 +289,17 @@ export class FeedbackPage {
                     </div>
                     <div class="feedback-modal__issue-preview">${this.#esc(preview)}</div>`;
 
-                const deleteBtn = card.querySelector('.feedback-modal__issue-delete-btn') as HTMLButtonElement;
+                const deleteBtn = card.querySelector(
+                    '.feedback-modal__issue-delete-btn'
+                ) as HTMLButtonElement;
                 deleteBtn.addEventListener('click', async (e: Event) => {
                     e.stopPropagation();
-                    await this.#handleIssueDelete(issue.id as number, card, listContent as HTMLElement, deleteBtn);
+                    await this.#handleIssueDelete(
+                        issue.id as number,
+                        card,
+                        listContent as HTMLElement,
+                        deleteBtn
+                    );
                 });
 
                 card.addEventListener('click', () => this.#renderDetail(issue.id as number));
@@ -303,7 +311,12 @@ export class FeedbackPage {
         }
     }
 
-    async #handleIssueDelete(issueId: number, card: HTMLElement, listContent: HTMLElement, btn: HTMLButtonElement): Promise<void> {
+    async #handleIssueDelete(
+        issueId: number,
+        card: HTMLElement,
+        listContent: HTMLElement,
+        btn: HTMLButtonElement
+    ): Promise<void> {
         if (!window.confirm('Удалить это обращение?')) {
             return;
         }
@@ -354,7 +367,7 @@ export class FeedbackPage {
         const body = modal.querySelector('.feedback-modal__detail-body')!;
 
         try {
-            const issue = await this.#issueApi.getIssue(issueId) as Record<string, unknown>;
+            const issue = (await this.#issueApi.getIssue(issueId)) as Record<string, unknown>;
             const cat = CATEGORIES.find((c) => c.value === issue.category);
             const statusLabel = STATUS_LABELS[issue.status as string] || (issue.status as string);
             const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU', {
@@ -408,7 +421,9 @@ export class FeedbackPage {
                 this.#renderList()
             );
 
-            const replyTextarea = body.querySelector('.feedback-modal__reply-textarea') as HTMLTextAreaElement;
+            const replyTextarea = body.querySelector(
+                '.feedback-modal__reply-textarea'
+            ) as HTMLTextAreaElement;
             const replyCount = body.querySelector('.feedback-modal__reply-count')!;
             const replyBtn = body.querySelector('.feedback-modal__reply-btn') as HTMLButtonElement;
             const replyError = body.querySelector('.feedback-modal__reply-error') as HTMLElement;

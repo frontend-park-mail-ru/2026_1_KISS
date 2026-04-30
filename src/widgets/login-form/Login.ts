@@ -97,7 +97,9 @@ export class Login extends BaseComponent {
                 } catch (_e) {
                     data = {};
                 }
-                const errorElement = this._element.querySelector('.sign-error-message') as HTMLElement | null;
+                const errorElement = this._element.querySelector(
+                    '.sign-error-message'
+                ) as HTMLElement | null;
                 if (errorElement) {
                     errorElement.textContent = translateError(data.error as string);
                 }

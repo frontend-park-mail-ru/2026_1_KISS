@@ -11,7 +11,11 @@ export class NotebookWS {
 
     constructor(
         notebookId: number | string,
-        { onEvent, onConnect, onClose }: {
+        {
+            onEvent,
+            onConnect,
+            onClose
+        }: {
             onEvent?: (event: Record<string, unknown>) => void;
             onConnect?: () => void;
             onClose?: (code: number) => void;

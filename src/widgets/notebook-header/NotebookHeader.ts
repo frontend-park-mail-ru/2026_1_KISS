@@ -100,7 +100,9 @@ export class NotebookHeader extends BaseComponent {
         if (fileDropdown) {
             this._addListener(fileDropdown, 'click', (e: Event) => {
                 e.stopPropagation();
-                const item = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+                const item = (e.target as HTMLElement).closest(
+                    '[data-action]'
+                ) as HTMLElement | null;
                 if (!item) return;
                 const action = item.dataset.action;
                 if (action === 'save' && this.#config.onSave) this.#config.onSave();
@@ -125,7 +127,9 @@ export class NotebookHeader extends BaseComponent {
             if (dropdown) {
                 this._addListener(dropdown, 'click', (e: Event) => {
                     e.stopPropagation();
-                    const item = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+                    const item = (e.target as HTMLElement).closest(
+                        '[data-action]'
+                    ) as HTMLElement | null;
                     if (!item) return;
                     const action = item.dataset.action;
                     if (action === 'profile' && this.#config.onProfile) {
@@ -151,7 +155,9 @@ export class NotebookHeader extends BaseComponent {
     async #finishEditing(): Promise<void> {
         if (!this.#isEditing) return;
 
-        const filenameSpan = this._element.querySelector('.notebook-header__filename') as HTMLElement;
+        const filenameSpan = this._element.querySelector(
+            '.notebook-header__filename'
+        ) as HTMLElement;
         this.#isEditing = false;
         filenameSpan.contentEditable = 'false';
         filenameSpan.classList.remove('notebook-header__filename--editing');
@@ -215,7 +221,9 @@ export class NotebookHeader extends BaseComponent {
     }
 
     #startRename(): void {
-        const filenameSpan = this._element.querySelector('.notebook-header__filename') as HTMLElement;
+        const filenameSpan = this._element.querySelector(
+            '.notebook-header__filename'
+        ) as HTMLElement;
         this.#originalText = filenameSpan.textContent || '';
         this.#isEditing = true;
 
