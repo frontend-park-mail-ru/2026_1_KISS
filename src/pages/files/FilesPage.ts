@@ -18,9 +18,21 @@ export class FilesPage {
     #filesTable: FilesTable | null = null;
     #pagination: Pagination | null = null;
     #allNotebooks: FilesNotebook[] = [];
-    #filters: { owner: string | null; dateFrom: string | null; dateTo: string | null; search: string } = { owner: null, dateFrom: null, dateTo: null, search: '' };
+    #filters: {
+        owner: string | null;
+        dateFrom: string | null;
+        dateTo: string | null;
+        search: string;
+    } = { owner: null, dateFrom: null, dateTo: null, search: '' };
     #feedbackModal: FeedbackModal | null = null;
-    #state: { notebooks: FilesNotebook[]; currentPage: number; limit: number; username: string; avatarUrl?: string; isAdmin?: boolean } = {
+    #state: {
+        notebooks: FilesNotebook[];
+        currentPage: number;
+        limit: number;
+        username: string;
+        avatarUrl?: string;
+        isAdmin?: boolean;
+    } = {
         notebooks: [],
         currentPage: 1,
         limit: 7,
@@ -130,7 +142,7 @@ export class FilesPage {
 
             if (!response.ok) return;
 
-            const { data } = await response.json() as { data: Record<string, unknown> };
+            const { data } = (await response.json()) as { data: Record<string, unknown> };
             const notebooks = data.notebooks as FilesNotebook[];
             const total = data.total as number;
             const totalPages = Math.ceil(total / this.#state.limit);
@@ -205,8 +217,11 @@ export class FilesPage {
         try {
             const response = await this.#httpClient.get('/notebooks/shared?limit=100&offset=0');
             if (!response.ok) return;
-            const { data } = await response.json() as { data: Record<string, unknown> };
-            this.#sharedNotebooks = ((data.notebooks ?? []) as FilesNotebook[]).map((n) => ({ ...n, _isShared: true as const }));
+            const { data } = (await response.json()) as { data: Record<string, unknown> };
+            this.#sharedNotebooks = ((data.notebooks ?? []) as FilesNotebook[]).map((n) => ({
+                ...n,
+                _isShared: true as const
+            }));
         } catch {
             this.#sharedNotebooks = [];
         }
@@ -218,7 +233,9 @@ export class FilesPage {
                 title: 'Untitled'
             });
             if (response.ok) {
-                const { data: notebook } = await response.json() as { data: Record<string, unknown> };
+                const { data: notebook } = (await response.json()) as {
+                    data: Record<string, unknown>;
+                };
                 Router.getInstance()!.navigate(`/notebooks/${notebook.id}`);
             }
         } catch (e: unknown) {

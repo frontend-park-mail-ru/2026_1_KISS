@@ -48,7 +48,9 @@ export class ProfileSection extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
 
-        const usernameWrap = this._element.querySelector('.profile-section__username-wrap') as HTMLElement;
+        const usernameWrap = this._element.querySelector(
+            '.profile-section__username-wrap'
+        ) as HTMLElement;
         this.#usernameInput = new Input(usernameWrap, {
             ...TYPE_INPUT_CONFIG.LOGIN,
             id: `profile-username-${Date.now()}`,
@@ -74,9 +76,15 @@ export class ProfileSection extends BaseComponent {
     }
 
     #attachAvatarEvents(): void {
-        const fileInput = this._element.querySelector('.profile-section__file-input') as HTMLInputElement;
-        const uploadBtn = this._element.querySelector('.profile-section__upload-btn') as HTMLElement;
-        const errorEl = this._element.querySelector('.profile-section__upload-error') as HTMLElement;
+        const fileInput = this._element.querySelector(
+            '.profile-section__file-input'
+        ) as HTMLInputElement;
+        const uploadBtn = this._element.querySelector(
+            '.profile-section__upload-btn'
+        ) as HTMLElement;
+        const errorEl = this._element.querySelector(
+            '.profile-section__upload-error'
+        ) as HTMLElement;
 
         this._addListener(uploadBtn, 'click', () => fileInput.click());
 
@@ -105,7 +113,9 @@ export class ProfileSection extends BaseComponent {
                         this.#config.onUserUpdate(result.data);
                     }
 
-                    const avatarEl = this._element.querySelector('.profile-section__avatar') as HTMLElement;
+                    const avatarEl = this._element.querySelector(
+                        '.profile-section__avatar'
+                    ) as HTMLElement;
                     avatarEl.innerHTML = '';
                     const imgEl = document.createElement('img');
                     imgEl.className = 'profile-section__avatar-img';
@@ -137,8 +147,12 @@ export class ProfileSection extends BaseComponent {
             if (!this.#usernameInput.validate()) return;
 
             const username = this.#usernameInput.getValue();
-            const status = (this._element.querySelector('[data-field="status"]') as HTMLInputElement).value;
-            const description = (this._element.querySelector('[data-field="description"]') as HTMLTextAreaElement).value;
+            const status = (
+                this._element.querySelector('[data-field="status"]') as HTMLInputElement
+            ).value;
+            const description = (
+                this._element.querySelector('[data-field="description"]') as HTMLTextAreaElement
+            ).value;
 
             msgEl.textContent = '';
             msgEl.className = 'profile-section__save-msg';
@@ -171,12 +185,20 @@ export class ProfileSection extends BaseComponent {
     }
 
     #attachEmailEvents(): void {
-        const changeBtn = this._element.querySelector('.profile-section__email-change-btn') as HTMLElement;
-        const emailForm = this._element.querySelector('.profile-section__email-form') as HTMLElement;
-        const emailSaveBtn = this._element.querySelector('.profile-section__email-save-btn') as HTMLElement;
+        const changeBtn = this._element.querySelector(
+            '.profile-section__email-change-btn'
+        ) as HTMLElement;
+        const emailForm = this._element.querySelector(
+            '.profile-section__email-form'
+        ) as HTMLElement;
+        const emailSaveBtn = this._element.querySelector(
+            '.profile-section__email-save-btn'
+        ) as HTMLElement;
         const emailMsg = this._element.querySelector('.profile-section__email-msg') as HTMLElement;
 
-        const passwordWrap = this._element.querySelector('.profile-section__email-password-wrap') as HTMLElement;
+        const passwordWrap = this._element.querySelector(
+            '.profile-section__email-password-wrap'
+        ) as HTMLElement;
         const passwordInput = new Input(passwordWrap, {
             ...TYPE_INPUT_CONFIG.PASSWORD,
             id: `email-password-${Date.now()}`,
@@ -198,7 +220,9 @@ export class ProfileSection extends BaseComponent {
         });
 
         this._addListener(emailSaveBtn, 'click', async () => {
-            const newEmailInput = this._element.querySelector('[data-field="new_email"]') as HTMLInputElement;
+            const newEmailInput = this._element.querySelector(
+                '[data-field="new_email"]'
+            ) as HTMLInputElement;
             const newEmail = newEmailInput.value;
             const password = passwordInput.getValue();
 
@@ -239,7 +263,9 @@ export class ProfileSection extends BaseComponent {
                     this.#config.onUserUpdate(result.data);
                 }
 
-                const currentEl = this._element.querySelector('.profile-section__email-current') as HTMLElement;
+                const currentEl = this._element.querySelector(
+                    '.profile-section__email-current'
+                ) as HTMLElement;
                 currentEl.textContent = result.data.email;
                 emailForm.classList.add('profile-section__email-form--hidden');
                 passwordInput.unmount();

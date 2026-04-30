@@ -36,7 +36,15 @@ export class CodeCell extends BaseComponent {
 
     constructor(
         parent: HTMLElement,
-        { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onRun, onContentChange }: CodeCellOptions
+        {
+            blockData,
+            onMoveUp,
+            onMoveDown,
+            onCopy,
+            onDelete,
+            onRun,
+            onContentChange
+        }: CodeCellOptions
     ) {
         super(null, parent);
         this.#blockData = blockData;

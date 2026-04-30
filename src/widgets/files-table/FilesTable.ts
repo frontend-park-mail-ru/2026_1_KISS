@@ -18,11 +18,18 @@ export class FilesTable extends BaseComponent {
     #sortDir = 'asc';
     #sortOpen = false;
 
-    constructor(parent: HTMLElement, { onDelete, onRename, onOpen }: {
-        onDelete: (id: string) => void;
-        onRename?: (id: string, newTitle: string) => void;
-        onOpen?: (id: string) => void;
-    }) {
+    constructor(
+        parent: HTMLElement,
+        {
+            onDelete,
+            onRename,
+            onOpen
+        }: {
+            onDelete: (id: string) => void;
+            onRename?: (id: string, newTitle: string) => void;
+            onOpen?: (id: string) => void;
+        }
+    ) {
         super(null, parent);
         this.#onDelete = onDelete;
         this.#onRename = onRename || null;
@@ -157,7 +164,11 @@ export class FilesTable extends BaseComponent {
         });
     }
 
-    #startRename(row: HTMLTableRowElement, nameSpan: HTMLElement, notebook: FilesTableNotebook): void {
+    #startRename(
+        row: HTMLTableRowElement,
+        nameSpan: HTMLElement,
+        notebook: FilesTableNotebook
+    ): void {
         const originalText = nameSpan.textContent || '';
         nameSpan.contentEditable = 'true';
         nameSpan.classList.add('files-table__rename-active');
@@ -225,7 +236,9 @@ export class FilesTable extends BaseComponent {
         const dropdown = this._element.querySelector('.files-table__sort-dropdown') as HTMLElement;
         this._addListener(dropdown, 'click', (e: Event) => {
             e.stopPropagation();
-            const arrow = (e.target as HTMLElement).closest('.files-table__sort-arrow') as HTMLElement | null;
+            const arrow = (e.target as HTMLElement).closest(
+                '.files-table__sort-arrow'
+            ) as HTMLElement | null;
             if (!arrow) return;
 
             const option = arrow.closest('.files-table__sort-option') as HTMLElement;

@@ -15,7 +15,13 @@ function levelSelect(userId: string, currentLevel: string): string {
         </select>`;
 }
 
-export function ShareModalTemplate({ isPublic = false, collaborators = [] }: { isPublic?: boolean; collaborators?: Collaborator[] }): string {
+export function ShareModalTemplate({
+    isPublic = false,
+    collaborators = []
+}: {
+    isPublic?: boolean;
+    collaborators?: Collaborator[];
+}): string {
     const collaboratorItems = collaborators
         .map(
             (c) => `

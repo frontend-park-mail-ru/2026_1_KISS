@@ -46,7 +46,10 @@ export class GreenHeader {
     }
 
     render(): void {
-        this.#parent.insertAdjacentHTML('afterbegin', GreenHeaderTemplate(this.#config as Parameters<typeof GreenHeaderTemplate>[0]));
+        this.#parent.insertAdjacentHTML(
+            'afterbegin',
+            GreenHeaderTemplate(this.#config as Parameters<typeof GreenHeaderTemplate>[0])
+        );
         this.#header = this.#parent.querySelector('.green-header') as HTMLElement;
         this.#attachDropdownEvents();
     }

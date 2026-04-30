@@ -132,10 +132,14 @@ export class BlocksPage {
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
             onFind: (q: { query: string; caseSensitive: boolean }) => this.#handleFind(q),
-            onNext: (q: { query: string; caseSensitive: boolean }) => this.#handleFindNav(q, 'next'),
-            onPrev: (q: { query: string; caseSensitive: boolean }) => this.#handleFindNav(q, 'prev'),
-            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }) => this.#handleReplace(q),
-            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }) => this.#handleReplaceAll(q)
+            onNext: (q: { query: string; caseSensitive: boolean }) =>
+                this.#handleFindNav(q, 'next'),
+            onPrev: (q: { query: string; caseSensitive: boolean }) =>
+                this.#handleFindNav(q, 'prev'),
+            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }) =>
+                this.#handleReplace(q),
+            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }) =>
+                this.#handleReplaceAll(q)
         });
         this.#sidebar.mount();
 
@@ -147,8 +151,10 @@ export class BlocksPage {
             onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
             onRerender: () => this.#reapplyCellState(),
             onDeleteCell: (blockId: number | string) => this.#deleteBlock(blockId),
-            onSaveContent: (blockId: number | string, content: string) => this.#saveTextCellContent(blockId, content),
-            onCodeContentChange: (blockId: number | string, content: string) => this.#saveCodeCellContent(blockId, content),
+            onSaveContent: (blockId: number | string, content: string) =>
+                this.#saveTextCellContent(blockId, content),
+            onCodeContentChange: (blockId: number | string, content: string) =>
+                this.#saveCodeCellContent(blockId, content),
             onReorder: (blockIds: (number | string)[]) => this.#reorderBlocks(blockIds)
         });
         this.#cellList.mount();
@@ -194,7 +200,9 @@ export class BlocksPage {
             case 'block_added':
             case 'block_updated':
             case 'block_deleted':
-                this.#cellList!.applyRemoteEvent(event as { type: string; block?: BlockData; block_id?: string | number });
+                this.#cellList!.applyRemoteEvent(
+                    event as { type: string; block?: BlockData; block_id?: string | number }
+                );
                 break;
             case 'notebook_updated':
                 this.#resyncFromServer();
@@ -216,7 +224,9 @@ export class BlocksPage {
             }
             this.#notebook = notebook;
             if (!this.#cellList!.containsActiveElement()) {
-                this.#loadSavedOutputs(((notebook.blocks as BlockData[]) || []) as unknown as Record<string, unknown>[]);
+                this.#loadSavedOutputs(
+                    ((notebook.blocks as BlockData[]) || []) as unknown as Record<string, unknown>[]
+                );
                 this.#cellList!.updateBlocks((notebook.blocks as BlockData[]) || []);
             }
         } catch {
@@ -312,7 +322,10 @@ export class BlocksPage {
 
         cell.setRunning(true);
         try {
-            const result = await this.#runnerApi.executeBlock(this.#notebookId, position) as Record<string, unknown>;
+            const result = (await this.#runnerApi.executeBlock(
+                this.#notebookId,
+                position
+            )) as Record<string, unknown>;
             this.#executionCounter += 1;
             this.#execNumbers.set(blockId, this.#executionCounter);
             this.#lastOutputs.set(blockId, {
@@ -355,7 +368,9 @@ export class BlocksPage {
             if (!Array.isArray(results)) return;
 
             const resultMap = new Map<number | string, Record<string, unknown>>();
-            results.forEach((r: Record<string, unknown>) => resultMap.set(r.block_id as number | string, r));
+            results.forEach((r: Record<string, unknown>) =>
+                resultMap.set(r.block_id as number | string, r)
+            );
 
             codeCells.forEach((c) => {
                 const blockId = c.getBlockId();
@@ -414,7 +429,10 @@ export class BlocksPage {
         });
     }
 
-    async #maybeSaveCellContent(blockId: number | string, cell: { getContent(): string }): Promise<void> {
+    async #maybeSaveCellContent(
+        blockId: number | string,
+        cell: { getContent(): string }
+    ): Promise<void> {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
                 content: cell.getContent()
@@ -436,7 +454,10 @@ export class BlocksPage {
                 else if (o.output_type === 'result') out.result = o.content;
                 else {
                     if (!out.outputs) out.outputs = [];
-                    (out.outputs as Record<string, unknown>[]).push({ mime_type: o.output_type, data: o.content });
+                    (out.outputs as Record<string, unknown>[]).push({
+                        mime_type: o.output_type,
+                        data: o.content
+                    });
                 }
             }
             this.#lastOutputs.set(block.id as number | string, out);
@@ -451,7 +472,9 @@ export class BlocksPage {
             const content = cell.getContent();
             const isCode = cell instanceof CodeCell;
             const source = content
-                ? content.split('\n').map((l: string, i: number, a: string[]) => (i < a.length - 1 ? l + '\n' : l))
+                ? content
+                      .split('\n')
+                      .map((l: string, i: number, a: string[]) => (i < a.length - 1 ? l + '\n' : l))
                 : [];
 
             if (!isCode) {
@@ -548,7 +571,9 @@ export class BlocksPage {
                         let pos = 0;
                         for (const o of cell.outputs as Record<string, unknown>[]) {
                             if (o.output_type === 'stream') {
-                                const t = Array.isArray(o.text) ? (o.text as string[]).join('') : (o.text as string) || '';
+                                const t = Array.isArray(o.text)
+                                    ? (o.text as string[]).join('')
+                                    : (o.text as string) || '';
                                 outputs.push({
                                     output_type: o.name || 'stdout',
                                     content: t,
@@ -559,8 +584,12 @@ export class BlocksPage {
                                 o.output_type === 'display_data'
                             ) {
                                 if (o.data) {
-                                    for (const [mime, val] of Object.entries(o.data as Record<string, unknown>)) {
-                                        const c = Array.isArray(val) ? (val as string[]).join('') : String(val);
+                                    for (const [mime, val] of Object.entries(
+                                        o.data as Record<string, unknown>
+                                    )) {
+                                        const c = Array.isArray(val)
+                                            ? (val as string[]).join('')
+                                            : String(val);
                                         outputs.push({
                                             output_type: mime === 'text/plain' ? 'result' : mime,
                                             content: c,
@@ -584,7 +613,9 @@ export class BlocksPage {
                 const title = file.name.replace(/\.ipynb$/, '') || 'Imported';
                 const resp = await this.#httpClient.post('/notebooks/import', { title, blocks });
                 if (resp.ok) {
-                    const { data: notebook } = await resp.json() as { data: Record<string, unknown> };
+                    const { data: notebook } = (await resp.json()) as {
+                        data: Record<string, unknown>;
+                    };
                     Router.getInstance()!.navigate(`/notebooks/${notebook.id}`);
                 }
             } catch (err: unknown) {
@@ -644,7 +675,10 @@ export class BlocksPage {
         if (total > 0) this.#focusCurrentMatch();
     }
 
-    #handleFindNav(query: { query: string; caseSensitive: boolean }, direction: 'next' | 'prev'): void {
+    #handleFindNav(
+        query: { query: string; caseSensitive: boolean },
+        direction: 'next' | 'prev'
+    ): void {
         if (this.#findEngine.total() === 0) {
             this.#handleFind(query);
             return;
@@ -657,8 +691,7 @@ export class BlocksPage {
     }
 
     #focusCurrentMatch(): void {
-        this.#cellList!
-            .getAllCells()
+        this.#cellList!.getAllCells()
             .filter((c): c is TextCell => c instanceof TextCell)
             .forEach((c) => c.clearHighlights());
 
@@ -674,7 +707,15 @@ export class BlocksPage {
         }
     }
 
-    #handleReplace({ query, replacement, caseSensitive }: { query: string; replacement: string; caseSensitive: boolean }): void {
+    #handleReplace({
+        query,
+        replacement,
+        caseSensitive
+    }: {
+        query: string;
+        replacement: string;
+        caseSensitive: boolean;
+    }): void {
         if (this.#findEngine.total() === 0) {
             this.#handleFind({ query, caseSensitive });
             if (this.#findEngine.total() === 0) return;
@@ -691,7 +732,15 @@ export class BlocksPage {
         this.#handleFind({ query, caseSensitive });
     }
 
-    #handleReplaceAll({ query, replacement, caseSensitive }: { query: string; replacement: string; caseSensitive: boolean }): void {
+    #handleReplaceAll({
+        query,
+        replacement,
+        caseSensitive
+    }: {
+        query: string;
+        replacement: string;
+        caseSensitive: boolean;
+    }): void {
         if (!query) return;
         const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const re = new RegExp(escaped, caseSensitive ? 'g' : 'gi');

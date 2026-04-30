@@ -6,11 +6,18 @@ export class NotebookToolbar extends BaseComponent {
     #onAddText: () => void;
     #onRunAll: () => void;
 
-    constructor(parent: HTMLElement, { onAddCode, onAddText, onRunAll }: {
-        onAddCode: () => void;
-        onAddText: () => void;
-        onRunAll: () => void;
-    }) {
+    constructor(
+        parent: HTMLElement,
+        {
+            onAddCode,
+            onAddText,
+            onRunAll
+        }: {
+            onAddCode: () => void;
+            onAddText: () => void;
+            onRunAll: () => void;
+        }
+    ) {
         super(null, parent);
         this.#onAddCode = onAddCode;
         this.#onAddText = onAddText;

@@ -104,7 +104,9 @@ export class Modal extends BaseComponent {
                 e.preventDefault();
                 const data: Record<string, string> = {};
                 fields.forEach(({ name }) => {
-                    const el = (form.elements as HTMLFormControlsCollection).namedItem(name) as HTMLInputElement | null;
+                    const el = (form.elements as HTMLFormControlsCollection).namedItem(
+                        name
+                    ) as HTMLInputElement | null;
                     if (el) data[name] = el.value;
                 });
                 this.close(data);
