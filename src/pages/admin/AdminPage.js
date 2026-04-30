@@ -521,6 +521,10 @@ export class AdminPage {
             label: 'Изменить тариф',
             handler: () => this.#changePlan(user)
         });
+        actions.push({
+            label: 'Отправить email',
+            handler: () => this.#sendEmailToUser(user)
+        });
         if (user.id !== this.#user.id && user.plan === 'freeze' && user.status !== 'banned') {
             actions.push({
                 label: 'Забанить',
@@ -595,8 +599,22 @@ export class AdminPage {
         }
     }
 
+    async #sendEmailToUser(user) {
+        const result = await this.#modal.open('Отправить email', [
+            { name: 'subject', label: 'Тема', type: 'text' },
+            { name: 'body', label: 'Сообщение', type: 'textarea' }
+        ]);
+        if (!result || !result.subject || !result.body) return;
+        try {
+            await this.#adminApi.sendEmail(user.email, result.subject, result.body);
+            alert('Письмо отправлено');
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
     async #banUser(user) {
-        if (!confirm(`Забанить "${user.username}"? Публичн��е блокноты станут приватными.`)) return;
+        if (!confirm(`Забанить "${user.username}"? Публичные блокноты станут приватными.`)) return;
         try {
             await this.#adminApi.banUser(user.id);
             this.#refreshUsersTable();
