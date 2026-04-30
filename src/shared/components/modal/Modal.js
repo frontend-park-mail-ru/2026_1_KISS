@@ -53,6 +53,11 @@ export class Modal extends BaseComponent {
                         if (opt.value === value) option.selected = true;
                         input.appendChild(option);
                     });
+                } else if (type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.className = 'modal-card__input modal-card__textarea';
+                    input.rows = 5;
+                    if (value !== undefined) input.value = value;
                 } else {
                     input = document.createElement('input');
                     input.className = 'modal-card__input';

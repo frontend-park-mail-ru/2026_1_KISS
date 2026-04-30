@@ -100,4 +100,9 @@ export class AdminApi {
         const response = await this.#http.get('/admin/issues/stats');
         return this.#parse(response);
     }
+
+    async sendEmail(to, subject, body) {
+        const response = await this.#http.post('/admin/send-email', { to, subject, body });
+        return this.#parse(response);
+    }
 }
