@@ -1,0 +1,115 @@
+import { PasswordSectionTemplate } from './PasswordSection.template.js';
+import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
+import { HttpClient } from '../../shared/http_client/HttpClient.js';
+import { translateError } from '../../shared/utils/serverErrors.js';
+
+export class PasswordSection extends BaseComponent {
+    #httpClient: HttpClient;
+    #currentInput!: Input;
+    #newInput!: Input;
+    #confirmInput!: Input;
+
+    constructor(parent: HTMLElement) {
+        super(null, parent);
+        this.#httpClient = HttpClient.getInstance();
+        this.#render();
+    }
+
+    #render(): void {
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = PasswordSectionTemplate();
+        this._element = tempContainer.firstElementChild as HTMLElement;
+    }
+
+    mount(): void {
+        if (this._isMounted) return;
+        super.mount();
+
+        this.#currentInput = new Input(
+            this._element.querySelector('.password-section__current-wrap') as HTMLElement,
+            {
+                ...TYPE_INPUT_CONFIG.PASSWORD,
+                id: `pwd-current-${Date.now()}`,
+                placeholder: 'Текущий пароль'
+            }
+        );
+        this.#newInput = new Input(
+            this._element.querySelector('.password-section__new-wrap') as HTMLElement,
+            {
+                ...TYPE_INPUT_CONFIG.PASSWORD,
+                id: `pwd-new-${Date.now()}`,
+                placeholder: 'Новый пароль'
+            }
+        );
+        this.#confirmInput = new Input(
+            this._element.querySelector('.password-section__confirm-wrap') as HTMLElement,
+            {
+                ...TYPE_INPUT_CONFIG.REPEAT_PASSWORD,
+                id: `pwd-confirm-${Date.now()}`,
+                placeholder: 'Повторите новый пароль'
+            }
+        );
+
+        this.#currentInput.mount();
+        this.#newInput.mount();
+        this.#confirmInput.mount();
+
+        this.#attachSubmit();
+    }
+
+    unmount(): void {
+        if (!this._isMounted) return;
+        if (this.#currentInput) this.#currentInput.unmount();
+        if (this.#newInput) this.#newInput.unmount();
+        if (this.#confirmInput) this.#confirmInput.unmount();
+        super.unmount();
+    }
+
+    #attachSubmit(): void {
+        const btn = this._element.querySelector('.password-section__submit-btn')!;
+        const msgEl = this._element.querySelector('.password-section__msg') as HTMLElement;
+
+        this._addListener(btn, 'click', async () => {
+            const currentValid = this.#currentInput.validate();
+            const newValid = this.#newInput.validate();
+            const confirmValid = this.#confirmInput.validate();
+
+            if (!currentValid || !newValid || !confirmValid) return;
+
+            const newPass = this.#newInput.getValue();
+            const confirmPass = this.#confirmInput.getValue();
+
+            if (newPass !== confirmPass) {
+                this.#confirmInput.showError('Пароли не совпадают');
+                return;
+            }
+
+            msgEl.textContent = '';
+            msgEl.className = 'password-section__msg';
+
+            try {
+                const response = await this.#httpClient.put('/users/me/password', {
+                    current_password: this.#currentInput.getValue(),
+                    new_password: newPass
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    msgEl.textContent = translateError(result.error);
+                    msgEl.classList.add('password-section__msg--error');
+                    return;
+                }
+
+                msgEl.textContent = 'Пароль успешно изменен';
+                msgEl.classList.add('password-section__msg--success');
+                this.#currentInput.clear();
+                this.#newInput.clear();
+                this.#confirmInput.clear();
+            } catch (_e) {
+                msgEl.textContent = 'Ошибка смены пароля';
+                msgEl.classList.add('password-section__msg--error');
+            }
+        });
+    }
+}

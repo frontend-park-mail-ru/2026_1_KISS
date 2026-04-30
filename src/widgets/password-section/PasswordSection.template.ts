@@ -1,0 +1,12 @@
+export function PasswordSectionTemplate(): string {
+    return `<div class="password-section">
+    <h2 class="password-section__title">Смена пароля</h2>
+    <div class="password-section__form">
+        <div class="password-section__field password-section__current-wrap"></div>
+        <div class="password-section__field password-section__new-wrap"></div>
+        <div class="password-section__field password-section__confirm-wrap"></div>
+        <button class="accent-btn password-section__submit-btn">Сменить пароль</button>
+        <span class="password-section__msg"></span>
+    </div>
+</div>`;
+}

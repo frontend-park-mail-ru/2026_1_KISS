@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC_ROOT = path.resolve(__dirname, '..', 'src');
+const TS_OUT_ROOT = path.resolve(__dirname, '..', '.ts-out');
 const PUBLIC_ROOT = path.resolve(__dirname, '..', 'public');
 const PORT = Number(process.env.PORT) || 3000;
 const API_TARGET = process.env.API_TARGET || 'http://localhost:8080';
@@ -13,6 +14,7 @@ const MIME = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
     '.js': 'text/javascript; charset=utf-8',
+    '.ts': 'text/javascript; charset=utf-8',
     '.json': 'application/json; charset=utf-8',
     '.svg': 'image/svg+xml',
     '.png': 'image/png',
@@ -112,6 +114,11 @@ const server = http.createServer((req, res) => {
     const publicPath = path.join(PUBLIC_ROOT, pathname);
     if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
         return serveFile(res, publicPath);
+    }
+
+    const tsOutPath = path.join(TS_OUT_ROOT, pathname);
+    if (fs.existsSync(tsOutPath) && fs.statSync(tsOutPath).isFile()) {
+        return serveFile(res, tsOutPath);
     }
 
     const srcPath = path.join(SRC_ROOT, pathname);

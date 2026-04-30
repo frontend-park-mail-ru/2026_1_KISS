@@ -6,6 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = path.resolve(ROOT, 'dist');
 
+const srcDirArg = process.argv.find((a) => a.startsWith('--src-dir='));
+const SRC_DIR = srcDirArg ? path.resolve(ROOT, srcDirArg.split('=')[1]) : path.resolve(ROOT, 'src');
+
 const IMPORT_RE = /import\s+(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/g;
 
 function resolvePath(importPath, fromFile) {
@@ -174,14 +177,14 @@ function build() {
     fs.mkdirSync(OUT_DIR, { recursive: true });
 
     buildBundle(
-        path.resolve(ROOT, 'src/app/index.js'),
+        path.resolve(SRC_DIR, 'app/index.js'),
         path.join(OUT_DIR, 'app.js'),
         path.resolve(ROOT, 'src/app/index.html'),
         path.join(OUT_DIR, 'index.html')
     );
 
     buildBundle(
-        path.resolve(ROOT, 'src/feedback/index.js'),
+        path.resolve(SRC_DIR, 'feedback/index.js'),
         path.join(OUT_DIR, 'feedback.js'),
         path.resolve(ROOT, 'src/feedback/feedback.html'),
         path.join(OUT_DIR, 'feedback.html')
