@@ -36,6 +36,11 @@ jobs:
 
             git pull origin develop
 
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            npm ci
+            npm run build
+
             if echo "$CHANGED" | grep -q 'docker-compose\.yml'; then
               docker compose down
               docker compose up -d
