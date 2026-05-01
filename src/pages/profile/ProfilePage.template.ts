@@ -7,6 +7,7 @@ export function ProfilePageTemplate(): string {
                 <button class="profile-page__sidebar-item profile-page__sidebar-item--active" data-section="profile">Профиль</button>
                 <button class="profile-page__sidebar-item" data-section="password">Смена пароля</button>
                 <button class="profile-page__sidebar-item" data-section="subscription">Подписка</button>
+                <button class="profile-page__sidebar-item" data-section="stats">Статистика</button>
             </div>
             <div class="profile-page__sidebar-group">
                 <h3 class="profile-page__sidebar-title">Настройки</h3>
