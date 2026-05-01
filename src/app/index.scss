@@ -27,6 +27,8 @@
 @use '../shared/components/context-menu/ContextMenu';
 @use '../shared/components/modal/Modal';
 @use '../widgets/feedback-modal/FeedbackModal';
+@use '../widgets/stats-section/StatsSection';
+@use '../widgets/container-stats/ContainerStats';
 
 html, body {
     margin: 0;

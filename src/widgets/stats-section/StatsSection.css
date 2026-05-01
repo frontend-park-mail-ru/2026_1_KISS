@@ -1,0 +1,216 @@
+.stats-section {
+    max-width: 720px;
+}
+
+.stats-section__title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: var(--dark-primary);
+}
+
+.stats-section__quota {
+    background: var(--white);
+    border: 1px solid var(--cell-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.stats-section__quota-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stats-section__plan-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--light-grey);
+    color: var(--accent);
+}
+
+.stats-section__plan-badge--free {
+    background: #e8f5f0;
+    color: var(--teal-green);
+}
+
+.stats-section__plan-badge--pro {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.stats-section__plan-badge--max {
+    background: #fce4ec;
+    color: #c62828;
+}
+
+.stats-section__plan-badge--admin {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.stats-section__plan-badge--freeze {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.stats-section__quota-text {
+    font-size: 0.9rem;
+    color: var(--accent);
+}
+
+.stats-section__progress-bar {
+    height: 8px;
+    background: var(--light-grey);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stats-section__progress-fill {
+    height: 100%;
+    background: var(--teal-green);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.stats-section__progress-fill--warning {
+    background: #e53935;
+}
+
+.stats-section__info {
+    background: var(--white);
+    border: 1px solid var(--cell-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.stats-section__info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.stats-section__info-label {
+    font-size: 0.85rem;
+    color: var(--accent);
+}
+
+.stats-section__info-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark-primary);
+}
+
+.stats-section__chart-title {
+    cursor: help;
+}
+
+.stats-section__kpi {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stats-section__kpi-card {
+    background: var(--white);
+    border: 1px solid var(--cell-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stats-section__kpi-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--teal-green);
+    margin-bottom: 4px;
+}
+
+.stats-section__kpi-label {
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-section__chart {
+    background: var(--white);
+    border: 1px solid var(--cell-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.stats-section__chart-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dark-primary);
+    margin-bottom: 12px;
+}
+
+.stats-section__chart-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.stats-section__svg {
+    width: 100%;
+    height: auto;
+}
+
+.stats-section__storage {
+    background: var(--white);
+    border: 1px solid var(--cell-border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.stats-section__storage-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dark-primary);
+    margin-bottom: 12px;
+}
+
+.stats-section__storage-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.stats-section__storage-card {
+    background: var(--light-grey);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.stats-section__storage-card--total {
+    background: #e8f5f0;
+}
+
+.stats-section__storage-cat {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--dark-primary);
+    margin-bottom: 4px;
+}
+
+.stats-section__storage-info {
+    font-size: 0.75rem;
+    color: var(--accent);
+}
+
+.stats-section__storage-empty {
+    font-size: 0.85rem;
+    color: var(--accent);
+}
