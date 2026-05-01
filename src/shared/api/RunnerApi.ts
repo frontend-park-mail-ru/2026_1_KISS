@@ -62,9 +62,7 @@ export class RunnerApi {
         }
     }
 
-    async getContainerStats(
-        notebookId: number | string
-    ): Promise<{
+    async getContainerStats(notebookId: number | string): Promise<{
         cpu_percent: number;
         memory_usage: number;
         memory_limit: number;
