@@ -83,6 +83,36 @@
         }
     }
 
+    &__info {
+        background: var(--white);
+        border: 1px solid var(--cell-border);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+    }
+
+    &__info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+    }
+
+    &__info-label {
+        font-size: 0.85rem;
+        color: var(--accent);
+    }
+
+    &__info-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--dark-primary);
+    }
+
+    &__chart-title {
+        cursor: help;
+    }
+
     &__kpi {
         display: grid;
         grid-template-columns: repeat(3, 1fr);

@@ -12,6 +12,21 @@ export function StatsSectionTemplate(): string {
         </div>
     </div>
 
+    <div class="stats-section__info">
+        <div class="stats-section__info-row">
+            <span class="stats-section__info-label">Дата регистрации</span>
+            <span class="stats-section__info-value" data-info="registered">--</span>
+        </div>
+        <div class="stats-section__info-row">
+            <span class="stats-section__info-label">Последняя активность</span>
+            <span class="stats-section__info-value" data-info="last-active">--</span>
+        </div>
+        <div class="stats-section__info-row">
+            <span class="stats-section__info-label">Среднее в день</span>
+            <span class="stats-section__info-value" data-info="avg-daily">--</span>
+        </div>
+    </div>
+
     <div class="stats-section__kpi">
         <div class="stats-section__kpi-card">
             <div class="stats-section__kpi-value" data-kpi="notebooks">—</div>
@@ -28,7 +43,7 @@ export function StatsSectionTemplate(): string {
     </div>
 
     <div class="stats-section__chart">
-        <div class="stats-section__chart-title">Активность за 30 дней</div>
+        <div class="stats-section__chart-title" title="Количество событий (heartbeat) за каждый день. Каждое событие = 1 минута активности на платформе.">Активность за 30 дней</div>
         <div class="stats-section__chart-container"></div>
     </div>
 

@@ -67,6 +67,9 @@ export class RunnerApi {
         memory_usage: number;
         memory_limit: number;
         memory_percent: number;
+        cpu_cores: number;
+        disk_limit_bytes: number;
+        gpu_available: boolean;
     }> {
         const response = await this.#http.get(`/runner/${notebookId}/stats`);
         return this.#parse(response) as Promise<{
@@ -74,6 +77,9 @@ export class RunnerApi {
             memory_usage: number;
             memory_limit: number;
             memory_percent: number;
+            cpu_cores: number;
+            disk_limit_bytes: number;
+            gpu_available: boolean;
         }>;
     }
 }

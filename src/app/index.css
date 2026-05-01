@@ -28,6 +28,8 @@
 @import '../shared/components/context-menu/ContextMenu.css';
 @import '../shared/components/modal/Modal.css';
 @import '../widgets/feedback-modal/FeedbackModal.css';
+@import '../widgets/stats-section/StatsSection.css';
+@import '../widgets/container-stats/ContainerStats.css';
 
 html, body {
     margin: 0;

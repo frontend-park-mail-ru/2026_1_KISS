@@ -27,6 +27,7 @@ export class StatsSection extends BaseComponent {
         try {
             const stats = await this.#api.getMyStats();
             this.#populateQuota(stats);
+            this.#populateInfo(stats);
             this.#populateKPI(stats);
             this.#populateChart(stats);
             this.#populateStorage(stats);
@@ -64,6 +65,28 @@ export class StatsSection extends BaseComponent {
             (
                 this._element!.querySelector('.stats-section__progress-bar') as HTMLElement
             ).style.display = 'none';
+        }
+    }
+
+    #populateInfo(stats: UserStats): void {
+        const set = (key: string, value: string) => {
+            const el = this._element!.querySelector(`[data-info="${key}"]`);
+            if (el) el.textContent = value;
+        };
+
+        if (stats.activity.created_at) {
+            set('registered', new Date(stats.activity.created_at).toLocaleDateString('ru-RU'));
+        }
+        if (stats.activity.last_active_at) {
+            set('last-active', new Date(stats.activity.last_active_at).toLocaleDateString('ru-RU'));
+        }
+
+        if (stats.activity.created_at && stats.quota.total_time_seconds > 0) {
+            const regDate = new Date(stats.activity.created_at);
+            const daysSince = Math.max(1, Math.floor((Date.now() - regDate.getTime()) / 86400000));
+            const avgSeconds = Math.floor(stats.quota.total_time_seconds / daysSince);
+            const m = Math.floor(avgSeconds / 60);
+            set('avg-daily', `${m} мин`);
         }
     }
 
