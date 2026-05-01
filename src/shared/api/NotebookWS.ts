@@ -61,6 +61,10 @@ export class NotebookWS {
         this.#send({ type: 'delete_block', block_id: blockId });
     }
 
+    executeBlock(blockPosition: number): void {
+        this.#send({ type: 'execute_block', block_position: blockPosition });
+    }
+
     isOpen(): boolean {
         return !!this.#socket && this.#socket.readyState === WebSocket.OPEN;
     }

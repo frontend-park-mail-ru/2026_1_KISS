@@ -193,10 +193,26 @@ export class BlocksPage {
         this.#ws.connect();
     }
 
+    #streamingResolve: (() => void) | null = null;
+    #streamingBlockId: number | string | null = null;
+    #streamingStdout: string[] = [];
+    #streamingStderr: string[] = [];
+    #streamingRenderPending = false;
+    static readonly #MAX_STREAM_LINES = 1000;
+    static readonly #STREAM_THROTTLE_MS = 200;
+
     #handleWSEvent(event: Record<string, unknown>): void {
         if (!event || !event.type) return;
-        if (event.type === 'error') {
-            console.warn('WS error:', event.message);
+        if (event.type === 'error' || event.type === 'execute_error') {
+            if (this.#streamingBlockId !== null) {
+                const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
+                if (cell && cell instanceof CodeCell) {
+                    cell.setOutput({ error: String(event.message || 'execution error') });
+                    cell.setRunning(false);
+                }
+                this.#streamingBlockId = null;
+                if (this.#streamingResolve) this.#streamingResolve();
+            }
             return;
         }
 
@@ -211,6 +227,50 @@ export class BlocksPage {
             case 'notebook_updated':
                 this.#resyncFromServer();
                 break;
+            case 'stdout_chunk':
+                if (this.#streamingBlockId !== null) {
+                    this.#streamingStdout.push(String(event.message || ''));
+                    if (this.#streamingStdout.length > BlocksPage.#MAX_STREAM_LINES) {
+                        this.#streamingStdout = this.#streamingStdout.slice(
+                            -BlocksPage.#MAX_STREAM_LINES
+                        );
+                    }
+                    this.#scheduleStreamRender();
+                }
+                break;
+            case 'stderr_chunk':
+                if (this.#streamingBlockId !== null) {
+                    this.#streamingStderr.push(String(event.message || ''));
+                    if (this.#streamingStderr.length > BlocksPage.#MAX_STREAM_LINES) {
+                        this.#streamingStderr = this.#streamingStderr.slice(
+                            -BlocksPage.#MAX_STREAM_LINES
+                        );
+                    }
+                    this.#scheduleStreamRender();
+                }
+                break;
+            case 'execute_completed': {
+                if (this.#streamingBlockId !== null) {
+                    const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
+                    const result = (event.block || {}) as Record<string, unknown>;
+                    if (cell && cell instanceof CodeCell) {
+                        this.#executionCounter += 1;
+                        this.#execNumbers.set(this.#streamingBlockId, this.#executionCounter);
+                        const output = {
+                            stdout: (result.stdout as string[]) || this.#streamingStdout,
+                            stderr: (result.stderr as string[]) || this.#streamingStderr,
+                            result: result.result as string
+                        };
+                        this.#lastOutputs.set(this.#streamingBlockId, output);
+                        cell.setExecutionNumber(this.#executionCounter);
+                        cell.setOutput(output);
+                        cell.setRunning(false);
+                    }
+                    this.#streamingBlockId = null;
+                    if (this.#streamingResolve) this.#streamingResolve();
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -322,6 +382,22 @@ export class BlocksPage {
         }
     }
 
+    #scheduleStreamRender(): void {
+        if (this.#streamingRenderPending) return;
+        this.#streamingRenderPending = true;
+        setTimeout(() => {
+            this.#streamingRenderPending = false;
+            if (this.#streamingBlockId === null) return;
+            const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
+            if (cell && cell instanceof CodeCell) {
+                cell.setOutput({
+                    stdout: this.#streamingStdout,
+                    stderr: this.#streamingStderr
+                });
+            }
+        }, BlocksPage.#STREAM_THROTTLE_MS);
+    }
+
     async #runSingleBlock(blockId: number | string): Promise<void> {
         const cell = this.#cellList!.getCellByBlockId(blockId);
         if (!cell || !(cell instanceof CodeCell)) return;
@@ -331,27 +407,39 @@ export class BlocksPage {
         await this.#maybeSaveCellContent(blockId, cell);
 
         cell.setRunning(true);
-        try {
-            const result = (await this.#runnerApi.executeBlock(
-                this.#notebookId,
-                position
-            )) as Record<string, unknown>;
-            this.#executionCounter += 1;
-            this.#execNumbers.set(blockId, this.#executionCounter);
-            this.#lastOutputs.set(blockId, {
-                stdout: result.stdout,
-                stderr: result.stderr,
-                result: result.result,
-                outputs: result.outputs
+
+        if (this.#ws && this.#ws.isOpen()) {
+            this.#streamingBlockId = blockId;
+            this.#streamingStdout = [];
+            this.#streamingStderr = [];
+            cell.setOutput({});
+            this.#ws.executeBlock(position);
+            await new Promise<void>((resolve) => {
+                this.#streamingResolve = resolve;
             });
-            cell.setExecutionNumber(this.#executionCounter);
-            cell.setOutput(this.#lastOutputs.get(blockId)!);
-        } catch (e: unknown) {
-            const errOut = { error: (e as Error).message || String(e) };
-            this.#lastOutputs.set(blockId, errOut);
-            cell.setOutput(errOut);
-        } finally {
-            cell.setRunning(false);
+        } else {
+            try {
+                const result = (await this.#runnerApi.executeBlock(
+                    this.#notebookId,
+                    position
+                )) as Record<string, unknown>;
+                this.#executionCounter += 1;
+                this.#execNumbers.set(blockId, this.#executionCounter);
+                this.#lastOutputs.set(blockId, {
+                    stdout: result.stdout,
+                    stderr: result.stderr,
+                    result: result.result,
+                    outputs: result.outputs
+                });
+                cell.setExecutionNumber(this.#executionCounter);
+                cell.setOutput(this.#lastOutputs.get(blockId)!);
+            } catch (e: unknown) {
+                const errOut = { error: (e as Error).message || String(e) };
+                this.#lastOutputs.set(blockId, errOut);
+                cell.setOutput(errOut);
+            } finally {
+                cell.setRunning(false);
+            }
         }
     }
 
