@@ -45,7 +45,7 @@ export class StatsSection extends BaseComponent {
             freeze: 'Freeze',
             pro: 'Pro',
             max: 'Max',
-            admin: 'Admin',
+            admin: 'Admin'
         };
         badge.textContent = planNames[stats.quota.plan] || stats.quota.plan;
         badge.classList.add(`stats-section__plan-badge--${stats.quota.plan}`);
@@ -61,7 +61,9 @@ export class StatsSection extends BaseComponent {
         } else {
             text.textContent = `${this.#formatTime(stats.quota.total_time_seconds)} — безлимитный план`;
             fill.style.width = '0%';
-            (this._element!.querySelector('.stats-section__progress-bar') as HTMLElement).style.display = 'none';
+            (
+                this._element!.querySelector('.stats-section__progress-bar') as HTMLElement
+            ).style.display = 'none';
         }
     }
 
@@ -76,17 +78,22 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateChart(stats: UserStats): void {
-        const container = this._element!.querySelector('.stats-section__chart-container') as HTMLElement;
+        const container = this._element!.querySelector(
+            '.stats-section__chart-container'
+        ) as HTMLElement;
         const filled = fillDays(stats.activity.daily_activity || [], 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 
     #populateStorage(stats: UserStats): void {
-        const container = this._element!.querySelector('.stats-section__storage-cards') as HTMLElement;
+        const container = this._element!.querySelector(
+            '.stats-section__storage-cards'
+        ) as HTMLElement;
         const categories = Object.keys(stats.storage.files_by_category || {});
 
         if (categories.length === 0) {
-            container.innerHTML = '<span class="stats-section__storage-empty">Нет загруженных файлов</span>';
+            container.innerHTML =
+                '<span class="stats-section__storage-empty">Нет загруженных файлов</span>';
             return;
         }
 
@@ -94,7 +101,7 @@ export class StatsSection extends BaseComponent {
             avatars: 'Аватары',
             feedback: 'Обратная связь',
             datasets: 'Датасеты',
-            files: 'Файлы',
+            files: 'Файлы'
         };
 
         let html = '';
