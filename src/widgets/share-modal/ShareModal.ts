@@ -51,7 +51,9 @@ export class ShareModal extends BaseComponent {
 
     async #fetchPermissions(): Promise<void> {
         try {
-            const res = await this.#http.get(`/notebooks/${this.#notebookId}/permissions`);
+            const res = await this.#http.get(`/notebooks/${this.#notebookId}/permissions`, {
+                noCache: true
+            });
             if (res.ok) {
                 const { data } = await res.json();
                 this.#collaborators = (data.permissions ?? []).map(

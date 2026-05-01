@@ -215,7 +215,9 @@ export class BlocksPage {
     async #resyncFromServer(): Promise<void> {
         if (!this.#notebookId) return;
         try {
-            const response = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
+            const response = await this.#httpClient.get(`/notebooks/${this.#notebookId}`, {
+                noCache: true
+            });
             if (!response.ok) return;
             const { data: notebook } = await response.json();
             const newTitle = (notebook.title as string) || 'Untitled';
@@ -283,7 +285,9 @@ export class BlocksPage {
             );
             if (!response.ok) return;
 
-            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
+            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`, {
+                noCache: true
+            });
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;
@@ -300,7 +304,9 @@ export class BlocksPage {
             );
             if (!response.ok) return;
 
-            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
+            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`, {
+                noCache: true
+            });
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;

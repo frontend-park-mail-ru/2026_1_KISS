@@ -8,7 +8,7 @@ export class HttpClient {
     };
 
     #cache = new Map<string, { data: unknown; ts: number }>();
-    #cacheTTL = 3000;
+    #cacheTTL = 30_000;
 
     constructor() {
         if (HttpClient.#instance) {
@@ -24,18 +24,20 @@ export class HttpClient {
         return HttpClient.#instance!;
     }
 
-    get(url: string): Promise<Response> {
-        const cached = this.#cache.get(url);
-        if (cached && Date.now() - cached.ts < this.#cacheTTL) {
-            return Promise.resolve(
-                new Response(JSON.stringify(cached.data), {
-                    status: 200,
-                    headers: { 'Content-Type': 'application/json' }
-                })
-            );
+    get(url: string, options?: { noCache?: boolean }): Promise<Response> {
+        if (!options?.noCache) {
+            const cached = this.#cache.get(url);
+            if (cached && Date.now() - cached.ts < this.#cacheTTL) {
+                return Promise.resolve(
+                    new Response(JSON.stringify(cached.data), {
+                        status: 200,
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                );
+            }
         }
         return this.request('GET', url).then(async (response) => {
-            if (response.ok) {
+            if (response.ok && !options?.noCache) {
                 const data = await response.clone().json();
                 this.#cache.set(url, { data, ts: Date.now() });
             }
