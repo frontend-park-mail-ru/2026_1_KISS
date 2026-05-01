@@ -23,7 +23,6 @@
 @import '../widgets/password-section/PasswordSection.css';
 @import '../widgets/subscription-section/SubscriptionSection.css';
 @import '../widgets/editor-settings/EditorSettings.css';
-@import '../widgets/danger-zone/DangerZone.css';
 @import '../pages/landing/LandingPage.css';
 @import '../pages/admin/AdminPage.css?v=2';
 @import '../shared/components/context-menu/ContextMenu.css?v=2';
