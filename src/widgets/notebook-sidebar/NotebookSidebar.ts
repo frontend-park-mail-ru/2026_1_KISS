@@ -1,4 +1,5 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
+import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { NotebookSidebarTemplate } from './NotebookSidebar.template.js';
 
 interface FindQuery {
@@ -13,6 +14,7 @@ interface NotebookSidebarCallbacks {
     onPrev?: (q: FindQuery) => void;
     onReplace?: (q: FindQuery) => void;
     onReplaceAll?: (q: FindQuery) => void;
+    notebookId?: string | number;
 }
 
 export class NotebookSidebar extends BaseComponent {
@@ -22,10 +24,22 @@ export class NotebookSidebar extends BaseComponent {
     #onPrev: NotebookSidebarCallbacks['onPrev'];
     #onReplace: NotebookSidebarCallbacks['onReplace'];
     #onReplaceAll: NotebookSidebarCallbacks['onReplaceAll'];
+    #notebookId: string | number | undefined;
+    #runnerApi: RunnerApi;
+    #containerPollTimer: ReturnType<typeof setInterval> | null = null;
+    #ramHistory: number[] = [];
+    #cpuHistory: number[] = [];
 
     constructor(
         parent: HTMLElement,
-        { onFind, onNext, onPrev, onReplace, onReplaceAll }: NotebookSidebarCallbacks = {}
+        {
+            onFind,
+            onNext,
+            onPrev,
+            onReplace,
+            onReplaceAll,
+            notebookId
+        }: NotebookSidebarCallbacks = {}
     ) {
         super(null, parent);
         this.#onFind = onFind;
@@ -33,6 +47,8 @@ export class NotebookSidebar extends BaseComponent {
         this.#onPrev = onPrev;
         this.#onReplace = onReplace;
         this.#onReplaceAll = onReplaceAll;
+        this.#notebookId = notebookId;
+        this.#runnerApi = new RunnerApi();
         this.#render();
     }
 
@@ -50,6 +66,7 @@ export class NotebookSidebar extends BaseComponent {
 
     unmount(): void {
         if (!this._isMounted) return;
+        this.#stopContainerPolling();
         super.unmount();
     }
 
@@ -124,14 +141,95 @@ export class NotebookSidebar extends BaseComponent {
         if (btn) btn.classList.add('notebook-sidebar__icon-btn--active');
         const panel = this._element.querySelector(`.notebook-sidebar__panel--${panelName}`);
         if (panel) panel.classList.add('notebook-sidebar__panel--visible');
+
+        if (panelName === 'resources') {
+            this.#startContainerPolling();
+        }
     }
 
     #closePanel(): void {
         if (!this.#activePanel) return;
+        if (this.#activePanel === 'resources') this.#stopContainerPolling();
         const btn = this._element.querySelector(`[data-panel="${this.#activePanel}"]`);
         if (btn) btn.classList.remove('notebook-sidebar__icon-btn--active');
         const panel = this._element.querySelector(`.notebook-sidebar__panel--${this.#activePanel}`);
         if (panel) panel.classList.remove('notebook-sidebar__panel--visible');
         this.#activePanel = null;
+    }
+
+    #startContainerPolling(): void {
+        this.#pollContainer();
+        this.#containerPollTimer = setInterval(() => this.#pollContainer(), 3000);
+    }
+
+    #stopContainerPolling(): void {
+        if (this.#containerPollTimer) {
+            clearInterval(this.#containerPollTimer);
+            this.#containerPollTimer = null;
+        }
+    }
+
+    async #pollContainer(): Promise<void> {
+        if (!this.#notebookId) return;
+        const panel = this._element.querySelector('.container-stats--sidebar');
+        if (!panel) return;
+
+        try {
+            const stats = await this.#runnerApi.getContainerStats(this.#notebookId);
+            panel.classList.remove('container-stats--inactive');
+
+            const ramEl = panel.querySelector('[data-metric="ram"]') as HTMLElement;
+            const cpuEl = panel.querySelector('[data-metric="cpu"]') as HTMLElement;
+            const coresEl = panel.querySelector('[data-metric="cores"]') as HTMLElement;
+            const diskEl = panel.querySelector('[data-metric="disk"]') as HTMLElement;
+            const gpuEl = panel.querySelector('[data-metric="gpu"]') as HTMLElement;
+            const fill = panel.querySelector('.container-stats__bar-fill') as HTMLElement;
+
+            const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
+            const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);
+            ramEl.textContent = `${usedMB} / ${limitMB} MB`;
+            cpuEl.textContent = `${stats.cpu_percent.toFixed(1)}%`;
+            coresEl.textContent = String(stats.cpu_cores || 1);
+            diskEl.textContent = stats.disk_limit_bytes
+                ? `${(stats.disk_limit_bytes / (1024 * 1024)).toFixed(0)} MB`
+                : '--';
+            gpuEl.textContent = stats.gpu_available ? 'доступна' : 'недоступна';
+
+            const pct = Math.min(100, stats.memory_percent);
+            fill.style.width = `${pct}%`;
+            fill.className = 'container-stats__bar-fill';
+            if (pct < 60) fill.classList.add('container-stats__bar-fill--ok');
+            else if (pct < 85) fill.classList.add('container-stats__bar-fill--warn');
+            else fill.classList.add('container-stats__bar-fill--danger');
+
+            this.#ramHistory.push(stats.memory_percent);
+            this.#cpuHistory.push(stats.cpu_percent);
+            if (this.#ramHistory.length > 20) this.#ramHistory.shift();
+            if (this.#cpuHistory.length > 20) this.#cpuHistory.shift();
+            this.#renderSparklines(panel as HTMLElement);
+        } catch {
+            panel.classList.add('container-stats--inactive');
+        }
+    }
+
+    #renderSparklines(panel: HTMLElement): void {
+        const ramContainer = panel.querySelector('[data-sparkline="ram"]');
+        const cpuContainer = panel.querySelector('[data-sparkline="cpu"]');
+        if (ramContainer)
+            ramContainer.innerHTML = this.#sparklineSvg(this.#ramHistory, 100, 'var(--teal-green)');
+        if (cpuContainer)
+            cpuContainer.innerHTML = this.#sparklineSvg(this.#cpuHistory, 100, '#ff9800');
+    }
+
+    #sparklineSvg(data: number[], maxVal: number, color: string): string {
+        if (data.length < 2) return '';
+        const w = 218;
+        const h = 30;
+        const step = w / (data.length - 1);
+        const points = data
+            .map((v, i) => `${(i * step).toFixed(1)},${(h - (v / maxVal) * h).toFixed(1)}`)
+            .join(' ');
+        const areaPoints = `0,${h} ${points} ${((data.length - 1) * step).toFixed(1)},${h}`;
+        return `<svg viewBox="0 0 ${w} ${h}" class="container-stats__sparkline-svg"><polygon points="${areaPoints}" fill="${color}" opacity="0.15"/><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
     }
 }

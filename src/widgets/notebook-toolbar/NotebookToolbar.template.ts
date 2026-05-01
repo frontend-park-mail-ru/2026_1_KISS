@@ -1,6 +1,5 @@
 export function NotebookToolbarTemplate(): string {
     return `<div class="notebook-toolbar">
-    <div class="notebook-toolbar__stats-slot"></div>
     <div class="notebook-toolbar__buttons">
         <button class="notebook-toolbar__btn notebook-toolbar__btn--add" data-action="add-code">+ Код</button>
         <button class="notebook-toolbar__btn notebook-toolbar__btn--add" data-action="add-text">+ Текст</button>
