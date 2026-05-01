@@ -104,7 +104,7 @@ export class StatsSection extends BaseComponent {
         const container = this._element!.querySelector(
             '.stats-section__chart-container'
         ) as HTMLElement;
-        const filled = fillDays(stats.activity.daily_activity || [], 30);
+        const filled = fillDays(stats.resources.daily_executions || [], 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 

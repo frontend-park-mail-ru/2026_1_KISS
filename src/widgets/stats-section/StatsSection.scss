@@ -109,8 +109,55 @@
         color: var(--dark-primary);
     }
 
-    &__chart-title {
+    &__hint {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--cell-border);
+        color: var(--accent);
+        font-size: 9px;
+        font-weight: 700;
+        margin-left: 4px;
         cursor: help;
+        vertical-align: middle;
+        position: relative;
+    }
+
+    &__tooltip {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--dark-primary);
+        color: var(--white);
+        font-size: 12px;
+        font-weight: 400;
+        padding: 8px 12px;
+        border-radius: 6px;
+        max-width: 280px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.4;
+        z-index: 10;
+        pointer-events: none;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--dark-primary);
+        }
+    }
+
+    &__hint:hover &__tooltip {
+        display: block;
     }
 
     &__kpi {

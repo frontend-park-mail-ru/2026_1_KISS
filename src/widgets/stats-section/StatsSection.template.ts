@@ -43,7 +43,7 @@ export function StatsSectionTemplate(): string {
     </div>
 
     <div class="stats-section__chart">
-        <div class="stats-section__chart-title" title="Количество событий (heartbeat) за каждый день. Каждое событие = 1 минута активности на платформе.">Активность за 30 дней</div>
+        <div class="stats-section__chart-title">Запуски за 30 дней <span class="stats-section__hint">?<span class="stats-section__tooltip">Количество уникальных блоков кода, которые вы запускали в каждый из последних 30 дней</span></span></div>
         <div class="stats-section__chart-container"></div>
     </div>
 
