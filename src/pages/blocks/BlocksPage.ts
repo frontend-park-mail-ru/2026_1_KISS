@@ -12,12 +12,14 @@ import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
+import { ContainerStats } from '../../widgets/container-stats/ContainerStats.js';
 
 export class BlocksPage {
     #root: HTMLElement;
     #notebookId: string;
     #header: NotebookHeader | null = null;
     #toolbar: NotebookToolbar | null = null;
+    #containerStats: ContainerStats | null = null;
     #sidebar: NotebookSidebar | null = null;
     #cellList: CellList | null = null;
     #notebook: Record<string, unknown> | null = null;
@@ -124,6 +126,12 @@ export class BlocksPage {
             onRunAll: () => this.#runAllBlocks()
         });
         this.#toolbar.mount();
+
+        const statsSlot = this.#toolbar.getStatsSlot();
+        if (statsSlot) {
+            this.#containerStats = new ContainerStats(statsSlot, { notebookId: this.#notebookId });
+            this.#containerStats.mount();
+        }
 
         const body = document.createElement('div');
         body.className = 'blocks-page__body';
@@ -777,6 +785,7 @@ export class BlocksPage {
         if (this.#shareModal) this.#shareModal.close();
         if (this.#cellList) this.#cellList.unmount();
         if (this.#sidebar) this.#sidebar.unmount();
+        if (this.#containerStats) this.#containerStats.unmount();
         if (this.#toolbar) this.#toolbar.unmount();
         if (this.#header) this.#header.unmount();
         this.#root.innerHTML = '';

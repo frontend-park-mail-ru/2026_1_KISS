@@ -42,6 +42,10 @@ export class NotebookToolbar extends BaseComponent {
         super.unmount();
     }
 
+    getStatsSlot(): HTMLElement | null {
+        return this._element?.querySelector('.notebook-toolbar__stats-slot') ?? null;
+    }
+
     #attachEvents(): void {
         this._element.querySelectorAll('.notebook-toolbar__btn').forEach((btn) => {
             const action = (btn as HTMLElement).dataset.action;
