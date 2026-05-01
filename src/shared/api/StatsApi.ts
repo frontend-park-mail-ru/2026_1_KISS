@@ -16,6 +16,7 @@ export interface UserStats {
         notebook_count: number;
         block_count: number;
         total_executions: number;
+        daily_executions: { date: string; count: number }[];
     };
     storage: {
         total_files: number;
