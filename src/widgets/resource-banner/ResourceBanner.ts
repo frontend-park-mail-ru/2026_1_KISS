@@ -37,7 +37,7 @@ export class ResourceBanner extends BaseComponent {
             freeze: 'Freeze',
             pro: 'Pro',
             max: 'Max',
-            admin: 'Admin',
+            admin: 'Admin'
         };
 
         const badge = this._element!.querySelector('[data-field="plan"]') as HTMLElement;
