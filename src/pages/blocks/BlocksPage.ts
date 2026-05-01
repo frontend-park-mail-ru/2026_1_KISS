@@ -24,6 +24,7 @@ export class BlocksPage {
     #userId: number | null = null;
     #username: string = '';
     #avatarUrl: string = '';
+    #isAdmin: boolean = false;
     #httpClient: HttpClient;
     #runnerApi: RunnerApi;
 
@@ -59,6 +60,7 @@ export class BlocksPage {
             this.#userId = user.id;
             this.#username = user.username;
             this.#avatarUrl = user.avatar_url || '';
+            this.#isAdmin = user.is_admin || false;
         } catch (_e) {
             Router.getInstance()!.navigate('/sign');
             return;
@@ -99,6 +101,7 @@ export class BlocksPage {
             onSaveAs: () => this.#exportAsIpynb(),
             onOpen: () => this.#importNotebook(),
             onProfile: () => Router.getInstance()!.navigate('/profile'),
+            onAdmin: this.#isAdmin ? () => Router.getInstance()!.navigate('/admin') : null,
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();

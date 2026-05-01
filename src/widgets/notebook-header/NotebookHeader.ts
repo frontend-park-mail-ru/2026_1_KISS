@@ -15,6 +15,7 @@ interface NotebookHeaderConfig {
     onProfile?: (() => void) | null;
     onLogout?: (() => void) | null;
     onFeedback?: (() => void) | null;
+    onAdmin?: (() => void) | null;
     onSave?: (() => void) | null;
     onSaveAs?: (() => void) | null;
     onOpen?: (() => void) | null;
@@ -42,7 +43,8 @@ export class NotebookHeader extends BaseComponent {
         tempContainer.innerHTML = NotebookHeaderTemplate({
             filename: this.#config.filename || 'Untitled',
             user: this.#config.user || null,
-            isOwner: this.#config.isOwner ?? true
+            isOwner: this.#config.isOwner ?? true,
+            onAdmin: this.#config.onAdmin || null
         });
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
@@ -134,6 +136,8 @@ export class NotebookHeader extends BaseComponent {
                     const action = item.dataset.action;
                     if (action === 'profile' && this.#config.onProfile) {
                         this.#config.onProfile();
+                    } else if (action === 'admin' && this.#config.onAdmin) {
+                        this.#config.onAdmin();
                     } else if (action === 'feedback' && this.#config.onFeedback) {
                         this.#config.onFeedback();
                     } else if (action === 'logout' && this.#config.onLogout) {
