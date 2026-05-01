@@ -61,4 +61,16 @@ export class RunnerApi {
             navigator.sendBeacon(`/api/v1/runner/${notebookId}/stop`);
         }
     }
+
+    async getContainerStats(
+        notebookId: number | string
+    ): Promise<{ cpu_percent: number; memory_usage: number; memory_limit: number; memory_percent: number }> {
+        const response = await this.#http.get(`/runner/${notebookId}/stats`);
+        return this.#parse(response) as Promise<{
+            cpu_percent: number;
+            memory_usage: number;
+            memory_limit: number;
+            memory_percent: number;
+        }>;
+    }
 }
