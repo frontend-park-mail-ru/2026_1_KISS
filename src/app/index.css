@@ -24,9 +24,9 @@
 @import '../widgets/subscription-section/SubscriptionSection.css';
 @import '../widgets/editor-settings/EditorSettings.css';
 @import '../pages/landing/LandingPage.css';
-@import '../pages/admin/AdminPage.css?v=2';
-@import '../shared/components/context-menu/ContextMenu.css?v=2';
-@import '../shared/components/modal/Modal.css?v=2';
+@import '../pages/admin/AdminPage.css';
+@import '../shared/components/context-menu/ContextMenu.css';
+@import '../shared/components/modal/Modal.css';
 @import '../widgets/feedback-modal/FeedbackModal.css';
 
 html, body {
