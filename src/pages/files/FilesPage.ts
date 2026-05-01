@@ -5,6 +5,7 @@ import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
+import { ResourceBanner } from '../../widgets/resource-banner/ResourceBanner.js';
 import type { Notebook } from '../../shared/types.js';
 
 interface FilesNotebook extends Notebook {
@@ -25,6 +26,7 @@ export class FilesPage {
         search: string;
     } = { owner: null, dateFrom: null, dateTo: null, search: '' };
     #feedbackModal: FeedbackModal | null = null;
+    #resourceBanner: ResourceBanner | null = null;
     #state: {
         notebooks: FilesNotebook[];
         currentPage: number;
@@ -98,6 +100,9 @@ export class FilesPage {
         container.className = 'files-page__container';
         main.appendChild(container);
 
+        this.#resourceBanner = new ResourceBanner(container);
+        this.#resourceBanner.mount();
+
         this.#filterBar = new FilterBar(container, {
             onCreate: () => this.#createNotebook(),
             onFilterChange: (filters) => this.#onFilterChange(filters as Record<string, unknown>)
@@ -121,6 +126,7 @@ export class FilesPage {
     }
 
     destroy(): void {
+        if (this.#resourceBanner) this.#resourceBanner.unmount();
         if (this.#filterBar) this.#filterBar.unmount();
         if (this.#filesTable) this.#filesTable.unmount();
         if (this.#pagination) this.#pagination.unmount();
