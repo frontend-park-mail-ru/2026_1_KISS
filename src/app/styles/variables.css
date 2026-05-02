@@ -1,6 +1,8 @@
 :root {
     /* Основные цвета */
     --teal-green: #027368;
+    --teal-green-10: rgba(2, 115, 104, 0.1);
+    --teal-green-dark: #015a50;
     --dark-primary: #191726;
     --accent: #5D7173;
     --grey: #B4BEBF;

@@ -49,6 +49,12 @@
 
 .profile-page__sidebar-item:hover {
     background: var(--grey);
+    color: var(--white);
+}
+
+.profile-page__sidebar-item--active:hover {
+    background: var(--teal-green-dark);
+    color: var(--white);
 }
 
 .profile-page__sidebar-item--active {
