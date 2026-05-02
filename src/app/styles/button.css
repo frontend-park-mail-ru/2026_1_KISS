@@ -20,6 +20,18 @@
     border: none;
 }
 
+.accent-btn:hover,
+.base-btn:hover {
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+    background: var(--teal-green-dark);
+    color: var(--white);
+}
+
+.simple-btn:hover {
+    background: var(--teal-green-10)
+}
+
 .accent-btn {
     background-color: var(--teal-green);
     color: var(--white);

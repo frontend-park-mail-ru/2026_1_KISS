@@ -84,10 +84,6 @@
     font-size: 14px;
 }
 
-.filter-bar__clear-btn:hover {
-    text-decoration: underline;
-}
-
 .filter-bar__create-btn {
     width: auto;
     padding: 8px 20px;

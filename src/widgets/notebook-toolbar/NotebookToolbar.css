@@ -28,22 +28,23 @@
     transition: background 0.15s, color 0.15s;
 }
 
+.notebook-toolbar__btn--run:hover {
+    background: var(--teal-green-dark);
+    color: var(--white);
+}
+
+.notebook-toolbar__btn--add:hover{
+    background: var(--teal-green-10)
+}
+
 .notebook-toolbar__btn--add {
     background: transparent;
     color: var(--teal-green);
     border: 1.5px dashed var(--teal-green);
 }
 
-.notebook-toolbar__btn--add:hover {
-    background: rgba(2, 115, 104, 0.08);
-}
-
 .notebook-toolbar__btn--run {
     background: var(--teal-green);
     color: var(--white);
     border: 1.5px solid var(--teal-green);
-}
-
-.notebook-toolbar__btn--run:hover {
-    background: #025e55;
 }
