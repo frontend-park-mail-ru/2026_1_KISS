@@ -57,5 +57,5 @@ code, pre, kbd, samp,
 [class*="code"],
 [class*="Code"],
 .monospace {
-    font-family: var(--font-family-mono), serif;
+    font-family: var(--font-family-mono), 'Courier New', monospace;
 }
