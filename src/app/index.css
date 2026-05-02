@@ -1,4 +1,5 @@
 @import 'styles/variables.css';
+@import 'styles/fonts.css';
 @import 'styles/button.css';
 @import '../shared/components/input/Input.css';
 @import '../widgets/register-form/Register.css';
@@ -28,14 +29,17 @@
 @import '../shared/components/context-menu/ContextMenu.css';
 @import '../shared/components/modal/Modal.css';
 @import '../widgets/feedback-modal/FeedbackModal.css';
-@import 'styles/fonts.css';
+
+
+* {
+    font-family: var(--font-family-base), serif;
+}
 
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
-    font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 #root {
@@ -45,4 +49,13 @@ html, body {
     padding: 0;
     height: 100%;
     width: 100%;
+}
+
+code, pre, kbd, samp,
+.code-cell,
+.code-cell *,
+[class*="code"],
+[class*="Code"],
+.monospace {
+    font-family: var(--font-family-mono), serif;
 }
