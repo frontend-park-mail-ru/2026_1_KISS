@@ -12,4 +12,14 @@
     --cell-border: #E0E0E0;
     --code-bg: #F8F9FA;
     --line-number-color: #B0B0B0;
+
+    /* Основные шрифты */
+    --font-family-base: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-family-mono: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+    --font-family-code: 'Ubuntu Mono', 'Courier New', Courier, monospace;
+
+    /* Размеры шрифтов */
+    --font-size-base: 14px;
+    --font-size-code: 13px;
+    --font-size-small: 12px;
 }

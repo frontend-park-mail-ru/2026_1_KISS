@@ -28,8 +28,8 @@
 }
 
 .code-cell__execution-number {
-    font-family: monospace;
-    font-size: 12px;
+    font-family: var(--font-family-mono), 'Courier New', Courier, monospace;
+    font-size: var(--font-size-small, 12px);
     color: var(--line-number-color);
 }
 
@@ -74,8 +74,8 @@
     border-left: 1px solid var(--cell-border);
     background: var(--code-bg);
     padding: 8px 12px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-family: var(--font-family-mono), 'Courier New', Courier, monospace;
+    font-size: var(--font-size-code);
     line-height: 1.5;
     max-height: 400px;
     overflow: auto;
@@ -131,8 +131,8 @@
     padding: 10px 8px 10px 12px;
     text-align: right;
     user-select: none;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-family: var(--font-family-mono), 'Courier New', Courier, monospace;
+    font-size: var(--font-size-code);
     line-height: 1.5;
     color: var(--line-number-color);
     min-width: 32px;
@@ -148,8 +148,8 @@
     border: none;
     outline: none;
     background: transparent;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-family: var(--font-family-mono), 'Courier New', Courier, monospace;
+    font-size: var(--font-size-code);
     line-height: 1.5;
     color: var(--dark-primary);
     resize: none;

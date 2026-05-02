@@ -28,12 +28,14 @@
 @import '../shared/components/context-menu/ContextMenu.css';
 @import '../shared/components/modal/Modal.css';
 @import '../widgets/feedback-modal/FeedbackModal.css';
+@import 'styles/fonts.css';
 
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
+    font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 #root {
