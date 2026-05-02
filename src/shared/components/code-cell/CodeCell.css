@@ -50,6 +50,13 @@
   background: rgba(2, 115, 104, 0.1);
 }
 
+.code-cell__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
 .code-cell__editor {
     flex: 1;
     display: flex;
@@ -155,6 +162,11 @@
   color: var(--line-number-color);
 }
 
+.code-cell__textarea::selection {
+    background: #ffb84d;
+    color: inherit;
+}
+
 .code-cell__actions {
   position: absolute;
   right: 4px;
@@ -189,23 +201,6 @@
   color: var(--dark-primary);
 }
 
-.code-cell__action-btn--delete:hover {
-  color: var(--error-red);
-}
-
 .code-cell--error {
   border-color: var(--error-red);
 }
-
-.code-cell__error-output {
-  width: 100%;
-  padding: 8px 12px;
-  margin-top: -1px;
-  background: var(--error-bg);
-  border: 1px solid var(--error-red);
-  border-radius: 0 0 6px 6px;
-  font-size: var(--font-size-small, 12px);
-  color: var(--error-red);
-}
-
-/*# sourceMappingURL=CodeCell.css.map */
