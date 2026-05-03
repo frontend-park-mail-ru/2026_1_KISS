@@ -55,8 +55,8 @@
 
 .profile-section__upload-btn {
     width: fit-content;
-    padding: 6px 16px;
-    font-size: 13px;
+    padding: 8px 18px;
+    font-size: 14px;
 }
 
 .profile-section__avatar-hint {
@@ -171,7 +171,7 @@
 }
 
 .profile-section__email-change-btn {
-    padding: 6px 16px;
+    padding: 8px 16px;
     font-size: 13px;
 }
 

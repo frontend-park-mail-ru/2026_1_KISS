@@ -14,7 +14,7 @@
 .profile-page__sidebar {
     width: 220px;
     min-width: 220px;
-    padding: 24px 0;
+    padding: 24px 4px;
     border-right: 1px solid var(--cell-border);
 }
 
@@ -35,9 +35,9 @@
 .profile-page__sidebar-item {
     display: block;
     width: 100%;
-    padding: 8px 16px;
+    padding: 9px 18px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--light-grey);
     color: var(--dark-primary);
     font-size: 14px;
@@ -45,6 +45,7 @@
     text-align: left;
     font-family: inherit;
     transition: background-color 0.15s;
+    margin-bottom: 6px;
 }
 
 .profile-page__sidebar-item:hover {
