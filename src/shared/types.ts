@@ -92,3 +92,12 @@ export type PageChangeCallback = (targetPage: number) => void;
 export type FilterChangeCallback = (filters: FilterSet) => void;
 
 export type RenameCallback = (newTitle: string) => Promise<void>;
+
+export interface Comment {
+    id: number;
+    user_id: number;
+    username: string;
+    block_id: number;
+    text: string;
+    created_at: number;
+}

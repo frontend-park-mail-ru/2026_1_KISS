@@ -12,6 +12,7 @@ import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
+import { NotebookApi } from '../../shared/api/NotebookApi.js';
 
 export class BlocksPage {
     #root: HTMLElement;
@@ -25,8 +26,11 @@ export class BlocksPage {
     #username: string = '';
     #avatarUrl: string = '';
     #isAdmin: boolean = false;
+    #isOwner: boolean = false;
+    #canComment: boolean = false;
     #httpClient: HttpClient;
     #runnerApi: RunnerApi;
+    #notebookApi: NotebookApi;
 
     #executionCounter: number = 0;
     #execNumbers: Map<number | string, number> = new Map();
@@ -45,6 +49,7 @@ export class BlocksPage {
         this.#notebookId = params.id;
         this.#httpClient = HttpClient.getInstance();
         this.#runnerApi = new RunnerApi();
+        this.#notebookApi = new NotebookApi();
     }
 
     async render(): Promise<void> {
@@ -77,6 +82,26 @@ export class BlocksPage {
         } catch (_e) {
             Router.getInstance()!.navigate('/files');
             return;
+        }
+
+        this.#isOwner = this.#notebook!.owner_id === this.#userId;
+        this.#canComment = this.#isOwner;
+        if (!this.#canComment && this.#userId) {
+            try {
+                const permResponse = await this.#httpClient.get(
+                    `/notebooks/${this.#notebookId}/permissions`
+                );
+                if (permResponse.ok) {
+                    const { data } = await permResponse.json();
+                    const perms = data as Record<string, unknown>[];
+                    const mine = perms.find(
+                        (p: Record<string, unknown>) => p.user_id === this.#userId
+                    );
+                    this.#canComment = (mine?.permission_level as string) === 'editor';
+                }
+            } catch {
+                /* ignore */
+            }
         }
 
         this.#buildLayout();
@@ -118,13 +143,6 @@ export class BlocksPage {
         });
         this.#header.mount();
 
-        this.#toolbar = new NotebookToolbar(headerArea, {
-            onAddCode: () => this.#createBlock('code'),
-            onAddText: () => this.#createBlock('text'),
-            onRunAll: () => this.#runAllBlocks()
-        });
-        this.#toolbar.mount();
-
         const body = document.createElement('div');
         body.className = 'blocks-page__body';
         page.appendChild(body);
@@ -132,6 +150,25 @@ export class BlocksPage {
         const sidebarArea = document.createElement('div');
         sidebarArea.className = 'blocks-page__sidebar';
         body.appendChild(sidebarArea);
+
+        const commentsVisible = localStorage.getItem('notebook_comments_visible') === 'true';
+        const main = document.createElement('main');
+        main.className =
+            'blocks-page__main' + (commentsVisible ? ' blocks-page__main--with-comments' : '');
+        body.appendChild(main);
+
+        this.#toolbar = new NotebookToolbar(headerArea, {
+            onAddCode: () => this.#createBlock('code'),
+            onAddText: () => this.#createBlock('text'),
+            onRunAll: () => this.#runAllBlocks(),
+            commentsVisible,
+            onToggleComments: (visible: boolean) => {
+                this.#cellList?.toggleComments(visible);
+                main.classList.toggle('blocks-page__main--with-comments', visible);
+                localStorage.setItem('notebook_comments_visible', String(visible));
+            }
+        });
+        this.#toolbar.mount();
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
             onFind: (q: { query: string; caseSensitive: boolean }) => this.#handleFind(q),
@@ -147,11 +184,11 @@ export class BlocksPage {
         });
         this.#sidebar.mount();
 
-        const main = document.createElement('main');
-        main.className = 'blocks-page__main';
-        body.appendChild(main);
-
         this.#cellList = new CellList(main, {
+            notebookId: this.#notebookId,
+            currentUserId: this.#userId!,
+            isOwner: this.#isOwner,
+            canComment: this.#canComment,
             onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
             onRerender: () => this.#reapplyCellState(),
             onDeleteCell: (blockId: number | string) => this.#deleteBlock(blockId),
@@ -168,6 +205,7 @@ export class BlocksPage {
         const blocks = (this.#notebook!.blocks as BlockData[]) || [];
         this.#loadSavedOutputs(blocks as unknown as Record<string, unknown>[]);
         this.#cellList.updateBlocks(blocks);
+        this.#cellList.toggleComments(commentsVisible);
 
         this.#beforeUnloadHandler = () => {
             if (this.#notebookId) this.#runnerApi.stopSessionBeacon(this.#notebookId);
@@ -220,6 +258,8 @@ export class BlocksPage {
             case 'block_added':
             case 'block_updated':
             case 'block_deleted':
+            case 'comment_added':
+            case 'comment_deleted':
                 this.#cellList!.applyRemoteEvent(
                     event as { type: string; block?: BlockData; block_id?: string | number }
                 );

@@ -5,23 +5,31 @@ export class NotebookToolbar extends BaseComponent {
     #onAddCode: () => void;
     #onAddText: () => void;
     #onRunAll: () => void;
+    #onToggleComments: ((visible: boolean) => void) | null = null;
+    #commentsVisible: boolean;
 
     constructor(
         parent: HTMLElement,
         {
             onAddCode,
             onAddText,
-            onRunAll
+            onRunAll,
+            onToggleComments,
+            commentsVisible = false
         }: {
             onAddCode: () => void;
             onAddText: () => void;
             onRunAll: () => void;
+            onToggleComments?: (visible: boolean) => void;
+            commentsVisible?: boolean;
         }
     ) {
         super(null, parent);
         this.#onAddCode = onAddCode;
         this.#onAddText = onAddText;
         this.#onRunAll = onRunAll;
+        this.#onToggleComments = onToggleComments ?? null;
+        this.#commentsVisible = commentsVisible;
         this.#render();
     }
 
@@ -51,5 +59,21 @@ export class NotebookToolbar extends BaseComponent {
                 if (action === 'run-all') this.#onRunAll();
             });
         });
+
+        const toggle = this._element.querySelector(
+            '.notebook-toolbar__toggle'
+        ) as HTMLElement | null;
+        const toggleInput = toggle?.querySelector('input') as HTMLInputElement | null;
+        const onToggle = this.#onToggleComments;
+        if (toggle && toggleInput) {
+            toggleInput.checked = this.#commentsVisible;
+            if (onToggle) {
+                this._addListener(toggle, 'click', (e: Event) => {
+                    e.preventDefault();
+                    toggleInput.checked = !toggleInput.checked;
+                    onToggle(toggleInput.checked);
+                });
+            }
+        }
     }
 }
