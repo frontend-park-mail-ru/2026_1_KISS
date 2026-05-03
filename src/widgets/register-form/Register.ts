@@ -23,7 +23,7 @@ export class Register extends BaseComponent {
 
     #render(): void {
         const data = {
-            title: 'Colab'
+            title: 'Регистрация'
         };
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = RegisterTemplate(data);
