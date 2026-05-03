@@ -22,7 +22,7 @@ export class Login extends BaseComponent {
 
     #render(): void {
         const data = {
-            title: 'Colab'
+            title: 'Вход'
         };
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = LoginTemplate(data);

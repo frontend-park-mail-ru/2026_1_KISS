@@ -2,6 +2,15 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    overflow-x: hidden;
+}
+
+.landing-page,
+.landing-page * {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .landing-page__main {
@@ -10,6 +19,7 @@
     width: 100%;
     margin: 0 auto;
     padding: 60px 20px;
+    box-sizing: border-box;
 }
 
 .landing-page__hero {
