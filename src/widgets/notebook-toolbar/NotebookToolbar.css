@@ -1,7 +1,6 @@
 .notebook-toolbar {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     padding: 8px 16px;
     background: var(--white);
     border-bottom: 1px solid var(--cell-border);
@@ -14,6 +13,7 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    margin-left: auto;
 }
 
 .notebook-toolbar__btn {
@@ -47,4 +47,41 @@
     background: var(--teal-green);
     color: var(--white);
     border: 1.5px solid var(--teal-green);
+}
+
+.notebook-toolbar__toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--teal-green);
+    border: 1.5px solid var(--teal-green);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.notebook-toolbar__toggle:hover {
+    background: var(--teal-green-10);
+}
+
+.notebook-toolbar__toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+.notebook-toolbar__toggle-label {
+    white-space: nowrap;
+}
+
+.notebook-toolbar__toggle:has(.notebook-toolbar__toggle-input:checked) {
+    background: var(--teal-green);
+    color: var(--white);
 }

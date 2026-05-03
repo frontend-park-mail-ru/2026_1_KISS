@@ -28,6 +28,10 @@
     margin: 0 auto;
 }
 
+.blocks-page__main--with-comments {
+    max-width: 1200px;
+}
+
 @media (max-width: 768px) {
     .blocks-page__main {
         padding: 0 16px;

@@ -2,6 +2,9 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { CellListTemplate } from './CellList.template.js';
 import { CodeCell, type CodeCellOptions } from '../../shared/components/code-cell/CodeCell.js';
 import { TextCell, type TextCellOptions } from '../../shared/components/text-cell/TextCell.js';
+import { CommentThread } from '../../shared/components/comment-thread/CommentThread.js';
+import { NotebookApi } from '../../shared/api/NotebookApi.js';
+import type { Comment } from '../../shared/types.js';
 
 interface CellListCallbacks {
     onRunCell?: (id: string) => void;
@@ -19,8 +22,45 @@ interface BlockData {
     position?: number;
 }
 
+interface CellListOptions extends CellListCallbacks {
+    notebookId: number | string;
+    currentUserId: number;
+    isOwner: boolean;
+    canComment: boolean;
+}
+
+class CellRow {
+    #cell: CodeCell | TextCell;
+    #commentThread: CommentThread;
+    #rowElement: HTMLElement;
+
+    constructor(rowElement: HTMLElement, cell: CodeCell | TextCell, commentThread: CommentThread) {
+        this.#rowElement = rowElement;
+        this.#cell = cell;
+        this.#commentThread = commentThread;
+    }
+
+    getCell(): CodeCell | TextCell {
+        return this.#cell;
+    }
+
+    getCommentThread(): CommentThread {
+        return this.#commentThread;
+    }
+
+    getRowElement(): HTMLElement {
+        return this.#rowElement;
+    }
+
+    unmount(): void {
+        this.#commentThread.unmount();
+        this.#cell.unmount();
+        this.#rowElement.remove();
+    }
+}
+
 export class CellList extends BaseComponent {
-    #cells: (CodeCell | TextCell)[] = [];
+    #cells: CellRow[] = [];
     #blocks: BlockData[] = [];
     #onRunCell: CellListCallbacks['onRunCell'];
     #onRerender: CellListCallbacks['onRerender'];
@@ -28,6 +68,12 @@ export class CellList extends BaseComponent {
     #onSaveContent: CellListCallbacks['onSaveContent'];
     #onCodeContentChange: CellListCallbacks['onCodeContentChange'];
     #onReorder: CellListCallbacks['onReorder'];
+
+    #notebookId: number | string = '';
+    #currentUserId: number = 0;
+    #isOwner: boolean = false;
+    #canComment: boolean = false;
+    #api: NotebookApi | null = null;
 
     constructor(
         parent: HTMLElement,
@@ -37,8 +83,12 @@ export class CellList extends BaseComponent {
             onDeleteCell,
             onSaveContent,
             onCodeContentChange,
-            onReorder
-        }: CellListCallbacks = {}
+            onReorder,
+            notebookId,
+            currentUserId,
+            isOwner,
+            canComment
+        }: CellListOptions
     ) {
         super(null, parent);
         this.#onRunCell = onRunCell;
@@ -47,6 +97,11 @@ export class CellList extends BaseComponent {
         this.#onSaveContent = onSaveContent;
         this.#onCodeContentChange = onCodeContentChange;
         this.#onReorder = onReorder;
+        this.#notebookId = notebookId;
+        this.#currentUserId = currentUserId;
+        this.#isOwner = isOwner;
+        this.#canComment = canComment;
+        this.#api = new NotebookApi();
         this.#render();
     }
 
@@ -85,22 +140,52 @@ export class CellList extends BaseComponent {
         emptyState.style.display = 'none';
 
         blocks.forEach((block) => {
-            const cell = this.#createCell(container, block, this.#buildCellCallbacks(block));
-            cell.mount();
-            this.#cells.push(cell);
+            const row = this.#createRow(container, block);
+            row.getCell().mount();
+            row.getCommentThread().mount();
+            this.#cells.push(row);
         });
 
         if (this.#onRerender) this.#onRerender();
     }
 
-    #createCell(
-        container: HTMLElement,
-        block: BlockData,
-        cellCallbacks: Record<string, unknown>
-    ): CodeCell | TextCell {
+    #createRow(container: HTMLElement, block: BlockData): CellRow {
+        const rowElement = document.createElement('div');
+        rowElement.className = 'cell-row';
+        rowElement.dataset.blockId = block.id;
+        container.appendChild(rowElement);
+
+        // Cell wrapper
+        const cellWrapper = document.createElement('div');
+        cellWrapper.className = 'cell-row__cell';
+        rowElement.appendChild(cellWrapper);
+
+        // Comments wrapper
+        const commentWrapper = document.createElement('div');
+        commentWrapper.className = 'cell-row__comments';
+        rowElement.appendChild(commentWrapper);
+
+        // Create cell
+        const cell = this.#createCell(cellWrapper, block);
+
+        // Create comment thread
+        const commentThread = new CommentThread(commentWrapper, {
+            notebookId: this.#notebookId,
+            blockId: block.id,
+            currentUserId: this.#currentUserId,
+            isOwner: this.#isOwner,
+            canComment: this.#canComment,
+            api: this.#api!
+        });
+
+        return new CellRow(rowElement, cell, commentThread);
+    }
+
+    #createCell(container: HTMLElement, block: BlockData): CodeCell | TextCell {
+        const callbacks = this.#buildCellCallbacks(block);
         if (block.type === 'code') {
             return new CodeCell(container, {
-                ...cellCallbacks,
+                ...callbacks,
                 onRun: (id: string) => {
                     if (this.#onRunCell) this.#onRunCell(id);
                 },
@@ -110,7 +195,7 @@ export class CellList extends BaseComponent {
             } as CodeCellOptions);
         }
         return new TextCell(container, {
-            ...cellCallbacks,
+            ...callbacks,
             onContentChange: (id: string, content: string) => {
                 if (this.#onSaveContent) this.#onSaveContent(id, content);
             }
@@ -130,19 +215,43 @@ export class CellList extends BaseComponent {
     }
 
     applyRemoteEvent(
-        event: { type: string; block?: BlockData; block_id?: string | number } | null
+        event: {
+            type: string;
+            block?: BlockData;
+            block_id?: string | number;
+            comment?: Comment;
+            comment_id?: number | string;
+        } | null
     ): void {
         if (!event) return;
-        if (event.type === 'block_updated' && event.block) {
-            this.#applyBlockUpdated(event.block);
-        } else if (event.type === 'block_added' && event.block) {
-            this.#applyBlockAdded(event.block);
-        } else if (
-            event.type === 'block_deleted' &&
-            event.block_id !== undefined &&
-            event.block_id !== null
-        ) {
-            this.#applyBlockDeleted(event.block_id);
+        switch (event.type) {
+            case 'block_updated':
+                if (event.block) this.#applyBlockUpdated(event.block);
+                break;
+            case 'block_added':
+                if (event.block) this.#applyBlockAdded(event.block);
+                break;
+            case 'block_deleted':
+                if (event.block_id !== undefined && event.block_id !== null) {
+                    this.#applyBlockDeleted(event.block_id);
+                }
+                break;
+            case 'comment_added':
+                if (event.comment) {
+                    const row = this.#cells.find(
+                        (r) => r.getCell().getBlockId() === String(event.comment!.block_id)
+                    );
+                    row?.getCommentThread().appendComment(event.comment);
+                }
+                break;
+            case 'comment_deleted':
+                if (event.comment_id !== undefined && event.block_id !== undefined) {
+                    const row = this.#cells.find(
+                        (r) => r.getCell().getBlockId() === String(event.block_id)
+                    );
+                    row?.getCommentThread().removeComment(Number(event.comment_id));
+                }
+                break;
         }
     }
 
@@ -153,12 +262,13 @@ export class CellList extends BaseComponent {
             return;
         }
         this.#blocks[idx] = { ...this.#blocks[idx], ...block };
-        const cell = this.getCellByBlockId(block.id);
-        if (!cell) return;
+        const row = this.#cells[idx];
+        if (!row) return;
 
-        const root = cell.getElement();
-        if (root && root.contains(document.activeElement)) return;
+        const cellEl = row.getCell().getElement();
+        if (cellEl && cellEl.contains(document.activeElement)) return;
 
+        const cell = row.getCell();
         if (
             typeof (cell as unknown as { setContent: (c: string) => void }).setContent ===
             'function'
@@ -186,14 +296,16 @@ export class CellList extends BaseComponent {
         container.style.display = '';
         emptyState.style.display = 'none';
 
-        const cell = this.#createCell(container, block, this.#buildCellCallbacks(block));
-        cell.mount();
+        const row = this.#createRow(container, block);
+        row.getCell().mount();
+        row.getCommentThread().mount();
+
         const cellIdx = insertAt;
         if (cellIdx < this.#cells.length) {
-            container.insertBefore(cell.getElement(), this.#cells[cellIdx].getElement());
-            this.#cells.splice(cellIdx, 0, cell);
+            container.insertBefore(row.getRowElement(), this.#cells[cellIdx].getRowElement());
+            this.#cells.splice(cellIdx, 0, row);
         } else {
-            this.#cells.push(cell);
+            this.#cells.push(row);
         }
         if (this.#onRerender) this.#onRerender();
     }
@@ -203,10 +315,10 @@ export class CellList extends BaseComponent {
         if (idx < 0) return;
         this.#blocks.splice(idx, 1);
 
-        const cellIdx = this.#cells.findIndex((c) => c.getBlockId() === blockId);
-        if (cellIdx >= 0) {
-            this.#cells[cellIdx].unmount();
-            this.#cells.splice(cellIdx, 1);
+        const rowIdx = this.#cells.findIndex((r) => r.getCell().getBlockId() === blockId);
+        if (rowIdx >= 0) {
+            this.#cells[rowIdx].unmount();
+            this.#cells.splice(rowIdx, 1);
         }
 
         if (this.#blocks.length === 0) {
@@ -226,7 +338,8 @@ export class CellList extends BaseComponent {
     }
 
     #syncTextCellsToBlocks(): void {
-        for (const cell of this.#cells) {
+        for (const row of this.#cells) {
+            const cell = row.getCell();
             if (cell instanceof TextCell) {
                 const block = this.#blocks.find((b) => b.id === cell.getBlockId());
                 if (block) block.content = cell.getContent();
@@ -258,28 +371,31 @@ export class CellList extends BaseComponent {
         const block = this.#blocks.find((b) => b.id === id);
         if (!block) return;
 
-        const cell = this.#cells.find((c) => c.getBlockId() === id);
+        const cell = this.#cells.find((r) => r.getCell().getBlockId() === id);
         if (!cell) return;
 
-        const content = cell.getContent();
+        const content = cell.getCell().getContent();
         navigator.clipboard.writeText(content).catch(() => {});
     }
 
     #clearCells(): void {
-        this.#cells.forEach((cell) => cell.unmount());
+        this.#cells.forEach((row) => row.unmount());
         this.#cells = [];
     }
 
     getCellByBlockId(id: string | number): CodeCell | TextCell | null {
-        return this.#cells.find((c) => c.getBlockId() === id) || null;
+        const row = this.#cells.find((r) => r.getCell().getBlockId() === id);
+        return row ? row.getCell() : null;
     }
 
     getAllCells(): (CodeCell | TextCell)[] {
-        return [...this.#cells];
+        return this.#cells.map((r) => r.getCell());
     }
 
     getCodeCellsInOrder(): CodeCell[] {
-        return this.#cells.filter((c): c is CodeCell => c instanceof CodeCell);
+        return this.#cells
+            .map((r) => r.getCell())
+            .filter((c): c is CodeCell => c instanceof CodeCell);
     }
 
     getBlockPositionById(id: string | number): number {
@@ -289,6 +405,11 @@ export class CellList extends BaseComponent {
     containsActiveElement(): boolean {
         const active = document.activeElement;
         if (!active) return false;
-        return this.#cells.some((c) => c.getElement() && c.getElement().contains(active));
+        return this.#cells.some((r) => r.getRowElement().contains(active));
+    }
+
+    toggleComments(visible: boolean): void {
+        if (!this._element) return;
+        this._element.classList.toggle('cell-list--hide-comments', !visible);
     }
 }
