@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   width="800px"
+   height="800px"
+   viewBox="0 0 24 24"
+   id="Layer_1"
+   data-name="Layer 1"
+   version="1.1"
+   sodipodi:docname="comment-icon.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.6567291"
+     inkscape:cx="334.23218"
+     inkscape:cy="444.62778"
+     inkscape:window-width="1536"
+     inkscape:window-height="891"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs1">
+    <style
+       id="style1">.cls-1{fill:none;stroke:#027368;stroke-miterlimit:10;stroke-width:1.91px;}</style>
+  </defs>
+  <path
+     class="cls-1"
+     d="M1.5,5.3v9.54a3.82,3.82,0,0,0,3.82,3.82H7.23v2.86L13,18.66h5.73a3.82,3.82,0,0,0,3.82-3.82V5.3a3.82,3.82,0,0,0-3.82-3.82H5.32A3.82,3.82,0,0,0,1.5,5.3Z"
+     id="path1" />
+  <path
+     style="fill:#ffffff;stroke-width:1.49304"
+     d="m 273.97244,626.40915 v -37.24619 l -58.60173,-0.46694 -58.60174,-0.46694 -10.06539,-3.90206 C 117.68454,573.07721 96.587301,551.54105 86.929925,523.30976 L 83.610119,513.60502 83.206666,339.07373 C 82.757015,144.55776 82.152305,156.90918 93.228533,134.37341 104.13527,112.18247 124.59368,94.532108 148.98352,86.271151 l 12.26457,-4.15407 h 239.63257 239.63257 l 12.26458,4.15407 c 24.13419,8.174375 44.64114,25.746069 55.63756,47.673939 11.094,22.12245 10.62896,12.66977 10.15733,206.46754 l -0.4215,173.19239 -4.00016,10.95083 c -10.55442,28.89372 -32.55693,50.68846 -60.94699,60.37143 -9.58735,3.26997 -11.0322,3.31915 -119.44302,4.06634 l -109.73828,0.75633 -74.34503,36.95268 c -40.88977,20.32398 -74.65109,36.95269 -75.02515,36.95269 -0.37407,0 -0.68013,-16.76078 -0.68013,-37.24617 z"
+     id="path2"
+     transform="scale(0.03)" />
+</svg>
