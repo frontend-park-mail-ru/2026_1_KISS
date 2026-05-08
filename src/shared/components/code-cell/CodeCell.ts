@@ -27,6 +27,8 @@ interface CodeCellOutput {
 export interface CodeCellOptions {
     /** Серверные данные блока (id, content, position) */
     blockData: BlockData;
+    /** Если true — ячейка только для чтения: textarea заблокирована, action-кнопки скрыты, обработчики правки не вешаются */
+    readonly?: boolean;
     /** Вызывается при клике на "Переместить вверх" */
     onMoveUp?: (id: string) => void;
     /** Вызывается при клике на "Переместить вниз" */
@@ -49,6 +51,7 @@ export interface CodeCellOptions {
  */
 export class CodeCell extends BaseComponent {
     #blockData: BlockData;
+    #readonly: boolean;
     #onMoveUp?: (id: string) => void;
     #onMoveDown?: (id: string) => void;
     #onCopy?: (id: string) => void;
@@ -69,6 +72,7 @@ export class CodeCell extends BaseComponent {
         parent: HTMLElement,
         {
             blockData,
+            readonly,
             onMoveUp,
             onMoveDown,
             onCopy,
@@ -79,6 +83,7 @@ export class CodeCell extends BaseComponent {
     ) {
         super(null, parent);
         this.#blockData = blockData;
+        this.#readonly = readonly ?? false;
         this.#onMoveUp = onMoveUp;
         this.#onMoveDown = onMoveDown;
         this.#onCopy = onCopy;
@@ -95,7 +100,8 @@ export class CodeCell extends BaseComponent {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = CodeCellTemplate({
             id: this.#blockData.id,
-            content: this.#blockData.content || ''
+            content: this.#blockData.content || '',
+            readonly: this.#readonly
         });
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
@@ -158,39 +164,41 @@ export class CodeCell extends BaseComponent {
             this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
         );
 
-        this._addListener(textarea, 'input', () => {
-            this.#updateLineNumbers();
-            this.#autoResize();
-            this.#scheduleContentChange();
-        });
-
-        this._addListener(textarea, 'keydown', (e: unknown) => {
-            if ((e as KeyboardEvent).key === 'Tab') {
-                (e as KeyboardEvent).preventDefault();
-                const ta = textarea;
-                const start = ta.selectionStart;
-                const end = ta.selectionEnd;
-                ta.value = `${ta.value.substring(0, start)}    ${ta.value.substring(end)}`;
-                ta.selectionStart = start + 4;
-                ta.selectionEnd = start + 4;
+        if (!this.#readonly) {
+            this._addListener(textarea, 'input', () => {
                 this.#updateLineNumbers();
-            }
-        });
+                this.#autoResize();
+                this.#scheduleContentChange();
+            });
+
+            this._addListener(textarea, 'keydown', (e: unknown) => {
+                if ((e as KeyboardEvent).key === 'Tab') {
+                    (e as KeyboardEvent).preventDefault();
+                    const ta = textarea;
+                    const start = ta.selectionStart;
+                    const end = ta.selectionEnd;
+                    ta.value = `${ta.value.substring(0, start)}    ${ta.value.substring(end)}`;
+                    ta.selectionStart = start + 4;
+                    ta.selectionEnd = start + 4;
+                    this.#updateLineNumbers();
+                }
+            });
+
+            this._element.querySelectorAll('.code-cell__action-btn').forEach((btn) => {
+                const action = (btn as HTMLElement).dataset.action;
+                this._addListener(btn, 'click', () => {
+                    if (action === 'move-up' && this.#onMoveUp) this.#onMoveUp(this.#blockData.id);
+                    if (action === 'move-down' && this.#onMoveDown)
+                        this.#onMoveDown(this.#blockData.id);
+                    if (action === 'copy' && this.#onCopy) this.#onCopy(this.#blockData.id);
+                    if (action === 'delete' && this.#onDelete) this.#onDelete(this.#blockData.id);
+                });
+            });
+        }
 
         const runBtn = this._element.querySelector('.code-cell__run-btn');
         this._addListener(runBtn, 'click', () => {
             if (this.#onRun && !this.#isRunning) this.#onRun(this.#blockData.id);
-        });
-
-        this._element.querySelectorAll('.code-cell__action-btn').forEach((btn) => {
-            const action = (btn as HTMLElement).dataset.action;
-            this._addListener(btn, 'click', () => {
-                if (action === 'move-up' && this.#onMoveUp) this.#onMoveUp(this.#blockData.id);
-                if (action === 'move-down' && this.#onMoveDown)
-                    this.#onMoveDown(this.#blockData.id);
-                if (action === 'copy' && this.#onCopy) this.#onCopy(this.#blockData.id);
-                if (action === 'delete' && this.#onDelete) this.#onDelete(this.#blockData.id);
-            });
         });
     }
 

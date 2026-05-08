@@ -9,6 +9,8 @@ import { nn } from '../../utils/notNull.js';
 export interface TextCellOptions {
     /** Серверные данные блока (id, content) */
     blockData: BlockData;
+    /** Если true — ячейка только для чтения: contenteditable=false, action-кнопки скрыты, blur-обработчик не вешается */
+    readonly?: boolean;
     /** Вызывается при клике на "Переместить вверх" */
     onMoveUp?: (id: string) => void;
     /** Вызывается при клике на "Переместить вниз" */
@@ -28,6 +30,7 @@ export interface TextCellOptions {
  */
 export class TextCell extends BaseComponent {
     #blockData: BlockData;
+    #readonly: boolean;
     #onMoveUp?: (id: string) => void;
     #onMoveDown?: (id: string) => void;
     #onCopy?: (id: string) => void;
@@ -41,10 +44,19 @@ export class TextCell extends BaseComponent {
      */
     public constructor(
         parent: HTMLElement,
-        { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onContentChange }: TextCellOptions
+        {
+            blockData,
+            readonly,
+            onMoveUp,
+            onMoveDown,
+            onCopy,
+            onDelete,
+            onContentChange
+        }: TextCellOptions
     ) {
         super(null, parent);
         this.#blockData = blockData;
+        this.#readonly = readonly ?? false;
         this.#onMoveUp = onMoveUp;
         this.#onMoveDown = onMoveDown;
         this.#onCopy = onCopy;
@@ -60,7 +72,8 @@ export class TextCell extends BaseComponent {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = TextCellTemplate({
             id: this.#blockData.id,
-            content: this.#blockData.content || ''
+            content: this.#blockData.content || '',
+            readonly: this.#readonly
         });
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
@@ -87,6 +100,8 @@ export class TextCell extends BaseComponent {
      * который уведомляет родителя об изменении содержимого.
      */
     #attachEvents(): void {
+        if (this.#readonly) return;
+
         this._element.querySelectorAll('.text-cell__action-btn').forEach((btn) => {
             const action = (btn as HTMLElement).dataset.action;
             this._addListener(btn, 'click', () => {
