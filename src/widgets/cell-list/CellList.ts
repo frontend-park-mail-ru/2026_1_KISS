@@ -291,9 +291,11 @@ export class CellList extends BaseComponent {
      */
     #createCell(container: HTMLElement, block: BlockData): CodeCell | TextCell {
         const callbacks = this.#buildCellCallbacks(block);
+        const isReadonly = !this.#isOwner && !this.#canComment;
         if (block.type === 'code') {
             return new CodeCell(container, {
                 ...callbacks,
+                readonly: isReadonly,
                 onRun: (id: string) => {
                     if (this.#onRunCell) this.#onRunCell(id);
                 },
@@ -304,6 +306,7 @@ export class CellList extends BaseComponent {
         }
         return new TextCell(container, {
             ...callbacks,
+            readonly: isReadonly,
             onContentChange: (id: string, content: string) => {
                 if (this.#onSaveContent) this.#onSaveContent(id, content);
             }
