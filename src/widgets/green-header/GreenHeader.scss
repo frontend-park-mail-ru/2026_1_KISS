@@ -3,17 +3,19 @@
 .green-header {
     background-color: var(--teal-green);
     color: var(--white);
-    padding: 10px 10px;
-    width: 100%;
-    box-sizing: border-box;
+    padding: 0 10px;
+    position: relative;
+    min-height: 60px;
+
 }
 
 .header-container {
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .logo-link {
@@ -22,17 +24,26 @@
     text-decoration: none;
     color: var(--white, #FFFFFF);
     gap: 0.75rem;
+    flex-shrink: 0;
+    max-width: 70%;
 }
 
 .logo-image {
     height: 40px;
     width: auto;
+    max-width: 100%;
 }
 
 .header-buttons {
     display: flex;
-    gap: 1rem;
+    gap: clamp(0.25rem, 2vw, 1rem);
+    flex-shrink: 1;
+    min-width: 0;
+    overflow-x: hidden;
+
 }
+
+
 
 .header-user-pill {
     display: flex;

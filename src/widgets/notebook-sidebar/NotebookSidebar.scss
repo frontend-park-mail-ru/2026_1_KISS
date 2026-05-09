@@ -81,6 +81,21 @@
     border-color: var(--teal-green);
 }
 
+.notebook-sidebar__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--dark-primary);
+    cursor: pointer;
+}
+
+.notebook-sidebar__find-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .notebook-sidebar__find-btn {
     padding: 6px 12px;
     background: var(--teal-green);
@@ -95,19 +110,58 @@
     background: #025e55;
 }
 
+.notebook-sidebar__nav-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cell-border);
+    background: var(--white);
+    color: var(--dark-primary);
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.notebook-sidebar__nav-btn:hover {
+    background: var(--light-grey);
+}
+
+.notebook-sidebar__match-count {
+    font-size: 12px;
+    color: var(--line-number-color);
+    margin-left: auto;
+    user-select: none;
+}
+
 .notebook-sidebar__replace-links {
     display: flex;
-    gap: 16px;
+    gap: 8px;
 }
 
-.notebook-sidebar__link {
-    font-size: 12px;
+.notebook-sidebar__link-btn {
+    padding: 4px 10px;
+    background: transparent;
     color: var(--teal-green);
-    text-decoration: none;
+    border: 1px solid var(--teal-green);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
 }
 
-.notebook-sidebar__link:hover {
-    text-decoration: underline;
+.notebook-sidebar__link-btn:hover {
+    background: rgba(2, 115, 104, 0.1);
+}
+
+mark.find-match {
+    background: #fff3a0;
+    color: inherit;
+    padding: 0;
+}
+
+mark.find-match--current {
+    background: #ffb84d;
 }
 
 .notebook-sidebar__placeholder {

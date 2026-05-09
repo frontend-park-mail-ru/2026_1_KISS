@@ -1,7 +1,6 @@
 .notebook-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 8px 16px;
     background: var(--white);
     border-bottom: 1px solid var(--cell-border);
@@ -9,40 +8,12 @@
     flex-shrink: 0;
 }
 
-.notebook-toolbar__search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    background: var(--code-bg);
-    flex: 1;
-    max-width: 320px;
-}
-
-.notebook-toolbar__search-icon {
-    color: var(--line-number-color);
-    flex-shrink: 0;
-}
-
-.notebook-toolbar__search-input {
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 13px;
-    color: var(--dark-primary);
-    width: 100%;
-}
-
-.notebook-toolbar__search-input::placeholder {
-    color: var(--line-number-color);
-}
 
 .notebook-toolbar__buttons {
     display: flex;
     gap: 8px;
     align-items: center;
+    margin-left: auto;
 }
 
 .notebook-toolbar__btn {
@@ -57,14 +28,19 @@
     transition: background 0.15s, color 0.15s;
 }
 
+.notebook-toolbar__btn--run:hover {
+    background: var(--teal-green-dark);
+    color: var(--white);
+}
+
+.notebook-toolbar__btn--add:hover{
+    background: var(--teal-green-10)
+}
+
 .notebook-toolbar__btn--add {
     background: transparent;
     color: var(--teal-green);
     border: 1.5px dashed var(--teal-green);
-}
-
-.notebook-toolbar__btn--add:hover {
-    background: rgba(2, 115, 104, 0.08);
 }
 
 .notebook-toolbar__btn--run {
@@ -73,6 +49,39 @@
     border: 1.5px solid var(--teal-green);
 }
 
-.notebook-toolbar__btn--run:hover {
-    background: #025e55;
+.notebook-toolbar__toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--teal-green);
+    border: 1.5px solid var(--teal-green);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.notebook-toolbar__toggle:hover {
+    background: var(--teal-green-10);
+}
+
+.notebook-toolbar__toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+.notebook-toolbar__toggle-label {
+    white-space: nowrap;
+}
+
+.notebook-toolbar__toggle:has(.notebook-toolbar__toggle-input:checked) {
+    background: var(--teal-green);
+    color: var(--white);
 }
