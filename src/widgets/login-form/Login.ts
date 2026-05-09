@@ -54,7 +54,7 @@ export class Login extends BaseComponent {
     }
 
     #createInputs(): void {
-        const fieldsContainer = this._element.querySelector('.form-fields') as HTMLElement;
+        const fieldsContainer = this._element.querySelector('.form-fields')!;
         const fieldsConfig = [
             { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
             { name: FIELD_NAMES.password, type: TYPE_INPUT_CONFIG.PASSWORD }
@@ -72,7 +72,7 @@ export class Login extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const btn = this._element.querySelector('#login-btn') as HTMLElement;
+        const btn = this._element.querySelector('#login-btn')!;
         this._addListener(btn, 'click', (e: Event) => {
             e.preventDefault();
             this.#submit();
@@ -80,7 +80,7 @@ export class Login extends BaseComponent {
     }
 
     async #submit(): Promise<void> {
-        (this._element.querySelector('.sign-error-message') as HTMLElement).textContent = '';
+        (this._element.querySelector('.sign-error-message')!).textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {
@@ -99,7 +99,7 @@ export class Login extends BaseComponent {
                 }
                 const errorElement = this._element.querySelector(
                     '.sign-error-message'
-                ) as HTMLElement | null;
+                );
                 if (errorElement) {
                     errorElement.textContent = translateError(data.error as string);
                 }

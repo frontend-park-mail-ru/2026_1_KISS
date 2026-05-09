@@ -27,7 +27,7 @@ export class Heartbeat {
             return;
         }
         this.#send();
-        this.#intervalId = setInterval(() => this.#send(), HEARTBEAT_INTERVAL_MS);
+        this.#intervalId = setInterval(() => { this.#send(); }, HEARTBEAT_INTERVAL_MS);
 
         window.addEventListener('beforeunload', this.#onUnload);
     }

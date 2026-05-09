@@ -17,7 +17,7 @@ interface MatchResult extends MatchEntry {
 
 export class FindEngine {
     #matches: MatchEntry[] = [];
-    #currentIdx: number = -1;
+    #currentIdx = -1;
 
     search(cells: CellInput[], query: string, caseSensitive: boolean): number {
         this.#matches = [];

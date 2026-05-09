@@ -66,7 +66,7 @@ export class NotebookWS {
     }
 
     isOpen(): boolean {
-        return !!this.#socket && this.#socket.readyState === WebSocket.OPEN;
+        return Boolean(this.#socket) && this.#socket.readyState === WebSocket.OPEN;
     }
 
     #open(): void {
@@ -94,7 +94,7 @@ export class NotebookWS {
             } catch {
                 return;
             }
-            if (msg && msg.type === 'pong') return;
+            if (msg?.type === 'pong') return;
             this.#onEvent(msg);
         });
 

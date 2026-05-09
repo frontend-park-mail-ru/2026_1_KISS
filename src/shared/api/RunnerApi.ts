@@ -17,7 +17,7 @@ export class RunnerApi {
     }
 
     #formatError(raw: string): string {
-        const jsonMatch = raw.match(/:\s*(\{.+\})\s*$/s);
+        const jsonMatch = /:\s*(\{.+\})\s*$/s.exec(raw);
         if (jsonMatch) {
             try {
                 const parsed = JSON.parse(jsonMatch[1]);

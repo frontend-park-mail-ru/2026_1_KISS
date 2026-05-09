@@ -37,9 +37,9 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateQuota(stats: UserStats): void {
-        const badge = this._element!.querySelector('.stats-section__plan-badge') as HTMLElement;
-        const text = this._element!.querySelector('.stats-section__quota-text') as HTMLElement;
-        const fill = this._element!.querySelector('.stats-section__progress-fill') as HTMLElement;
+        const badge = this._element.querySelector('.stats-section__plan-badge')!;
+        const text = this._element.querySelector('.stats-section__quota-text')!;
+        const fill = this._element.querySelector('.stats-section__progress-fill')!;
 
         const planNames: Record<string, string> = {
             free: 'Free',
@@ -63,14 +63,14 @@ export class StatsSection extends BaseComponent {
             text.textContent = `${this.#formatTime(stats.quota.total_time_seconds)} — безлимитный план`;
             fill.style.width = '0%';
             (
-                this._element!.querySelector('.stats-section__progress-bar') as HTMLElement
+                this._element.querySelector('.stats-section__progress-bar')!
             ).style.display = 'none';
         }
     }
 
     #populateInfo(stats: UserStats): void {
         const set = (key: string, value: string) => {
-            const el = this._element!.querySelector(`[data-info="${key}"]`);
+            const el = this._element.querySelector(`[data-info="${key}"]`);
             if (el) el.textContent = value;
         };
 
@@ -92,7 +92,7 @@ export class StatsSection extends BaseComponent {
 
     #populateKPI(stats: UserStats): void {
         const set = (key: string, value: number) => {
-            const el = this._element!.querySelector(`[data-kpi="${key}"]`);
+            const el = this._element.querySelector(`[data-kpi="${key}"]`);
             if (el) el.textContent = String(value);
         };
         set('notebooks', stats.resources.notebook_count);
@@ -101,17 +101,17 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateChart(stats: UserStats): void {
-        const container = this._element!.querySelector(
+        const container = this._element.querySelector(
             '.stats-section__chart-container'
-        ) as HTMLElement;
+        )!;
         const filled = fillDays(stats.resources.daily_executions || [], 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 
     #populateStorage(stats: UserStats): void {
-        const container = this._element!.querySelector(
+        const container = this._element.querySelector(
             '.stats-section__storage-cards'
-        ) as HTMLElement;
+        )!;
         const categories = Object.keys(stats.storage.files_by_category || {});
 
         if (categories.length === 0) {

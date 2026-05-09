@@ -59,11 +59,11 @@ export class ContainerStats extends BaseComponent {
         memory_limit: number;
         memory_percent: number;
     }): void {
-        this._element!.classList.remove('container-stats--inactive');
+        this._element.classList.remove('container-stats--inactive');
 
-        const ramEl = this._element!.querySelector('[data-metric="ram"]') as HTMLElement;
-        const cpuEl = this._element!.querySelector('[data-metric="cpu"]') as HTMLElement;
-        const fill = this._element!.querySelector('.container-stats__bar-fill') as HTMLElement;
+        const ramEl = this._element.querySelector('[data-metric="ram"]')!;
+        const cpuEl = this._element.querySelector('[data-metric="cpu"]')!;
+        const fill = this._element.querySelector('.container-stats__bar-fill')!;
 
         const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
         const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);
@@ -84,9 +84,9 @@ export class ContainerStats extends BaseComponent {
     }
 
     #setInactive(): void {
-        this._element!.classList.add('container-stats--inactive');
-        const ramEl = this._element!.querySelector('[data-metric="ram"]') as HTMLElement;
-        const cpuEl = this._element!.querySelector('[data-metric="cpu"]') as HTMLElement;
+        this._element.classList.add('container-stats--inactive');
+        const ramEl = this._element.querySelector('[data-metric="ram"]')!;
+        const cpuEl = this._element.querySelector('[data-metric="cpu"]')!;
         ramEl.textContent = '—';
         cpuEl.textContent = '—';
     }

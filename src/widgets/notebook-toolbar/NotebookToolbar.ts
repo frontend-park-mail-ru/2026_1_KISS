@@ -62,7 +62,7 @@ export class NotebookToolbar extends BaseComponent {
 
         const toggle = this._element.querySelector(
             '.notebook-toolbar__toggle'
-        ) as HTMLElement | null;
+        );
         const toggleInput = toggle?.querySelector('input') as HTMLInputElement | null;
         const onToggle = this.#onToggleComments;
         if (toggle && toggleInput) {

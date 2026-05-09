@@ -79,13 +79,13 @@ export class NotebookSidebar extends BaseComponent {
     getFindQuery(): FindQuery {
         const findInput = this._element.querySelector(
             '.notebook-sidebar__find-input'
-        ) as HTMLInputElement | null;
+        );
         const replaceInput = this._element.querySelector(
             '.notebook-sidebar__replace-input'
-        ) as HTMLInputElement | null;
+        );
         const caseToggle = this._element.querySelector(
             '.notebook-sidebar__case-toggle'
-        ) as HTMLInputElement | null;
+        );
         return {
             query: findInput ? findInput.value : '',
             replacement: replaceInput ? replaceInput.value : '',
@@ -178,12 +178,12 @@ export class NotebookSidebar extends BaseComponent {
             const stats = await this.#runnerApi.getContainerStats(this.#notebookId);
             panel.classList.remove('container-stats--inactive');
 
-            const ramEl = panel.querySelector('[data-metric="ram"]') as HTMLElement;
-            const cpuEl = panel.querySelector('[data-metric="cpu"]') as HTMLElement;
-            const coresEl = panel.querySelector('[data-metric="cores"]') as HTMLElement;
-            const diskEl = panel.querySelector('[data-metric="disk"]') as HTMLElement;
-            const gpuEl = panel.querySelector('[data-metric="gpu"]') as HTMLElement;
-            const fill = panel.querySelector('.container-stats__bar-fill') as HTMLElement;
+            const ramEl = panel.querySelector('[data-metric="ram"]')!;
+            const cpuEl = panel.querySelector('[data-metric="cpu"]')!;
+            const coresEl = panel.querySelector('[data-metric="cores"]')!;
+            const diskEl = panel.querySelector('[data-metric="disk"]')!;
+            const gpuEl = panel.querySelector('[data-metric="gpu"]')!;
+            const fill = panel.querySelector('.container-stats__bar-fill')!;
 
             const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
             const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);

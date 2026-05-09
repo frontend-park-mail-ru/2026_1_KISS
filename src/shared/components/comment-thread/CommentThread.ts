@@ -54,8 +54,8 @@ export class CommentThread extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const form = this._element.querySelector('.comment-thread__form') as HTMLFormElement;
-        const textarea = form.querySelector('.comment-thread__textarea') as HTMLTextAreaElement;
+        const form = this._element.querySelector('.comment-thread__form')!;
+        const textarea = form.querySelector('.comment-thread__textarea')!;
 
         if (this.#canComment) {
             form.hidden = false;
@@ -63,7 +63,7 @@ export class CommentThread extends BaseComponent {
 
         const autoResize = () => {
             textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
+            textarea.style.height = `${textarea.scrollHeight  }px`;
         };
 
         this._addListener(form, 'submit', async (e: Event) => {
@@ -75,7 +75,7 @@ export class CommentThread extends BaseComponent {
                 const comment = await this.#api.addComment(this.#notebookId, this.#blockId, text);
                 textarea.value = '';
                 textarea.style.height = '';
-                this.appendComment(comment as unknown as Comment);
+                this.appendComment(comment);
             } catch (err: unknown) {
                 console.error('Failed to add comment:', err);
             }
@@ -91,7 +91,7 @@ export class CommentThread extends BaseComponent {
 
         this._addListener(this._element, 'click', (e: unknown) => {
             const target = (e as MouseEvent).target as HTMLElement;
-            const deleteBtn = target.closest('.comment-thread__delete') as HTMLElement | null;
+            const deleteBtn = target.closest('.comment-thread__delete');
             if (deleteBtn) {
                 const commentId = deleteBtn.dataset.commentId;
                 if (commentId) this.#deleteComment(Number(commentId));
@@ -102,7 +102,7 @@ export class CommentThread extends BaseComponent {
     async #loadComments(): Promise<void> {
         try {
             const comments = await this.#api.getComments(this.#notebookId, this.#blockId);
-            this.#comments = comments as unknown as Comment[];
+            this.#comments = comments;
             this.#renderComments();
         } catch (err: unknown) {
             console.error('Failed to load comments:', err);
@@ -110,7 +110,7 @@ export class CommentThread extends BaseComponent {
     }
 
     #renderComments(): void {
-        const list = this._element.querySelector('.comment-thread__list') as HTMLElement;
+        const list = this._element.querySelector('.comment-thread__list')!;
         const form = list.querySelector('.comment-thread__form');
         list.innerHTML = this.#comments
             .map((c) => CommentItemTemplate(c, c.user_id === this.#currentUserId || this.#isOwner))
@@ -129,7 +129,7 @@ export class CommentThread extends BaseComponent {
 
     appendComment(comment: Comment): void {
         this.#comments.push(comment);
-        const list = this._element.querySelector('.comment-thread__list') as HTMLElement;
+        const list = this._element.querySelector('.comment-thread__list')!;
         const form = list.querySelector('.comment-thread__form');
         const html = CommentItemTemplate(
             comment,

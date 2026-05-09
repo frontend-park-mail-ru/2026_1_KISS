@@ -52,16 +52,14 @@ function processFile(filePath, alias = null) {
             continue;
         }
 
-        result += line + '\n';
+        result += `${line  }\n`;
     }
 
     return result;
 }
 
 function substituteVariables(css) {
-    return css.replace(/(\w+\.\$[\w-]+|\$[\w-]+)/g, (match) => {
-        return variables.get(match) || match;
-    });
+    return css.replace(/(\w+\.\$[\w-]+|\$[\w-]+)/g, (match) => variables.get(match) || match);
 }
 
 function expandNesting(css) {
@@ -158,7 +156,7 @@ function transpile() {
     let css = processFile(ENTRY);
     css = substituteVariables(css);
     css = expandNesting(css);
-    css = css.replace(/\n{3,}/g, '\n\n').trim() + '\n';
+    css = `${css.replace(/\n{3,}/g, '\n\n').trim()  }\n`;
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     fs.writeFileSync(OUT, css, 'utf-8');
     console.log(`[scss] -> dist/app.css (${(css.length / 1024).toFixed(1)} kB)`);

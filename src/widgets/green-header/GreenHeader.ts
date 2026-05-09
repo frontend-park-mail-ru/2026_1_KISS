@@ -50,7 +50,7 @@ export class GreenHeader {
             'afterbegin',
             GreenHeaderTemplate(this.#config as Parameters<typeof GreenHeaderTemplate>[0])
         );
-        this.#header = this.#parent.querySelector('.green-header') as HTMLElement;
+        this.#header = this.#parent.querySelector('.green-header')!;
         this.#attachDropdownEvents();
     }
 
@@ -72,7 +72,7 @@ export class GreenHeader {
 
         this.#addListener(dropdown, 'click', (e: Event) => {
             e.stopPropagation();
-            const item = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+            const item = (e.target as HTMLElement).closest('[data-action]');
             if (!item) return;
             const action = item.dataset.action;
             if (action === 'profile' && this.#config.onProfile) {

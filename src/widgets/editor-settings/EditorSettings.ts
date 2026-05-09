@@ -24,14 +24,14 @@ export class EditorSettings extends BaseComponent {
 
     #loadSettings(): void {
         try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) as string);
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
             if (!saved) return;
 
             const selects = this._element.querySelectorAll<HTMLSelectElement>(
                 '.editor-settings__select'
             );
             selects.forEach((select) => {
-                const key = select.dataset.setting as string;
+                const key = select.dataset.setting!;
                 if (saved[key]) {
                     select.value = saved[key];
                 }
@@ -45,7 +45,7 @@ export class EditorSettings extends BaseComponent {
         const selects = this._element.querySelectorAll<HTMLSelectElement>(
             '.editor-settings__select'
         );
-        const msgEl = this._element.querySelector('.editor-settings__saved-msg') as HTMLElement;
+        const msgEl = this._element.querySelector('.editor-settings__saved-msg')!;
 
         selects.forEach((select) => {
             this._addListener(select, 'change', () => {
@@ -64,7 +64,7 @@ export class EditorSettings extends BaseComponent {
         );
         const settings: Record<string, string> = {};
         selects.forEach((select) => {
-            settings[select.dataset.setting as string] = select.value;
+            settings[select.dataset.setting!] = select.value;
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     }

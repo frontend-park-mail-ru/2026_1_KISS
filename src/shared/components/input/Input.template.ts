@@ -22,9 +22,9 @@ export function InputTemplate(ctx: {
                 placeholder="${escapeHtml(ctx.placeholder)}"
                 class="input-field"
             ${ctx.required ? 'required' : ''}
-            ${ctx.pattern ? 'pattern="' + escapeHtml(ctx.pattern) + '"' : ''}
-            ${ctx.minlength ? 'minlength="' + escapeHtml(ctx.minlength) + '"' : ''}
-            ${ctx.maxlength ? 'maxlength="' + escapeHtml(ctx.maxlength) + '"' : ''}
+            ${ctx.pattern ? `pattern="${  escapeHtml(ctx.pattern)  }"` : ''}
+            ${ctx.minlength ? `minlength="${  escapeHtml(ctx.minlength)  }"` : ''}
+            ${ctx.maxlength ? `maxlength="${  escapeHtml(ctx.maxlength)  }"` : ''}
         />
         ${
             ctx.isPassword

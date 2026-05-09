@@ -50,7 +50,7 @@ export class FilesTable extends BaseComponent {
     }
 
     unmount(): void {
-        this.#kebabMenus.forEach((m) => m.unmount());
+        this.#kebabMenus.forEach((m) => { m.unmount(); });
         this.#kebabMenus = [];
         if (!this._isMounted) return;
         super.unmount();
@@ -60,8 +60,8 @@ export class FilesTable extends BaseComponent {
         this.#notebooks = [...notebooks];
         this.#ownerName = ownerName;
 
-        const table = this._element.querySelector('.files-table__table') as HTMLElement;
-        const emptyState = this._element.querySelector('.files-table__empty-state') as HTMLElement;
+        const table = this._element.querySelector('.files-table__table')!;
+        const emptyState = this._element.querySelector('.files-table__empty-state')!;
 
         if (notebooks.length === 0) {
             table.style.display = 'none';
@@ -75,7 +75,7 @@ export class FilesTable extends BaseComponent {
     }
 
     #renderRows(): void {
-        this.#kebabMenus.forEach((m) => m.unmount());
+        this.#kebabMenus.forEach((m) => { m.unmount(); });
         this.#kebabMenus = [];
 
         const sorted = [...this.#notebooks];
@@ -99,7 +99,7 @@ export class FilesTable extends BaseComponent {
             minute: '2-digit'
         });
 
-        const tbody = this._element.querySelector('.files-table__body') as HTMLElement;
+        const tbody = this._element.querySelector('.files-table__body')!;
         tbody.innerHTML = '';
 
         sorted.forEach((nb) => {
@@ -149,13 +149,13 @@ export class FilesTable extends BaseComponent {
                     actions.push({
                         name: 'rename',
                         label: 'Переименовать',
-                        handler: () => this.#startRename(tr, titleSpan, nb)
+                        handler: () => { this.#startRename(tr, titleSpan, nb); }
                     });
                 }
                 actions.push({
                     name: 'delete',
                     label: 'Удалить',
-                    handler: () => this.#onDelete(nb.id)
+                    handler: () => { this.#onDelete(nb.id); }
                 });
                 const menu = new KebabMenu(kebabCell, actions);
                 menu.mount();
@@ -233,15 +233,15 @@ export class FilesTable extends BaseComponent {
             if (this.#sortOpen) this.#closeSortDropdown();
         });
 
-        const dropdown = this._element.querySelector('.files-table__sort-dropdown') as HTMLElement;
+        const dropdown = this._element.querySelector('.files-table__sort-dropdown')!;
         this._addListener(dropdown, 'click', (e: Event) => {
             e.stopPropagation();
             const arrow = (e.target as HTMLElement).closest(
                 '.files-table__sort-arrow'
-            ) as HTMLElement | null;
+            );
             if (!arrow) return;
 
-            const option = arrow.closest('.files-table__sort-option') as HTMLElement;
+            const option = arrow.closest('.files-table__sort-option')!;
             const field = option.dataset.sort!;
             const dir = arrow.dataset.dir!;
 

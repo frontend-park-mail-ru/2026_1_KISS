@@ -23,7 +23,7 @@ export class ProfilePage {
     #header: GreenHeader | null = null;
     #httpClient: HttpClient;
     #user: Record<string, unknown> | null = null;
-    #activeKey: string = 'profile';
+    #activeKey = 'profile';
     #activeSection: { mount(): void; unmount(): void } | null = null;
     #contentArea: HTMLElement | null = null;
     #feedbackModal: FeedbackModal | null = null;
@@ -72,7 +72,7 @@ export class ProfilePage {
             }
         };
         if (this.#user!.is_admin) {
-            headerConfig.onAdmin = () => Router.getInstance()!.navigate('/admin');
+            headerConfig.onAdmin = () => { Router.getInstance()!.navigate('/admin'); };
         }
         this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
@@ -82,7 +82,7 @@ export class ProfilePage {
         const main = tempContainer.firstElementChild!;
         this.#root.appendChild(main);
 
-        this.#contentArea = main.querySelector('.profile-page__content') as HTMLElement;
+        this.#contentArea = main.querySelector('.profile-page__content')!;
         this.#attachSidebarEvents(main as HTMLElement);
         this.#showSection('profile');
     }
@@ -93,7 +93,7 @@ export class ProfilePage {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
                 if (section && section !== this.#activeKey) {
-                    items.forEach((i) => i.classList.remove('profile-page__sidebar-item--active'));
+                    items.forEach((i) => { i.classList.remove('profile-page__sidebar-item--active'); });
                     item.classList.add('profile-page__sidebar-item--active');
                     this.#showSection(section);
                 }

@@ -80,13 +80,13 @@ export class HttpClient {
         return fetch(this.baseUrl + url, {
             method: 'POST',
             headers: uploadHeaders,
-            body: body,
+            body,
             credentials: 'include'
         });
     }
 
     #getCookie(name: string): string {
-        const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        const match = new RegExp(`(?:^|; )${  name  }=([^;]*)`).exec(document.cookie);
         return match ? decodeURIComponent(match[1]) : '';
     }
 
@@ -102,8 +102,8 @@ export class HttpClient {
             }
         }
         return fetch(this.baseUrl + url, {
-            method: method,
-            headers: headers,
+            method,
+            headers,
             body: data ? JSON.stringify(data) : null,
             credentials: 'include'
         });

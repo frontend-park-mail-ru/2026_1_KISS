@@ -77,7 +77,7 @@ export class FeedbackPage {
 
     #renderForm(): void {
         this.#root.innerHTML = '';
-        this.#setEsc(() => this.#close());
+        this.#setEsc(() => { this.#close(); });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -127,20 +127,20 @@ export class FeedbackPage {
     #attachFormEvents(modal: HTMLElement): void {
         modal
             .querySelector('.feedback-modal__close-btn')!
-            .addEventListener('click', () => this.#close());
+            .addEventListener('click', () => { this.#close(); });
 
         const categoriesContainer = modal.querySelector('.feedback-modal__categories')!;
         categoriesContainer.addEventListener('click', (e: Event) => {
-            const card = (e.target as HTMLElement).closest('[data-category]') as HTMLElement | null;
+            const card = (e.target as HTMLElement).closest('[data-category]');
             if (!card) return;
             categoriesContainer
                 .querySelectorAll('.feedback-modal__category-card')
-                .forEach((c) => c.classList.remove('feedback-modal__category-card--selected'));
+                .forEach((c) => { c.classList.remove('feedback-modal__category-card--selected'); });
             card.classList.add('feedback-modal__category-card--selected');
             this.#selectedCategory = card.dataset.category!;
         });
 
-        const textarea = modal.querySelector('.feedback-modal__textarea') as HTMLTextAreaElement;
+        const textarea = modal.querySelector('.feedback-modal__textarea')!;
         const charCount = modal.querySelector('.feedback-modal__char-count')!;
         textarea.addEventListener('input', () => {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
@@ -155,9 +155,9 @@ export class FeedbackPage {
     }
 
     async #handleSubmit(modal: HTMLElement): Promise<void> {
-        const errorEl = modal.querySelector('.feedback-modal__error') as HTMLElement;
-        const submitBtn = modal.querySelector('.feedback-modal__submit-btn') as HTMLButtonElement;
-        const textarea = modal.querySelector('.feedback-modal__textarea') as HTMLTextAreaElement;
+        const errorEl = modal.querySelector('.feedback-modal__error')!;
+        const submitBtn = modal.querySelector('.feedback-modal__submit-btn')!;
+        const textarea = modal.querySelector('.feedback-modal__textarea')!;
         errorEl.hidden = true;
 
         if (!this.#selectedCategory) {
@@ -189,7 +189,7 @@ export class FeedbackPage {
 
     #renderSuccess(): void {
         this.#root.innerHTML = '';
-        this.#setEsc(() => this.#close());
+        this.#setEsc(() => { this.#close(); });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -217,7 +217,7 @@ export class FeedbackPage {
         this.#root.appendChild(modal);
         modal
             .querySelector('.feedback-modal__close-btn')!
-            .addEventListener('click', () => this.#close());
+            .addEventListener('click', () => { this.#close(); });
         modal
             .querySelector('.feedback-modal__history-btn')!
             .addEventListener('click', () => this.#renderList());
@@ -225,7 +225,7 @@ export class FeedbackPage {
 
     async #renderList(): Promise<void> {
         this.#root.innerHTML = '';
-        this.#setEsc(() => this.#close());
+        this.#setEsc(() => { this.#close(); });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -249,7 +249,7 @@ export class FeedbackPage {
         this.#root.appendChild(modal);
         modal
             .querySelector('.feedback-modal__close-btn')!
-            .addEventListener('click', () => this.#close());
+            .addEventListener('click', () => { this.#close(); });
         modal.querySelector('.feedback-modal__new-btn')!.addEventListener('click', () => {
             this.#selectedCategory = null;
             this.#renderForm();
@@ -278,7 +278,7 @@ export class FeedbackPage {
                     STATUS_LABELS[issue.status as string] || (issue.status as string);
                 const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU');
                 const content = issue.content as string;
-                const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
+                const preview = content.length > 100 ? `${content.substring(0, 100)  }...` : content;
 
                 card.innerHTML = `
                     <div class="feedback-modal__issue-meta">
@@ -291,7 +291,7 @@ export class FeedbackPage {
 
                 const deleteBtn = card.querySelector(
                     '.feedback-modal__issue-delete-btn'
-                ) as HTMLButtonElement;
+                )!;
                 deleteBtn.addEventListener('click', async (e: Event) => {
                     e.stopPropagation();
                     await this.#handleIssueDelete(
@@ -342,7 +342,7 @@ export class FeedbackPage {
 
     async #renderDetail(issueId: number): Promise<void> {
         this.#root.innerHTML = '';
-        this.#setEsc(() => this.#close());
+        this.#setEsc(() => { this.#close(); });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -362,7 +362,7 @@ export class FeedbackPage {
         this.#root.appendChild(modal);
         modal
             .querySelector('.feedback-modal__close-btn')!
-            .addEventListener('click', () => this.#close());
+            .addEventListener('click', () => { this.#close(); });
 
         const body = modal.querySelector('.feedback-modal__detail-body')!;
 
@@ -423,10 +423,10 @@ export class FeedbackPage {
 
             const replyTextarea = body.querySelector(
                 '.feedback-modal__reply-textarea'
-            ) as HTMLTextAreaElement;
+            )!;
             const replyCount = body.querySelector('.feedback-modal__reply-count')!;
-            const replyBtn = body.querySelector('.feedback-modal__reply-btn') as HTMLButtonElement;
-            const replyError = body.querySelector('.feedback-modal__reply-error') as HTMLElement;
+            const replyBtn = body.querySelector('.feedback-modal__reply-btn')!;
+            const replyError = body.querySelector('.feedback-modal__reply-error')!;
 
             replyTextarea.addEventListener('input', () => {
                 replyCount.textContent = `${replyTextarea.value.length} / 2000`;

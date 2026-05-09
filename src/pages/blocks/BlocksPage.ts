@@ -23,18 +23,18 @@ export class BlocksPage {
     #cellList: CellList | null = null;
     #notebook: Record<string, unknown> | null = null;
     #userId: number | null = null;
-    #username: string = '';
-    #avatarUrl: string = '';
-    #isAdmin: boolean = false;
-    #isOwner: boolean = false;
-    #canComment: boolean = false;
+    #username = '';
+    #avatarUrl = '';
+    #isAdmin = false;
+    #isOwner = false;
+    #canComment = false;
     #httpClient: HttpClient;
     #runnerApi: RunnerApi;
     #notebookApi: NotebookApi;
 
-    #executionCounter: number = 0;
-    #execNumbers: Map<number | string, number> = new Map();
-    #lastOutputs: Map<number | string, Record<string, unknown>> = new Map();
+    #executionCounter = 0;
+    #execNumbers = new Map<number | string, number>();
+    #lastOutputs = new Map<number | string, Record<string, unknown>>();
     #beforeUnloadHandler: (() => void) | null = null;
     #feedbackModal: FeedbackModal | null = null;
 
@@ -124,9 +124,9 @@ export class BlocksPage {
             onRename: isOwner ? (newTitle: string) => this.#renameNotebook(newTitle) : null,
             onSave: () => this.#saveAll(),
             onSaveAs: () => this.#exportAsIpynb(),
-            onOpen: () => this.#importNotebook(),
-            onProfile: () => Router.getInstance()!.navigate('/profile'),
-            onAdmin: this.#isAdmin ? () => Router.getInstance()!.navigate('/admin') : null,
+            onOpen: () => { this.#importNotebook(); },
+            onProfile: () => { Router.getInstance()!.navigate('/profile'); },
+            onAdmin: this.#isAdmin ? () => { Router.getInstance()!.navigate('/admin'); } : null,
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -139,7 +139,7 @@ export class BlocksPage {
                 }
                 Router.getInstance()!.navigate('/sign');
             },
-            onShare: isOwner ? () => this.#openShareModal() : null
+            onShare: isOwner ? () => { this.#openShareModal(); } : null
         });
         this.#header.mount();
 
@@ -154,7 +154,7 @@ export class BlocksPage {
         const commentsVisible = localStorage.getItem('notebook_comments_visible') === 'true';
         const main = document.createElement('main');
         main.className =
-            'blocks-page__main' + (commentsVisible ? ' blocks-page__main--with-comments' : '');
+            `blocks-page__main${  commentsVisible ? ' blocks-page__main--with-comments' : ''}`;
         body.appendChild(main);
 
         this.#toolbar = new NotebookToolbar(headerArea, {
@@ -171,15 +171,15 @@ export class BlocksPage {
         this.#toolbar.mount();
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
-            onFind: (q: { query: string; caseSensitive: boolean }) => this.#handleFind(q),
+            onFind: (q: { query: string; caseSensitive: boolean }) => { this.#handleFind(q); },
             onNext: (q: { query: string; caseSensitive: boolean }) =>
-                this.#handleFindNav(q, 'next'),
+                { this.#handleFindNav(q, 'next'); },
             onPrev: (q: { query: string; caseSensitive: boolean }) =>
-                this.#handleFindNav(q, 'prev'),
+                { this.#handleFindNav(q, 'prev'); },
             onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }) =>
-                this.#handleReplace(q),
+                { this.#handleReplace(q); },
             onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }) =>
-                this.#handleReplaceAll(q),
+                { this.#handleReplaceAll(q); },
             notebookId: this.#notebookId
         });
         this.#sidebar.mount();
@@ -190,7 +190,7 @@ export class BlocksPage {
             isOwner: this.#isOwner,
             canComment: this.#canComment,
             onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
-            onRerender: () => this.#reapplyCellState(),
+            onRerender: () => { this.#reapplyCellState(); },
             onDeleteCell: (blockId: number | string) => this.#deleteBlock(blockId),
             onSaveContent: (blockId: number | string, content: string) =>
                 this.#saveTextCellContent(blockId, content),
@@ -218,7 +218,7 @@ export class BlocksPage {
     #openWebSocket(): void {
         let skipNextResync = true;
         this.#ws = new NotebookWS(this.#notebookId, {
-            onEvent: (event: Record<string, unknown>) => this.#handleWSEvent(event),
+            onEvent: (event: Record<string, unknown>) => { this.#handleWSEvent(event); },
             onConnect: () => {
                 if (skipNextResync) {
                     skipNextResync = false;
@@ -240,7 +240,7 @@ export class BlocksPage {
     static readonly #STREAM_THROTTLE_MS = 200;
 
     #handleWSEvent(event: Record<string, unknown>): void {
-        if (!event || !event.type) return;
+        if (!event?.type) return;
         if (event.type === 'error' || event.type === 'execute_error') {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
@@ -472,7 +472,7 @@ export class BlocksPage {
                     outputs: result.outputs
                 });
                 cell.setExecutionNumber(this.#executionCounter);
-                cell.setOutput(this.#lastOutputs.get(blockId)!);
+                cell.setOutput(this.#lastOutputs.get(blockId));
             } catch (e: unknown) {
                 const errOut = { error: (e as Error).message || String(e) };
                 this.#lastOutputs.set(blockId, errOut);
@@ -499,7 +499,7 @@ export class BlocksPage {
             }
         });
 
-        codeCells.forEach((c) => c.setRunning(true));
+        codeCells.forEach((c) => { c.setRunning(true); });
 
         try {
             const results = await this.#runnerApi.executeFromPosition(this.#notebookId, 0);
@@ -516,7 +516,7 @@ export class BlocksPage {
 
                 if (!r) {
                     if (savedOutputs.has(blockId)) {
-                        c.setOutput(savedOutputs.get(blockId)!);
+                        c.setOutput(savedOutputs.get(blockId));
                     }
                     return;
                 }
@@ -545,14 +545,14 @@ export class BlocksPage {
             codeCells.forEach((c) => {
                 const blockId = c.getBlockId();
                 if (savedOutputs.has(blockId)) {
-                    c.setOutput(savedOutputs.get(blockId)!);
+                    c.setOutput(savedOutputs.get(blockId));
                 } else {
                     this.#lastOutputs.set(blockId, errOut);
                     c.setOutput(errOut);
                 }
             });
         } finally {
-            codeCells.forEach((c) => c.setRunning(false));
+            codeCells.forEach((c) => { c.setRunning(false); });
         }
     }
 
@@ -612,28 +612,28 @@ export class BlocksPage {
             const source = content
                 ? content
                       .split('\n')
-                      .map((l: string, i: number, a: string[]) => (i < a.length - 1 ? l + '\n' : l))
+                      .map((l: string, i: number, a: string[]) => (i < a.length - 1 ? `${l  }\n` : l))
                 : [];
 
             if (!isCode) {
                 return { cell_type: 'markdown', metadata: {}, source };
             }
 
-            const out = this.#lastOutputs.get(blockId) as Record<string, unknown> | undefined;
+            const out = this.#lastOutputs.get(blockId);
             const outputs: Record<string, unknown>[] = [];
             if (out) {
                 if ((out.stdout as string[])?.length) {
                     outputs.push({
                         output_type: 'stream',
                         name: 'stdout',
-                        text: (out.stdout as string[]).map((s: string) => s + '\n')
+                        text: (out.stdout as string[]).map((s: string) => `${s  }\n`)
                     });
                 }
                 if ((out.stderr as string[])?.length) {
                     outputs.push({
                         output_type: 'stream',
                         name: 'stderr',
-                        text: (out.stderr as string[]).map((s: string) => s + '\n')
+                        text: (out.stderr as string[]).map((s: string) => `${s  }\n`)
                     });
                 }
                 if (out.result) {
@@ -681,7 +681,7 @@ export class BlocksPage {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = ((this.#notebook?.title as string) || 'Untitled') + '.ipynb';
+        a.download = `${(this.#notebook?.title as string) || 'Untitled'  }.ipynb`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -801,7 +801,7 @@ export class BlocksPage {
     #collectSearchableCells(): { id: number | string; kind: 'code' | 'text'; content: string }[] {
         return this.#cellList!.getAllCells().map((c) => ({
             id: c.getBlockId(),
-            kind: (c instanceof CodeCell ? 'code' : 'text') as 'code' | 'text',
+            kind: (c instanceof CodeCell ? 'code' : 'text'),
             content: c.getContent()
         }));
     }
@@ -831,7 +831,7 @@ export class BlocksPage {
     #focusCurrentMatch(): void {
         this.#cellList!.getAllCells()
             .filter((c): c is TextCell => c instanceof TextCell)
-            .forEach((c) => c.clearHighlights());
+            .forEach((c) => { c.clearHighlights(); });
 
         const m = this.#findEngine.current();
         if (!m) return;
