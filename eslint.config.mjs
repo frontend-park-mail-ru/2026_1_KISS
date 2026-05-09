@@ -14,7 +14,7 @@ const jsdocRequiredFiles = [
     'src/pages/sign/**/*.ts',
     'src/pages/profile/**/*.ts',
     'src/pages/files/**/*.ts',
-    'src/feedback/index.ts'
+    'src/feedback/**/*.ts'
 ];
 
 const jsdocRules = {
