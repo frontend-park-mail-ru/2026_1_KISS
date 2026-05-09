@@ -1,5 +1,6 @@
 import { HttpClient } from '../http_client/HttpClient.js';
 import type { Comment } from '../types.js';
+import type { ApiEnvelope } from './types.js';
 
 export class NotebookApi {
     #http: HttpClient;
@@ -8,12 +9,12 @@ export class NotebookApi {
         this.#http = HttpClient.getInstance();
     }
 
-    async #parse(response: Response): Promise<unknown> {
-        const body = await response.json().catch(() => ({}));
+    async #parse<T>(response: Response): Promise<T> {
+        const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            throw new Error(body?.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${response.status}`);
         }
-        return body.data;
+        return body.data as T;
     }
 
     public async getComments(
@@ -23,7 +24,7 @@ export class NotebookApi {
         const response = await this.#http.get(
             `/notebooks/${notebookId}/blocks/${blockId}/comments`
         );
-        return this.#parse(response) as Promise<Comment[]>;
+        return this.#parse<Comment[]>(response);
     }
 
     public async addComment(
@@ -35,7 +36,7 @@ export class NotebookApi {
             `/notebooks/${notebookId}/blocks/${blockId}/comments`,
             { text }
         );
-        return this.#parse(response) as Promise<Comment>;
+        return this.#parse<Comment>(response);
     }
 
     public async deleteComment(
@@ -47,8 +48,8 @@ export class NotebookApi {
             `/notebooks/${notebookId}/blocks/${blockId}/comments/${commentId}`
         );
         if (!response.ok) {
-            const body = await response.json().catch(() => ({}));
-            throw new Error(body?.error ?? `HTTP ${response.status}`);
+            const body = (await response.json().catch(() => ({}))) as { error?: string };
+            throw new Error(body.error ?? `HTTP ${response.status}`);
         }
     }
 }

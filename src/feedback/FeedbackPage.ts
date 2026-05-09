@@ -266,11 +266,7 @@ export class FeedbackPage {
 
         try {
             const data = await this.#issueApi.getIssues();
-            const issues: Record<string, unknown>[] = Array.isArray(data)
-                ? data
-                : (((data as Record<string, unknown>).issues as
-                      | Record<string, unknown>[]
-                      | undefined) ?? []);
+            const issues = data.issues as unknown as Record<string, unknown>[];
 
             if (issues.length === 0) {
                 listContent.innerHTML =
@@ -380,7 +376,10 @@ export class FeedbackPage {
         const body = nn(modal.querySelector('.feedback-modal__detail-body'));
 
         try {
-            const issue = (await this.#issueApi.getIssue(issueId)) as Record<string, unknown>;
+            const issue = (await this.#issueApi.getIssue(issueId)) as unknown as Record<
+                string,
+                unknown
+            >;
             const cat = CATEGORIES.find((c) => c.value === issue.category);
             const statusLabel = STATUS_LABELS[issue.status as string] || (issue.status as string);
             const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU', {

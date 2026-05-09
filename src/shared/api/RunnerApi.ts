@@ -1,4 +1,13 @@
 import { HttpClient } from '../http_client/HttpClient.js';
+import type { ApiEnvelope, ContainerStatsDTO, ExecutionResultDTO } from './types.js';
+
+interface FastApiValidationDetail {
+    msg?: string;
+}
+
+interface FastApiValidationError {
+    detail?: FastApiValidationDetail[];
+}
 
 export class RunnerApi {
     #http: HttpClient;
@@ -7,23 +16,23 @@ export class RunnerApi {
         this.#http = HttpClient.getInstance();
     }
 
-    async #parse(response: Response): Promise<unknown> {
-        const body = await response.json().catch(() => ({}));
+    async #parse<T>(response: Response): Promise<T> {
+        const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            const err = body?.error ?? `HTTP ${response.status}`;
+            const err = body.error ?? `HTTP ${response.status}`;
             throw new Error(this.#formatError(err));
         }
-        return body.data;
+        return body.data as T;
     }
 
     #formatError(raw: string): string {
         const jsonMatch = /:\s*(\{.+\})\s*$/s.exec(raw);
         if (jsonMatch) {
             try {
-                const parsed = JSON.parse(jsonMatch[1]);
+                const parsed = JSON.parse(jsonMatch[1]) as FastApiValidationError;
                 if (Array.isArray(parsed.detail) && parsed.detail.length > 0) {
                     return parsed.detail
-                        .map((d: { msg?: string }) => d.msg)
+                        .map((d) => d.msg)
                         .filter(Boolean)
                         .join('; ');
                 }
@@ -37,28 +46,29 @@ export class RunnerApi {
     public async executeBlock(
         notebookId: number | string,
         blockPosition: number
-    ): Promise<unknown> {
+    ): Promise<ExecutionResultDTO> {
         const response = await this.#http.post(
             `/runner/${notebookId}/block?block_position=${blockPosition}`
         );
-        return this.#parse(response);
+        return this.#parse<ExecutionResultDTO>(response);
     }
 
     public async executeFromPosition(
         notebookId: number | string,
         startPosition = 0
-    ): Promise<unknown> {
+    ): Promise<ExecutionResultDTO[]> {
         const response = await this.#http.post(
             `/runner/${notebookId}?block_position=${startPosition}`
         );
-        return this.#parse(response);
+        return this.#parse<ExecutionResultDTO[]>(response);
     }
 
     public stopSession(notebookId: number | string): Promise<void> {
         try {
-            return this.#http.post(`/runner/${notebookId}/stop`).catch(() => {
-                /* noop */
-            }) as Promise<void>;
+            return this.#http.post(`/runner/${notebookId}/stop`).then(
+                () => undefined,
+                () => undefined
+            );
         } catch {
             return Promise.resolve();
         }
@@ -70,24 +80,8 @@ export class RunnerApi {
         }
     }
 
-    public async getContainerStats(notebookId: number | string): Promise<{
-        cpu_percent: number;
-        memory_usage: number;
-        memory_limit: number;
-        memory_percent: number;
-        cpu_cores: number;
-        disk_limit_bytes: number;
-        gpu_available: boolean;
-    }> {
+    public async getContainerStats(notebookId: number | string): Promise<ContainerStatsDTO> {
         const response = await this.#http.get(`/runner/${notebookId}/stats`);
-        return this.#parse(response) as Promise<{
-            cpu_percent: number;
-            memory_usage: number;
-            memory_limit: number;
-            memory_percent: number;
-            cpu_cores: number;
-            disk_limit_bytes: number;
-            gpu_available: boolean;
-        }>;
+        return this.#parse<ContainerStatsDTO>(response);
     }
 }
