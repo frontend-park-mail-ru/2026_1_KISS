@@ -286,8 +286,8 @@ export class FeedbackPage {
 
                 card.innerHTML = `
                     <div class="feedback-modal__issue-meta">
-                        <span class="feedback-modal__badge feedback-modal__badge--${issue.category}">${cat ? cat.sublabel : issue.category}</span>
-                        <span class="feedback-modal__badge feedback-modal__badge--${issue.status}">${this.#esc(statusLabel)}</span>
+                        <span class="feedback-modal__badge feedback-modal__badge--${String(issue.category)}">${String(cat ? cat.sublabel : issue.category)}</span>
+                        <span class="feedback-modal__badge feedback-modal__badge--${String(issue.status)}">${this.#esc(statusLabel)}</span>
                         <span class="feedback-modal__issue-date">${date}</span>
                         <button class="feedback-modal__issue-delete-btn" type="button">Удалить</button>
                     </div>
@@ -408,10 +408,10 @@ export class FeedbackPage {
 
             body.innerHTML = `
                 <button class="feedback-modal__back-btn">&larr; Назад</button>
-                <h3 class="feedback-modal__detail-title">Обращение #${issue.id}</h3>
+                <h3 class="feedback-modal__detail-title">Обращение #${String(issue.id)}</h3>
                 <div class="feedback-modal__detail-meta">
-                    <span class="feedback-modal__badge feedback-modal__badge--${issue.category}">${cat ? cat.sublabel : issue.category}</span>
-                    <span class="feedback-modal__badge feedback-modal__badge--${issue.status}">${this.#esc(statusLabel)}</span>
+                    <span class="feedback-modal__badge feedback-modal__badge--${String(issue.category)}">${String(cat ? cat.sublabel : issue.category)}</span>
+                    <span class="feedback-modal__badge feedback-modal__badge--${String(issue.status)}">${this.#esc(statusLabel)}</span>
                     <span class="feedback-modal__issue-date">${date}</span>
                 </div>
                 <div class="feedback-modal__detail-content">${this.#esc(issue.content as string)}</div>
