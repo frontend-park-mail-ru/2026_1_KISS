@@ -21,6 +21,29 @@ import type {
     UserDTO
 } from '../../shared/api/types.js';
 
+/**
+ * Минимальный контракт ячейки для операций сохранения её содержимого.
+ * Используется в обобщённых сохраняющих помощниках, чтобы не зависеть от
+ * конкретного класса (CodeCell/TextCell).
+ */
+interface CellContentSource {
+    /**
+     * Возвращает текущее текстовое содержимое ячейки (исходный код или markdown).
+     */
+    getContent(): string;
+}
+
+/**
+ * Страница редактора блокнота (`/notebooks/:id`). Главный «толстый» компонент
+ * фронтенда: ответственен за загрузку notebook'а, проверку прав (owner/editor/viewer),
+ * рендер всей композиции (NotebookHeader + NotebookToolbar + NotebookSidebar + CellList),
+ * связь с Runner'ом по WebSocket и REST, поиск/замену по ячейкам, экспорт/импорт
+ * .ipynb и live-синхронизацию изменений других пользователей через WS-события.
+ *
+ * Стриминг исполнения: stdout/stderr приходят чанками и аккумулируются в
+ * #streamingStdout/#streamingStderr с throttle-рендером через #scheduleStreamRender,
+ * чтобы не перерисовывать ячейку на каждый чанк.
+ */
 export class BlocksPage {
     #root: HTMLElement;
     #notebookId: string;
@@ -50,6 +73,12 @@ export class BlocksPage {
 
     #ws: NotebookWS | null = null;
 
+    /**
+     * Сохраняет root и notebookId, инициализирует HttpClient (singleton) и
+     * новый экземпляр RunnerApi для запуска кода.
+     * @param root - корневой элемент SPA
+     * @param params - параметры маршрута (id блокнота из URL `/notebooks/:id`)
+     */
     public constructor(root: HTMLElement, params: { id: string }) {
         this.#root = root;
         this.#notebookId = params.id;
@@ -57,6 +86,12 @@ export class BlocksPage {
         this.#runnerApi = new RunnerApi();
     }
 
+    /**
+     * Загружает данные пользователя (`/auth/me`), затем сам блокнот,
+     * вычисляет права (owner/editor/viewer через permissions endpoint) и
+     * только после этого вызывает #buildLayout для рендера UI.
+     * При неавторизации — редирект на /sign; при отсутствии блокнота — на /files.
+     */
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
@@ -111,6 +146,13 @@ export class BlocksPage {
         this.#buildLayout();
     }
 
+    /**
+     * Создаёт всю DOM-композицию страницы: NotebookHeader (с пунктами меню в
+     * зависимости от прав), NotebookToolbar (Run All / добавить ячейку / комментарии),
+     * NotebookSidebar (поиск/замена/история), CellList (сами ячейки).
+     * Подключает обработчик beforeunload для остановки runner-сессии и
+     * открывает WebSocket для real-time событий.
+     */
     #buildLayout(): void {
         const page = document.createElement('div');
         page.className = 'blocks-page';
@@ -260,6 +302,11 @@ export class BlocksPage {
         this.#openWebSocket();
     }
 
+    /**
+     * Создаёт NotebookWS и подключается. Первый коннект пропускает re-sync
+     * (данные только что загружены через REST), последующие переподключения
+     * вызывают #resyncFromServer чтобы догнать пропущенные изменения.
+     */
     #openWebSocket(): void {
         let skipNextResync = true;
         this.#ws = new NotebookWS(this.#notebookId, {
@@ -288,6 +335,14 @@ export class BlocksPage {
     static readonly #MAX_STREAM_LINES = 1000;
     static readonly #STREAM_THROTTLE_MS = 200;
 
+    /**
+     * Главный диспетчер WebSocket-событий от Runner'а и других клиентов.
+     * Обрабатывает: ошибки исполнения, добавление/обновление/удаление блоков
+     * и комментариев, обновление notebook-метаданных, стрим stdout/stderr и
+     * финальный execute_completed. Стрим-чанки буферизуются и рендерятся
+     * через throttle (#scheduleStreamRender), чтобы избежать рендер-шторма.
+     * @param event - сообщение WS с обязательным полем `type`
+     */
     #handleWSEvent(event: Record<string, unknown>): void {
         if (typeof event.type !== 'string' || event.type === '') return;
         if (event.type === 'error' || event.type === 'execute_error') {
@@ -373,6 +428,11 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Перезагружает блокнот с сервера (no-cache) и заменяет локальное состояние,
+     * если ни одна ячейка сейчас не сфокусирована — это защищает от потери
+     * текущего ввода пользователя при WS-событии. Обновляет title в шапке.
+     */
     async #resyncFromServer(): Promise<void> {
         if (!this.#notebookId) return;
         try {
@@ -397,6 +457,12 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Сохраняет содержимое code-ячейки на сервер через PUT блока. Ошибки
+     * молча игнорируются (auto-save не должен мешать пользователю).
+     * @param blockId - идентификатор блока
+     * @param content - новое содержимое (исходный код)
+     */
     async #saveCodeCellContent(blockId: number | string, content: string): Promise<void> {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
@@ -407,6 +473,12 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Сохраняет содержимое markdown-ячейки на сервер через PUT блока.
+     * Ошибки молча игнорируются (auto-save не должен мешать пользователю).
+     * @param blockId - идентификатор блока
+     * @param content - новое содержимое (markdown)
+     */
     async #saveTextCellContent(blockId: number | string, content: string): Promise<void> {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
@@ -417,6 +489,11 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Принудительное сохранение всех ячеек: показывает индикатор в шапке и
+     * параллельно сохраняет содержимое каждой ячейки. Используется кнопкой
+     * "Сохранить" и перед экспортом .ipynb.
+     */
     async #saveAll(): Promise<void> {
         nn(this.#header).showSaveIndicator();
         const cells = nn(this.#cellList).getAllCells();
@@ -424,6 +501,11 @@ export class BlocksPage {
         await Promise.all(promises);
     }
 
+    /**
+     * Сохраняет содержимое всех не-code (markdown) ячеек последовательно.
+     * Вызывается перед добавлением нового блока, чтобы не потерять текст,
+     * который пользователь только что начал писать.
+     */
     async #saveAllTextCells(): Promise<void> {
         const allCells = nn(this.#cellList).getAllCells();
         for (const cell of allCells) {
@@ -433,6 +515,13 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Создаёт новый блок указанного типа в конце notebook'а: предварительно
+     * сохраняет все text-ячейки, отправляет POST на создание (с language=python
+     * для code), затем перезагружает блокнот целиком чтобы получить актуальный
+     * список с новым блоком на корректной позиции.
+     * @param type - 'code' или 'text'
+     */
     async #createBlock(type: string): Promise<void> {
         await this.#saveAllTextCells();
         try {
@@ -458,6 +547,12 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Удаляет блок через DELETE и перезагружает notebook. Удаляет также
+     * сохранённые execution-номер и output для этого блока, чтобы не утекать
+     * память и не путать пользователя при создании нового блока с тем же id.
+     * @param blockId - идентификатор удаляемого блока
+     */
     async #deleteBlock(blockId: number | string): Promise<void> {
         try {
             const response = await this.#httpClient.delete(
@@ -479,6 +574,12 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Throttle-обёртка для рендера стримящихся stdout/stderr: запоминает что
+     * рендер запланирован, и через #STREAM_THROTTLE_MS показывает накопленные
+     * чанки в активной ячейке. Защищает от рендер-шторма при быстром потоке
+     * вывода (например `for i in range(10000): print(i)`).
+     */
     #scheduleStreamRender(): void {
         if (this.#streamingRenderPending) return;
         this.#streamingRenderPending = true;
@@ -495,6 +596,13 @@ export class BlocksPage {
         }, BlocksPage.#STREAM_THROTTLE_MS);
     }
 
+    /**
+     * Запускает одну code-ячейку. Если WS открыт — стримит stdout/stderr
+     * чанками через WS и ждёт execute_completed. Иначе fallback на REST
+     * /runner/execute. В любом случае предварительно сохраняет содержимое
+     * ячейки и обновляет execution-counter + output после завершения.
+     * @param blockId - идентификатор запускаемого блока
+     */
     async #runSingleBlock(blockId: number | string): Promise<void> {
         const cell = nn(this.#cellList).getCellByBlockId(blockId);
         if (!cell || !(cell instanceof CodeCell)) return;
@@ -537,6 +645,13 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Запускает все code-ячейки последовательно через REST executeFromPosition.
+     * Сначала сохраняет содержимое всех code-ячеек, затем переводит каждую в
+     * состояние running, далее посылает один батч-запрос и распределяет
+     * результаты по ячейкам по block_id. При общей ошибке восстанавливает
+     * предыдущие outputs (savedOutputs) для ячеек, которые не успели выполниться.
+     */
     async #runAllBlocks(): Promise<void> {
         const codeCells = nn(this.#cellList).getCodeCellsInOrder();
         if (codeCells.length === 0) return;
@@ -614,6 +729,11 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Восстанавливает execution-номера и outputs во всех code-ячейках из
+     * локальных Map'ов. Вызывается после rerender'а CellList'а (например,
+     * после WS-события block_added/block_updated), когда DOM пересоздан.
+     */
     #reapplyCellState(): void {
         this.#execNumbers.forEach((n, id) => {
             const cell = nn(this.#cellList).getCellByBlockId(id);
@@ -625,9 +745,15 @@ export class BlocksPage {
         });
     }
 
+    /**
+     * Сохраняет текущее содержимое произвольной ячейки (по контракту
+     * CellContentSource) через PUT блока. Ошибки молча игнорируются.
+     * @param blockId - идентификатор блока
+     * @param cell - источник содержимого с методом getContent()
+     */
     async #maybeSaveCellContent(
         blockId: number | string,
-        cell: { getContent(): string }
+        cell: CellContentSource
     ): Promise<void> {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
@@ -638,6 +764,14 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Восстанавливает outputs из ответа GET /notebooks/:id (блоки приходят с
+     * сохранёнными результатами последнего исполнения) в локальный Map
+     * #lastOutputs. Преобразует формат хранения (output_type/content) в
+     * формат для UI (stdout/stderr/result/outputs[mime_type/data]).
+     * Если для блока уже есть локальные outputs (свежее) — пропускает.
+     * @param blocks - массив блоков из ответа сервера
+     */
     #loadSavedOutputs(blocks: Record<string, unknown>[]): void {
         for (const block of blocks) {
             const outputs = block.outputs as Record<string, unknown>[] | undefined;
@@ -660,6 +794,14 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Экспортирует текущий блокнот в формат Jupyter `.ipynb`. Сначала
+     * сохраняет все ячейки, затем строит nbformat-4 структуру:
+     * - text-ячейки → cell_type=markdown
+     * - code-ячейки → cell_type=code с outputs из #lastOutputs
+     *   (stdout/stderr → stream, result → execute_result, остальное → display_data)
+     * Скачивает результат через временный <a> элемент с blob: URL.
+     */
     async #exportAsIpynb(): Promise<void> {
         await this.#saveAll();
         const cells = nn(this.#cellList).getAllCells();
@@ -744,6 +886,13 @@ export class BlocksPage {
         URL.revokeObjectURL(url);
     }
 
+    /**
+     * Импортирует .ipynb-файл: открывает file picker, парсит JSON nbformat,
+     * преобразует cells (markdown/code) в наш формат блоков (с position и
+     * вложенными outputs из stream/execute_result/display_data/error),
+     * отправляет POST /notebooks/import и навигирует на новый блокнот.
+     * Title берётся из имени файла без расширения (или 'Imported').
+     */
     #importNotebook(): void {
         const input = document.createElement('input');
         input.type = 'file';
@@ -821,6 +970,12 @@ export class BlocksPage {
         input.click();
     }
 
+    /**
+     * Меняет порядок блоков на сервере (drag-n-drop в CellList).
+     * Серверный endpoint /reorder обновляет position у каждого блока
+     * по присланному массиву id. Ошибки молча игнорируются.
+     * @param blockIds - новый порядок идентификаторов блоков
+     */
     async #reorderBlocks(blockIds: (number | string)[]): Promise<void> {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/reorder`, {
@@ -831,6 +986,10 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Открывает ShareModal для управления доступом к блокноту (только для
+     * владельца). Lazy-создаёт инстанс модалки при первом вызове.
+     */
     #openShareModal(): void {
         if (!this.#shareModal) {
             this.#shareModal = new ShareModal();
@@ -842,6 +1001,11 @@ export class BlocksPage {
         );
     }
 
+    /**
+     * Переименовывает блокнот через PUT /notebooks/:id и обновляет
+     * локальное состояние из ответа (мерж в #notebook). Ошибки логируются.
+     * @param newTitle - новое название блокнота
+     */
     async #renameNotebook(newTitle: string): Promise<void> {
         try {
             const response = await this.#httpClient.put(`/notebooks/${this.#notebookId}`, {
@@ -856,6 +1020,12 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Собирает плоский снимок всех ячеек для FindEngine: id, тип
+     * (code/text) и текущее содержимое. Вызывается на каждый поиск, чтобы
+     * учитывать несохранённые изменения.
+     * @returns массив снимков ячеек для поиска
+     */
     #collectSearchableCells(): { id: number | string; kind: 'code' | 'text'; content: string }[] {
         return nn(this.#cellList)
             .getAllCells()
@@ -866,6 +1036,12 @@ export class BlocksPage {
             }));
     }
 
+    /**
+     * Запускает новый поиск через FindEngine: собирает текущие ячейки,
+     * передаёт в движок, обновляет счётчик в sidebar и сразу фокусирует
+     * первое совпадение.
+     * @param param0 - параметры поиска: строка query и флаг caseSensitive
+     */
     #handleFind({ query, caseSensitive }: { query: string; caseSensitive: boolean }): void {
         const cells = this.#collectSearchableCells();
         const total = this.#findEngine.search(cells, query, caseSensitive);
@@ -873,6 +1049,12 @@ export class BlocksPage {
         if (total > 0) this.#focusCurrentMatch();
     }
 
+    /**
+     * Навигация по результатам поиска (стрелки next/prev в sidebar).
+     * Если движок ещё не искал (total=0) — сначала запускает поиск.
+     * @param query - параметры текущего поиска
+     * @param direction - 'next' (вперёд) или 'prev' (назад)
+     */
     #handleFindNav(
         query: { query: string; caseSensitive: boolean },
         direction: 'next' | 'prev'
@@ -888,6 +1070,11 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Подсвечивает текущее совпадение поиска: сначала снимает все подсветки
+     * с TextCell'ов, затем подсвечивает диапазон в нужной ячейке (highlightRange
+     * для CodeCell, highlightMatch для TextCell с учётом порядкового индекса).
+     */
     #focusCurrentMatch(): void {
         nn(this.#cellList)
             .getAllCells()
@@ -908,6 +1095,12 @@ export class BlocksPage {
         }
     }
 
+    /**
+     * Заменяет текущее совпадение на replacement и переходит к следующему.
+     * Если поиск ещё не активен — запускает его. Использует substring/concat
+     * по индексам [start, end] из FindEngine.
+     * @param param0 - параметры замены: query, replacement, caseSensitive
+     */
     #handleReplace({
         query,
         replacement,
@@ -933,6 +1126,12 @@ export class BlocksPage {
         this.#handleFind({ query, caseSensitive });
     }
 
+    /**
+     * Заменяет все вхождения query на replacement во всех ячейках одним
+     * RegExp.replace (с эскейпом метасимволов и флагом g/gi). Сбрасывает
+     * FindEngine — счётчик в sidebar показывает 0 после операции.
+     * @param param0 - параметры массовой замены: query, replacement, caseSensitive
+     */
     #handleReplaceAll({
         query,
         replacement,
@@ -954,6 +1153,12 @@ export class BlocksPage {
         nn(this.#sidebar).setMatchCount(-1, 0);
     }
 
+    /**
+     * Полная очистка страницы: останавливает runner-сессию, снимает
+     * beforeunload-обработчик, закрывает WebSocket и ShareModal,
+     * размонтирует все виджеты (CellList → Sidebar → Toolbar → Header)
+     * и очищает root. Вызывается роутером при переходе на другую страницу.
+     */
     public destroy(): void {
         if (this.#notebookId) {
             void this.#runnerApi.stopSession(this.#notebookId);
