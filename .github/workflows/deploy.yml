@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
 
 jobs:
   lint:
@@ -31,10 +31,10 @@ jobs:
             set -e
             cd /home/ubuntu/front/2026_1_KISS
 
-            git fetch origin develop
-            CHANGED=$(git diff --name-only HEAD origin/develop)
+            git fetch origin main
+            CHANGED=$(git diff --name-only HEAD origin/main)
 
-            git pull origin develop
+            git pull origin main
 
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
