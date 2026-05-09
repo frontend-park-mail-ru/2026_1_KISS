@@ -1,7 +1,47 @@
 import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
+import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
+
+const jsdocRequiredFiles = [
+    'src/sw.ts'
+];
+
+const jsdocRules = {
+    'jsdoc/require-jsdoc': [
+        'error',
+        {
+            require: {
+                FunctionDeclaration: true,
+                MethodDefinition: true,
+                ClassDeclaration: true,
+                ArrowFunctionExpression: false,
+                FunctionExpression: false
+            },
+            checkConstructors: true,
+            checkGetters: true,
+            checkSetters: true,
+            contexts: [
+                'TSMethodSignature',
+                'PropertyDefinition > ArrowFunctionExpression.value',
+                'TSInterfaceDeclaration',
+                'TSTypeAliasDeclaration'
+            ]
+        }
+    ],
+    'jsdoc/require-description': 'error',
+    'jsdoc/require-param': 'error',
+    'jsdoc/require-param-description': 'error',
+    'jsdoc/require-param-name': 'error',
+    'jsdoc/require-returns': ['error', { forceRequireReturn: false }],
+    'jsdoc/require-returns-description': 'error',
+    'jsdoc/no-types': 'error',
+    'jsdoc/check-tag-names': 'error',
+    'jsdoc/check-alignment': 'error',
+    'jsdoc/no-undefined-types': 'off',
+    'jsdoc/check-param-names': 'error'
+};
 
 const pragmaticDisables = {
     'sort-keys': 'off',
@@ -121,6 +161,12 @@ export default [
             '@typescript-eslint/strict-boolean-expressions': 'error',
             '@typescript-eslint/switch-exhaustiveness-check': 'error'
         }
+    },
+
+    {
+        files: jsdocRequiredFiles,
+        plugins: { jsdoc },
+        rules: jsdocRules
     },
 
     {
