@@ -94,7 +94,7 @@ export class PasswordSection extends BaseComponent {
                 });
 
                 if (!response.ok) {
-                    const result = await response.json();
+                    const result = (await response.json()) as { error?: string };
                     msgEl.textContent = translateError(result.error);
                     msgEl.classList.add('password-section__msg--error');
                     return;

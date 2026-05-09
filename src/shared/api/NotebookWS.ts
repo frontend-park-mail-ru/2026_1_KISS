@@ -95,7 +95,7 @@ export class NotebookWS {
         socket.addEventListener('message', (e: MessageEvent) => {
             let msg: Record<string, unknown>;
             try {
-                msg = JSON.parse(e.data as string);
+                msg = JSON.parse(e.data as string) as Record<string, unknown>;
             } catch {
                 return;
             }

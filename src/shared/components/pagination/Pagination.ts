@@ -164,8 +164,10 @@ export class Pagination extends BaseComponent {
 
     #attachEvents(): void {
         this._addListener(this._element, 'click', (e: unknown) => {
-            const btn = ((e as MouseEvent).target as HTMLElement).closest('[data-page]');
-            if (!btn || (btn as HTMLButtonElement).disabled) return;
+            const btn = ((e as MouseEvent).target as HTMLElement).closest<HTMLButtonElement>(
+                '[data-page]'
+            );
+            if (!btn || btn.disabled) return;
 
             const pageAttr = nn(btn.dataset.page);
             let targetPage: number;

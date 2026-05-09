@@ -94,7 +94,7 @@ export class Login extends BaseComponent {
             if (!response.ok) {
                 let data: Record<string, unknown>;
                 try {
-                    data = await response.json();
+                    data = (await response.json()) as Record<string, unknown>;
                 } catch (_e) {
                     data = {};
                 }

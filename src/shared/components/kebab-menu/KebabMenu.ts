@@ -44,7 +44,7 @@ export class KebabMenu extends BaseComponent {
 
         const dropdown = this._element.querySelector('.kebab-menu__dropdown');
         this._addListener(dropdown, 'click', (e: unknown) => {
-            const item = (e as MouseEvent & { target: HTMLElement }).target.closest(
+            const item = (e as MouseEvent & { target: HTMLElement }).target.closest<HTMLElement>(
                 '[data-action]'
             );
             if (!item) return;

@@ -116,7 +116,9 @@ export class Modal extends BaseComponent {
             this._element.appendChild(card);
             this._element.classList.add('modal-overlay--visible');
 
-            const firstInput = form.querySelector('input, select');
+            const firstInput = form.querySelector<HTMLInputElement | HTMLSelectElement>(
+                'input, select'
+            );
             if (firstInput) firstInput.focus();
         });
     }

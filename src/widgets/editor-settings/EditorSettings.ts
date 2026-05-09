@@ -25,7 +25,9 @@ export class EditorSettings extends BaseComponent {
 
     #loadSettings(): void {
         try {
-            const saved = JSON.parse(nn(localStorage.getItem(STORAGE_KEY)));
+            const saved = JSON.parse(
+                nn(localStorage.getItem(STORAGE_KEY))
+            ) as Record<string, string> | null;
             if (!saved) return;
 
             const selects = this._element.querySelectorAll<HTMLSelectElement>(
@@ -33,8 +35,9 @@ export class EditorSettings extends BaseComponent {
             );
             selects.forEach((select) => {
                 const key = nn(select.dataset.setting);
-                if (saved[key]) {
-                    select.value = saved[key];
+                const value = saved[key];
+                if (value !== undefined) {
+                    select.value = value;
                 }
             });
         } catch (_e) {

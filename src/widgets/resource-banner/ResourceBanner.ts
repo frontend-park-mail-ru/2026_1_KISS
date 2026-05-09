@@ -46,7 +46,7 @@ export class ResourceBanner extends BaseComponent {
         badge.className = `resource-banner__badge resource-banner__badge--${stats.quota.plan}`;
 
         const quotaEl = nn(this._element.querySelector('[data-field="quota"]'));
-        const fill = nn(this._element.querySelector('.resource-banner__progress-fill'));
+        const fill = nn(this._element.querySelector<HTMLElement>('.resource-banner__progress-fill'));
 
         if (stats.quota.time_limit_seconds > 0) {
             const h = Math.floor(stats.quota.total_time_seconds / 3600);

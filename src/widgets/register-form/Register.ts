@@ -98,7 +98,7 @@ export class Register extends BaseComponent {
         const response = await this.#httpClient.post('/auth/register', formData);
         let responseData: Record<string, unknown>;
         try {
-            responseData = await response.json();
+            responseData = (await response.json()) as Record<string, unknown>;
         } catch (_e) {
             responseData = { text: await response.text() };
         }

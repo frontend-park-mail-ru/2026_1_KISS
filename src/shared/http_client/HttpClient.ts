@@ -36,7 +36,7 @@ export class HttpClient {
         }
         return this.request('GET', url).then(async (response) => {
             if (response.ok && !options?.noCache) {
-                const data = await response.clone().json();
+                const data = (await response.clone().json()) as unknown;
                 this.#cache.set(url, { data, ts: Date.now() });
             }
             return response;
