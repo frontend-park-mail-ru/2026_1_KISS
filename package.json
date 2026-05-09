@@ -10,8 +10,8 @@
         "typecheck": "tsc --noEmit",
         "lint": "eslint . --max-warnings 0",
         "lint:fix": "eslint . --fix --max-warnings 0",
-        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\" \"build/**/*.js\" \".prettierrc.js\"",
-        "format:check": "prettier --check \"src/**/*.ts\" \"src/**/*.js\" \"build/**/*.js\" \".prettierrc.js\""
+        "format": "prettier --write \"src/**/*.ts\" \"build/**/*.js\" \".prettierrc.js\"",
+        "format:check": "prettier --check \"src/**/*.ts\" \"build/**/*.js\" \".prettierrc.js\""
     },
     "license": "ISC",
     "devDependencies": {

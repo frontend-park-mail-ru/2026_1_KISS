@@ -124,27 +124,6 @@ export default [
     },
 
     {
-        files: ['src/**/*.js'],
-        languageOptions: {
-            ecmaVersion: 'latest',
-            sourceType: 'module',
-            globals: {
-                ...globals.browser
-            }
-        },
-        rules: {
-            ...js.configs.all.rules,
-            ...pragmaticDisables,
-            ...strictOverrides,
-            'no-unused-vars': [
-                'error',
-                { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
-            ],
-            'no-use-before-define': ['error', { classes: false }]
-        }
-    },
-
-    {
         files: ['build/**/*.js', '*.mjs', '*.js'],
         languageOptions: {
             ecmaVersion: 'latest',

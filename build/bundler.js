@@ -203,7 +203,7 @@ function build() {
         path.join(OUT_DIR, 'feedback.html')
     );
 
-    const swSrc = path.resolve(ROOT, 'src/sw.js');
+    const swSrc = path.resolve(SRC_DIR, 'sw.js');
     if (fs.existsSync(swSrc)) {
         fs.copyFileSync(swSrc, path.join(OUT_DIR, 'sw.js'));
         console.log(`[bundler] -> dist/sw.js (copied)`);
