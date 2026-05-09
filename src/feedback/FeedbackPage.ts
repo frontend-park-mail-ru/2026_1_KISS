@@ -36,17 +36,38 @@ const STATUS_LABELS: Record<string, string> = {
 
 const MAX_CONTENT_LENGTH = 2000;
 
+/**
+ * Страница обратной связи (открывается в iframe из FeedbackModal). Имеет три
+ * основных view: форма создания обращения (с выбором категории и текстом),
+ * список своих обращений (history), детальный просмотр одного с тредом сообщений
+ * и формой ответа.
+ *
+ * Связь с родительским окном — через postMessage:
+ * - При готовности шлёт `feedback:ready` родителю.
+ * - Слушает `feedback:open` чтобы показать форму при повторном открытии.
+ * - Шлёт `feedback:close` при пользовательском закрытии (X или клик вне модалки).
+ *
+ * Изолирована от основного SPA — собственный bootstrap из feedback/index.ts.
+ */
 export class FeedbackPage {
     #root: HTMLElement;
     #issueApi: IssueApi;
     #selectedCategory: string | null = null;
     #escHandler: ((e: KeyboardEvent) => void) | null = null;
 
+    /**
+     * Сохраняет root и инстанцирует IssueApi.
+     * @param root - корневой элемент iframe'а (#feedback-root)
+     */
     public constructor(root: HTMLElement) {
         this.#root = root;
         this.#issueApi = new IssueApi();
     }
 
+    /**
+     * Регистрирует postMessage-обработчик для команд от родителя (open),
+     * клик на overlay (close), сразу рендерит форму и шлёт `feedback:ready` родителю.
+     */
     public init(): void {
         window.addEventListener('message', (e: MessageEvent<{ type?: string } | undefined>) => {
             if (e.data?.type === 'feedback:open') {
@@ -63,10 +84,20 @@ export class FeedbackPage {
         window.parent.postMessage({ type: 'feedback:ready' }, '*');
     }
 
+    /**
+     * Шлёт родителю `feedback:close` — родитель сам скрывает iframe.
+     */
     #close(): void {
         window.parent.postMessage({ type: 'feedback:close' }, '*');
     }
 
+    /**
+     * Перерегистрирует обработчик Escape с новой функцией. Старый снимается.
+     * Используется при смене view (form/list/detail) чтобы Escape всегда
+     * вызывал актуальное действие (обычно close, но в detail можно было бы
+     * вернуть на список).
+     * @param fn - функция вызываемая при Escape
+     */
     #setEsc(fn: () => void): void {
         if (this.#escHandler)
             document.removeEventListener('keydown', this.#escHandler as EventListener);
@@ -76,6 +107,10 @@ export class FeedbackPage {
         document.addEventListener('keydown', this.#escHandler as EventListener);
     }
 
+    /**
+     * Рендерит главный view: форма с категориями (4 карточки), textarea для
+     * описания (max 2000 символов), кнопки "Мои обращения" и "Отправить".
+     */
     #renderForm(): void {
         this.#root.innerHTML = '';
         this.#setEsc(() => {
@@ -127,6 +162,11 @@ export class FeedbackPage {
         this.#attachFormEvents(modal);
     }
 
+    /**
+     * Навешивает обработчики формы: close, выбор категории (single-select с
+     * подсветкой), счётчик символов в textarea, переход на список и submit.
+     * @param modal - корневой элемент модалки формы
+     */
     #attachFormEvents(modal: HTMLElement): void {
         nn(modal.querySelector('.feedback-modal__close-btn')).addEventListener('click', () => {
             this.#close();
@@ -157,6 +197,11 @@ export class FeedbackPage {
             .addEventListener('click', () => this.#handleSubmit(modal));
     }
 
+    /**
+     * Валидирует категорию и текст, отправляет POST /issues, при успехе
+     * показывает success-view; при ошибке — текст в error-блоке и разблокирует кнопку.
+     * @param modal - корневой элемент модалки для доступа к её полям
+     */
     async #handleSubmit(modal: HTMLElement): Promise<void> {
         const errorEl = nn(modal.querySelector<HTMLElement>('.feedback-modal__error'));
         const submitBtn = nn(modal.querySelector<HTMLButtonElement>('.feedback-modal__submit-btn'));
@@ -190,6 +235,10 @@ export class FeedbackPage {
         }
     }
 
+    /**
+     * Рендерит success-view после успешной отправки: галочка + сообщение +
+     * кнопка перехода на список своих обращений.
+     */
     #renderSuccess(): void {
         this.#root.innerHTML = '';
         this.#setEsc(() => {
@@ -228,6 +277,11 @@ export class FeedbackPage {
             .addEventListener('click', () => this.#renderList());
     }
 
+    /**
+     * Рендерит список своих обращений (history): подгружает через IssueApi,
+     * для каждого создаёт карточку с категорией/статусом/датой и кнопкой удаления.
+     * Клик по карточке — переход к детальному просмотру.
+     */
     async #renderList(): Promise<void> {
         this.#root.innerHTML = '';
         this.#setEsc(() => {
@@ -316,6 +370,15 @@ export class FeedbackPage {
         }
     }
 
+    /**
+     * Удаляет issue после подтверждения через confirm(). При успехе убирает
+     * карточку из DOM (и показывает empty-state если ничего не осталось);
+     * при ошибке — alert с текстом и разблокирует кнопку.
+     * @param issueId - ID удаляемого issue
+     * @param card - DOM-карточка для удаления при успехе
+     * @param listContent - контейнер всех карточек (для empty-state)
+     * @param btn - кнопка удаления для блокировки/разблокировки
+     */
     async #handleIssueDelete(
         issueId: number,
         card: HTMLElement,
@@ -349,6 +412,12 @@ export class FeedbackPage {
         }
     }
 
+    /**
+     * Рендерит детальный view одного issue: метаданные, исходный текст,
+     * тред сообщений с пометкой admin/user, форма ответа с textarea (max 2000).
+     * При отправке ответа — refresh всего детального view (для показа нового сообщения).
+     * @param issueId - ID issue для просмотра
+     */
     async #renderDetail(issueId: number): Promise<void> {
         this.#root.innerHTML = '';
         this.#setEsc(() => {
@@ -472,6 +541,12 @@ export class FeedbackPage {
         }
     }
 
+    /**
+     * Локальный HTML-эскейп через DOM API (textContent → innerHTML). Локальная
+     * копия escapeHtml без зависимости от utils.
+     * @param str - строка для эскейпа
+     * @returns HTML-безопасная строка (или пустая для falsy входа)
+     */
     #esc(str: string): string {
         if (!str) return '';
         const div = document.createElement('div');
