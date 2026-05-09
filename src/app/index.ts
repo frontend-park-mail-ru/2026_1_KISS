@@ -20,6 +20,12 @@ router.addRoute('/notebooks/:id', BlocksPage);
 router.addRoute('/profile', ProfilePage);
 router.addRoute('/admin', AdminPage);
 
+/**
+ * Определяет defaultPath роутера на основе текущей сессии: для авторизованного
+ * пользователя — '/files', для гостя — '/' (landing). Используется для редиректа
+ * при заходе на корень сайта или ненайденный путь.
+ * @returns промис с дефолтным путём
+ */
 async function getDefaultPath(): Promise<string> {
     try {
         const response = await httpClient.get('/auth/me');
@@ -29,6 +35,11 @@ async function getDefaultPath(): Promise<string> {
     }
 }
 
+/**
+ * Точка входа SPA: проверяет авторизацию, для авторизованных запускает
+ * heartbeat-сервис и редиректит с landing/sign на /files (чтобы не показывать
+ * формы залогиненному пользователю), затем стартует роутер.
+ */
 async function bootstrap(): Promise<void> {
     const defaultPath = await getDefaultPath();
 
