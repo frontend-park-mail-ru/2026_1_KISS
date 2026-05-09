@@ -752,7 +752,7 @@ export class BlocksPage {
                     const language = type === 'code' ? 'python' : 'markdown';
                     const outputs: Record<string, unknown>[] = [];
 
-                    if (type === 'code' && cell.outputs) {
+                    if (type === 'code' && Boolean(cell.outputs)) {
                         let pos = 0;
                         for (const o of cell.outputs as Record<string, unknown>[]) {
                             if (o.output_type === 'stream') {
