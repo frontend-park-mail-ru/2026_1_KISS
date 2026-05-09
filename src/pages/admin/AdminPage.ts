@@ -592,6 +592,7 @@ export class AdminPage {
             });
             void this.#refreshUsersTable();
         } catch (e: unknown) {
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert((e as Error).message);
         }
     }
@@ -608,6 +609,7 @@ export class AdminPage {
             });
             void this.#refreshUsersTable();
         } catch (e: unknown) {
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert((e as Error).message);
         }
     }
@@ -619,8 +621,10 @@ export class AdminPage {
         if (!result?.password) return;
         try {
             await this.#adminApi.resetPassword(user.id as string | number, result.password);
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert('Пароль изменён');
         } catch (e: unknown) {
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert((e as Error).message);
         }
     }
@@ -640,6 +644,7 @@ export class AdminPage {
             await this.#adminApi.setPlan(user.id as string | number, result.plan);
             void this.#refreshUsersTable();
         } catch (e: unknown) {
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert((e as Error).message);
         }
     }
@@ -652,19 +657,23 @@ export class AdminPage {
         if (!result?.subject || !result.body) return;
         try {
             await this.#adminApi.sendEmail(user.email as string, result.subject, result.body);
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert('Письмо отправлено');
         } catch (e: unknown) {
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert((e as Error).message);
         }
     }
 
     async #banUser(user: Record<string, unknown>): Promise<void> {
+        // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
         if (!confirm(`Забанить "${String(user.username)}"? Публичные блокноты станут приватными.`))
             return;
         try {
             await this.#adminApi.banUser(user.id as string | number);
             void this.#refreshUsersTable();
         } catch (e: unknown) {
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             alert((e as Error).message);
         }
     }
@@ -766,6 +775,7 @@ export class AdminPage {
                             danger: true,
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             handler: async () => {
+                                // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
                                 if (confirm(`Удалить блокнот "${String(nb.title)}"?`)) {
                                     try {
                                         await this.#adminApi.deleteNotebook(
@@ -773,6 +783,7 @@ export class AdminPage {
                                         );
                                         void this.#refreshNotebooksTable();
                                     } catch (err: unknown) {
+                                        // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
                                         alert((err as Error).message);
                                     }
                                 }
@@ -1128,6 +1139,7 @@ export class AdminPage {
                     await this.#adminApi.updateIssueStatus(issueId, statusSelect.value);
                     void this.#showIssueDetail(issueId);
                 } catch (e: unknown) {
+                    // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
                     alert((e as Error).message);
                 }
             });
@@ -1146,6 +1158,7 @@ export class AdminPage {
                     await this.#adminApi.respondToIssue(issueId, text);
                     void this.#showIssueDetail(issueId);
                 } catch (e: unknown) {
+                    // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
                     alert((e as Error).message);
                 }
             });
