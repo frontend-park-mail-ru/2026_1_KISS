@@ -17,7 +17,7 @@ export function ProfileSectionTemplate(ctx: ProfileSectionTemplateCtx): string {
 
     <div class="profile-section__avatar-row">
         <div class="profile-section__avatar">
-            ${Boolean(ctx.user.avatar_url) ? `<img class="profile-section__avatar-img" src="${escapeHtml(ctx.user.avatar_url)}" alt="Avatar" />` : `<span class="profile-section__avatar-initials">${escapeHtml(ctx.initials)}</span>`}
+            ${(ctx.user.avatar_url ?? '') !== '' ? `<img class="profile-section__avatar-img" src="${escapeHtml(ctx.user.avatar_url)}" alt="Avatar" />` : `<span class="profile-section__avatar-initials">${escapeHtml(ctx.initials)}</span>`}
         </div>
         <div class="profile-section__avatar-actions">
             <input type="file" class="profile-section__file-input" accept="image/jpeg,image/png,image/bmp" />

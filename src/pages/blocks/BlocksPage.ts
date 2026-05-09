@@ -92,7 +92,7 @@ export class BlocksPage {
 
         this.#isOwner = nn(this.#notebook).owner_id === this.#userId;
         this.#canComment = this.#isOwner;
-        if (!this.#canComment && this.#userId !== null) {
+        if (!this.#canComment) {
             try {
                 const permResponse = await this.#httpClient.get(
                     `/notebooks/${this.#notebookId}/permissions`
@@ -278,7 +278,7 @@ export class BlocksPage {
     static readonly #STREAM_THROTTLE_MS = 200;
 
     #handleWSEvent(event: Record<string, unknown>): void {
-        if (!Boolean(event.type)) return;
+        if (typeof event.type !== 'string' || event.type === '') return;
         if (event.type === 'error' || event.type === 'execute_error') {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
@@ -566,7 +566,7 @@ export class BlocksPage {
                     return;
                 }
 
-                if (Boolean(r.error)) {
+                if (r.error !== undefined && r.error !== null) {
                     const errOut = { error: r.error } as Record<string, unknown>;
                     this.#lastOutputs.set(blockId, errOut);
                     c.setOutput(errOut);
@@ -683,7 +683,7 @@ export class BlocksPage {
                         text: (out.stderr as string[]).map((s: string) => `${s}\n`)
                     });
                 }
-                if (Boolean(out.result)) {
+                if (out.result !== undefined && out.result !== null) {
                     outputs.push({
                         output_type: 'execute_result',
                         execution_count: null,
@@ -691,7 +691,7 @@ export class BlocksPage {
                         metadata: {}
                     });
                 }
-                if (Boolean(out.outputs)) {
+                if (out.outputs !== undefined && out.outputs !== null) {
                     for (const o of out.outputs as { mime_type: string; data: string }[]) {
                         outputs.push({
                             output_type: 'display_data',
@@ -768,7 +768,7 @@ export class BlocksPage {
                                 o.output_type === 'execute_result' ||
                                 o.output_type === 'display_data'
                             ) {
-                                if (Boolean(o.data)) {
+                                if (o.data !== undefined && o.data !== null) {
                                     for (const [mime, val] of Object.entries(
                                         o.data as Record<string, unknown>
                                     )) {

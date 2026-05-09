@@ -163,7 +163,7 @@ export class FeedbackPage {
         const textarea = nn(modal.querySelector<HTMLTextAreaElement>('.feedback-modal__textarea'));
         errorEl.hidden = true;
 
-        if (!Boolean(this.#selectedCategory)) {
+        if ((this.#selectedCategory ?? '') === '') {
             errorEl.textContent = 'Выберите тип обращения';
             errorEl.hidden = false;
             return;
@@ -400,9 +400,9 @@ export class FeedbackPage {
                            ${messages
                                .map(
                                    (msg) => `
-                               <div class="feedback-modal__message feedback-modal__message--${Boolean(msg.is_admin) ? 'admin' : 'user'}">
+                               <div class="feedback-modal__message feedback-modal__message--${msg.is_admin !== undefined && msg.is_admin !== null ? 'admin' : 'user'}">
                                    <div class="feedback-modal__message-meta">
-                                       <span class="feedback-modal__message-author">${this.#esc(msg.username as string)}${Boolean(msg.is_admin) ? ' (поддержка)' : ''}</span>
+                                       <span class="feedback-modal__message-author">${this.#esc(msg.username as string)}${msg.is_admin !== undefined && msg.is_admin !== null ? ' (поддержка)' : ''}</span>
                                        <span class="feedback-modal__message-date">${new Date(msg.created_at as string).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                                    </div>
                                    <div class="feedback-modal__message-text">${this.#esc(msg.content as string)}</div>

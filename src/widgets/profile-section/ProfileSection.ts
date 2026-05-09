@@ -88,8 +88,8 @@ export class ProfileSection extends BaseComponent {
 
         this._addListener(fileInput, 'change', () => {
             const files = nn(fileInput.files);
+            if (files.length === 0) return;
             const file = files[0];
-            if (!Boolean(file)) return;
 
             errorEl.textContent = '';
             const objectUrl = URL.createObjectURL(file);
@@ -107,7 +107,8 @@ export class ProfileSection extends BaseComponent {
                         return;
                     }
 
-                    const updated = result.data!;
+                    const updated = result.data;
+                    if (!updated) return;
                     this.#config.user = updated as unknown as ProfileUser;
                     if (this.#config.onUserUpdate) {
                         this.#config.onUserUpdate(updated as unknown as ProfileUser);
@@ -170,7 +171,8 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                const updated = result.data!;
+                const updated = result.data;
+                    if (!updated) return;
                 this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
                     this.#config.onUserUpdate(updated as unknown as ProfileUser);
@@ -255,7 +257,8 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                const updated = result.data!;
+                const updated = result.data;
+                    if (!updated) return;
                 this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
                     this.#config.onUserUpdate(updated as unknown as ProfileUser);
