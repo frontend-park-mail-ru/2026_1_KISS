@@ -97,9 +97,10 @@ export class ShareModal extends BaseComponent {
 
         const input = nn(this._element.querySelector('.share-modal__input'));
         const addBtn = nn(this._element.querySelector('.share-modal__add-btn'));
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(addBtn, 'click', () => this.#handleAdd(input));
         this._addListener(input, 'keydown', (e: Event) => {
-            if ((e as KeyboardEvent).key === 'Enter') this.#handleAdd(input);
+            if ((e as KeyboardEvent).key === 'Enter') void this.#handleAdd(input);
         });
 
         const list = this._element.querySelector('.share-modal__collaborators');
@@ -108,23 +109,24 @@ export class ShareModal extends BaseComponent {
                 const btn = (e.target as HTMLElement).closest(
                     '.share-modal__remove-btn'
                 );
-                if (btn) this.#handleRemove(btn.dataset.userId);
+                if (btn) void this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
                 const sel = (e.target as HTMLElement).closest(
                     '.share-modal__collaborator-level'
                 );
-                if (sel) this.#handleLevelChange(sel.dataset.userId, sel.value);
+                if (sel) void this.#handleLevelChange(sel.dataset.userId, sel.value);
             });
         }
 
         const toggle = nn(this._element.querySelector(
             '.share-modal__toggle-input'
         ));
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(toggle, 'change', () => this.#handlePublicToggle(toggle.checked));
 
         this._addListener(this._element.querySelector('.share-modal__copy-btn'), 'click', () => {
-            navigator.clipboard.writeText(window.location.href).then(() => {
+            void navigator.clipboard.writeText(window.location.href).then(() => {
                 this.#showCopyFeedback();
             });
         });
@@ -275,13 +277,13 @@ export class ShareModal extends BaseComponent {
                 const btn = (e.target as HTMLElement).closest(
                     '.share-modal__remove-btn'
                 );
-                if (btn) this.#handleRemove(btn.dataset.userId);
+                if (btn) void this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
                 const sel = (e.target as HTMLElement).closest(
                     '.share-modal__collaborator-level'
                 );
-                if (sel) this.#handleLevelChange(sel.dataset.userId, sel.value);
+                if (sel) void this.#handleLevelChange(sel.dataset.userId, sel.value);
             });
         }
     }

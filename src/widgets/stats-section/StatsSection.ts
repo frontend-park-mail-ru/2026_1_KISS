@@ -21,7 +21,7 @@ export class StatsSection extends BaseComponent {
 
     public mount(): void {
         super.mount();
-        this.#loadStats();
+        void this.#loadStats();
     }
 
     async #loadStats(): Promise<void> {

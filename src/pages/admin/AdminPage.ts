@@ -118,6 +118,7 @@ export class AdminPage {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
             },
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onLogout: async () => {
                 await this.#httpClient.post('/auth/logout').catch(() => { /* noop */ });
                 nn(Router.getInstance()).navigate('/sign');
@@ -157,7 +158,7 @@ export class AdminPage {
         this.#contentArea!.innerHTML = '';
         switch (key) {
             case 'stats':
-                this.#renderStats();
+                void this.#renderStats();
                 break;
             case 'users':
                 this.#initUsersSection();
@@ -433,7 +434,7 @@ export class AdminPage {
             this.#searchTimeout = setTimeout(() => {
                 this.#currentUserSearch = searchInput.value;
                 this.#currentUserPage = 1;
-                this.#refreshUsersTable();
+                void this.#refreshUsersTable();
             }, 300);
         });
         header.appendChild(searchInput);
@@ -448,7 +449,7 @@ export class AdminPage {
         tableContainer.className = 'admin-table-container';
         nn(this.#contentArea).appendChild(tableContainer);
 
-        this.#refreshUsersTable();
+        void this.#refreshUsersTable();
     }
 
     async #refreshUsersTable(): Promise<void> {
@@ -530,7 +531,7 @@ export class AdminPage {
                     totalPages,
                     (p: number) => {
                         this.#currentUserPage = p;
-                        this.#refreshUsersTable();
+                        void this.#refreshUsersTable();
                     }
                 );
             }
@@ -543,28 +544,34 @@ export class AdminPage {
         const actions: { label: string; danger?: boolean; handler: () => void }[] = [];
         actions.push({
             label: 'Изменить имя',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             handler: () => this.#editUsername(user)
         });
         actions.push({
             label: 'Изменить email',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             handler: () => this.#editEmail(user)
         });
         actions.push({
             label: 'Сменить пароль',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             handler: () => this.#changePassword(user)
         });
         actions.push({
             label: 'Изменить тариф',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             handler: () => this.#changePlan(user)
         });
         actions.push({
             label: 'Отправить email',
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             handler: () => this.#sendEmailToUser(user)
         });
         if (user.id !== nn(this.#user).id && user.plan === 'freeze' && user.status !== 'banned') {
             actions.push({
                 label: 'Забанить',
                 danger: true,
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 handler: () => this.#banUser(user)
             });
         }
@@ -586,7 +593,7 @@ export class AdminPage {
                 username: result.username,
                 email: user.email
             });
-            this.#refreshUsersTable();
+            void this.#refreshUsersTable();
         } catch (e: unknown) {
             alert((e as Error).message);
         }
@@ -602,7 +609,7 @@ export class AdminPage {
                 username: user.username,
                 email: result.email
             });
-            this.#refreshUsersTable();
+            void this.#refreshUsersTable();
         } catch (e: unknown) {
             alert((e as Error).message);
         }
@@ -634,7 +641,7 @@ export class AdminPage {
         if (!result || result.plan === user.plan) return;
         try {
             await this.#adminApi.setPlan(user.id as string | number, result.plan);
-            this.#refreshUsersTable();
+            void this.#refreshUsersTable();
         } catch (e: unknown) {
             alert((e as Error).message);
         }
@@ -658,7 +665,7 @@ export class AdminPage {
         if (!confirm(`Забанить "${user.username}"? Публичные блокноты станут приватными.`)) return;
         try {
             await this.#adminApi.banUser(user.id as string | number);
-            this.#refreshUsersTable();
+            void this.#refreshUsersTable();
         } catch (e: unknown) {
             alert((e as Error).message);
         }
@@ -685,7 +692,7 @@ export class AdminPage {
             this.#searchTimeout = setTimeout(() => {
                 this.#currentNbSearch = searchInput.value;
                 this.#currentNbPage = 1;
-                this.#refreshNotebooksTable();
+                void this.#refreshNotebooksTable();
             }, 300);
         });
         header.appendChild(searchInput);
@@ -700,7 +707,7 @@ export class AdminPage {
         tableContainer.className = 'admin-table-container';
         nn(this.#contentArea).appendChild(tableContainer);
 
-        this.#refreshNotebooksTable();
+        void this.#refreshNotebooksTable();
     }
 
     async #refreshNotebooksTable(): Promise<void> {
@@ -760,13 +767,14 @@ export class AdminPage {
                         {
                             label: 'Удалить',
                             danger: true,
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             handler: async () => {
                                 if (confirm(`Удалить блокнот "${nb.title}"?`)) {
                                     try {
                                         await this.#adminApi.deleteNotebook(
                                             nb.id as string | number
                                         );
-                                        this.#refreshNotebooksTable();
+                                        void this.#refreshNotebooksTable();
                                     } catch (err: unknown) {
                                         alert((err as Error).message);
                                     }
@@ -788,7 +796,7 @@ export class AdminPage {
                     totalPages,
                     (p: number) => {
                         this.#currentNbPage = p;
-                        this.#refreshNotebooksTable();
+                        void this.#refreshNotebooksTable();
                     }
                 );
             }
@@ -899,7 +907,7 @@ export class AdminPage {
             this.#searchTimeout = setTimeout(() => {
                 this.#currentIssueSearch = searchInput.value;
                 this.#currentIssuePage = 1;
-                this.#refreshIssuesTable();
+                void this.#refreshIssuesTable();
             }, 300);
         });
         header.appendChild(searchInput);
@@ -914,7 +922,7 @@ export class AdminPage {
         tableContainer.className = 'admin-table-container';
         nn(this.#contentArea).appendChild(tableContainer);
 
-        this.#refreshIssuesTable();
+        void this.#refreshIssuesTable();
     }
 
     async #refreshIssuesTable(): Promise<void> {
@@ -971,6 +979,7 @@ export class AdminPage {
                     <td>${statusBadge}</td>
                     <td class="admin-table__muted">${new Date(issue.created_at as string).toLocaleDateString('ru-RU')}</td>`;
 
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 tr.addEventListener('click', () => this.#showIssueDetail(issue.id as number));
                 tbody.appendChild(tr);
             });
@@ -985,7 +994,7 @@ export class AdminPage {
                     totalPages,
                     (p: number) => {
                         this.#currentIssuePage = p;
-                        this.#refreshIssuesTable();
+                        void this.#refreshIssuesTable();
                     }
                 );
             }
@@ -1106,10 +1115,11 @@ export class AdminPage {
             const updateBtn = nn(container.querySelector(
                 '[data-role="update-status"]'
             ));
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             updateBtn.addEventListener('click', async () => {
                 try {
                     await this.#adminApi.updateIssueStatus(issueId, statusSelect.value);
-                    this.#showIssueDetail(issueId);
+                    void this.#showIssueDetail(issueId);
                 } catch (e: unknown) {
                     alert((e as Error).message);
                 }
@@ -1121,12 +1131,13 @@ export class AdminPage {
             const sendBtn = nn(container.querySelector(
                 '[data-role="send-response"]'
             ));
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             sendBtn.addEventListener('click', async () => {
                 const text = responseTextarea.value.trim();
                 if (!text) return;
                 try {
                     await this.#adminApi.respondToIssue(issueId, text);
-                    this.#showIssueDetail(issueId);
+                    void this.#showIssueDetail(issueId);
                 } catch (e: unknown) {
                     alert((e as Error).message);
                 }

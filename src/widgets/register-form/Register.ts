@@ -80,7 +80,7 @@ export class Register extends BaseComponent {
         const btn = nn(this._element.querySelector('#register-btn'));
         this._addListener(btn, 'click', (e: Event) => {
             e.preventDefault();
-            this.#submit();
+            void this.#submit();
         });
     }
 

@@ -71,6 +71,7 @@ export class PasswordSection extends BaseComponent {
         const btn = nn(this._element.querySelector('.password-section__submit-btn'));
         const msgEl = nn(this._element.querySelector('.password-section__msg'));
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(btn, 'click', async () => {
             const currentValid = this.#currentInput.validate();
             const newValid = this.#newInput.validate();

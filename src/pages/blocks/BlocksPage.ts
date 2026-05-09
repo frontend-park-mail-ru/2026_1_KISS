@@ -123,7 +123,9 @@ export class BlocksPage {
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             isOwner,
             onRename: isOwner ? (newTitle: string) => this.#renameNotebook(newTitle) : null,
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSave: () => this.#saveAll(),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSaveAs: () => this.#exportAsIpynb(),
             onOpen: () => { this.#importNotebook(); },
             onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
@@ -132,6 +134,7 @@ export class BlocksPage {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
             },
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onLogout: async () => {
                 try {
                     await this.#httpClient.post('/auth/logout');
@@ -159,8 +162,11 @@ export class BlocksPage {
         body.appendChild(main);
 
         this.#toolbar = new NotebookToolbar(headerArea, {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onAddCode: () => this.#createBlock('code'),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onAddText: () => this.#createBlock('text'),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRunAll: () => this.#runAllBlocks(),
             commentsVisible,
             onToggleComments: (visible: boolean) => {
@@ -190,13 +196,18 @@ export class BlocksPage {
             currentUserId: nn(this.#userId),
             isOwner: this.#isOwner,
             canComment: this.#canComment,
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
             onRerender: () => { this.#reapplyCellState(); },
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onDeleteCell: (blockId: number | string) => this.#deleteBlock(blockId),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSaveContent: (blockId: number | string, content: string) =>
                 this.#saveTextCellContent(blockId, content),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onCodeContentChange: (blockId: number | string, content: string) =>
                 this.#saveCodeCellContent(blockId, content),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onReorder: (blockIds: (number | string)[]) => this.#reorderBlocks(blockIds)
         });
         this.#cellList.mount();
@@ -225,7 +236,7 @@ export class BlocksPage {
                     skipNextResync = false;
                     return;
                 }
-                this.#resyncFromServer();
+                void this.#resyncFromServer();
             },
             onClose: () => { /* noop */ }
         });
@@ -266,7 +277,7 @@ export class BlocksPage {
                 );
                 break;
             case 'notebook_updated':
-                this.#resyncFromServer();
+                void this.#resyncFromServer();
                 break;
             case 'stdout_chunk':
                 if (this.#streamingBlockId !== null) {
@@ -778,7 +789,7 @@ export class BlocksPage {
         if (!this.#shareModal) {
             this.#shareModal = new ShareModal();
         }
-        this.#shareModal.open(
+        void this.#shareModal.open(
             this.#notebookId,
             (this.#notebook?.title as string) || 'Untitled',
             (this.#notebook?.is_public as boolean | undefined) ?? false
@@ -894,7 +905,7 @@ export class BlocksPage {
 
     public destroy(): void {
         if (this.#notebookId) {
-            this.#runnerApi.stopSession(this.#notebookId);
+            void this.#runnerApi.stopSession(this.#notebookId);
         }
         if (this.#beforeUnloadHandler) {
             window.removeEventListener('beforeunload', this.#beforeUnloadHandler);

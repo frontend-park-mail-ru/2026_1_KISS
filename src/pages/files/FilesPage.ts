@@ -100,20 +100,23 @@ export class FilesPage {
         main.appendChild(container);
 
         this.#filterBar = new FilterBar(container, {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onCreate: () => this.#createNotebook(),
             onFilterChange: (filters) => { this.#onFilterChange(filters as Record<string, unknown>); }
         });
         this.#filterBar.mount();
 
         this.#filesTable = new FilesTable(container, {
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onDelete: (id: string) => this.#deleteNotebook(id),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRename: (id: string, newTitle: string) => this.#renameNotebook(id, newTitle),
             onOpen: (id: string) => { nn(Router.getInstance()).navigate(`/notebooks/${id}`); }
         });
         this.#filesTable.mount();
 
         this.#pagination = new Pagination(container, (page: number) => {
-            this.#loadNotebooks(page + 1);
+            void this.#loadNotebooks(page + 1);
         });
         this.#pagination.mount();
 
@@ -176,7 +179,7 @@ export class FilesPage {
         const searchChanged = 'search' in filters && filters.search !== this.#filters.search;
         Object.assign(this.#filters, filters);
         if (searchChanged) {
-            this.#loadNotebooks(1);
+            void this.#loadNotebooks(1);
         } else {
             this.#applyFilters();
         }
