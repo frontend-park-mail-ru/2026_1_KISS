@@ -14,6 +14,12 @@ import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
+import type {
+    ApiEnvelope,
+    NotebookDTO,
+    PermissionListResponse,
+    UserDTO
+} from '../../shared/api/types.js';
 
 export class BlocksPage {
     #root: HTMLElement;
@@ -60,11 +66,12 @@ export class BlocksPage {
                 nn(Router.getInstance()).navigate('/sign');
                 return;
             }
-            const { data: user } = await response.json();
+            const body = (await response.json()) as ApiEnvelope<UserDTO>;
+            const user = body.data;
             this.#userId = user.id;
             this.#username = user.username;
-            this.#avatarUrl = user.avatar_url ?? '';
-            this.#isAdmin = user.is_admin ?? false;
+            this.#avatarUrl = user.avatar_url;
+            this.#isAdmin = user.is_admin;
         } catch (_e) {
             nn(Router.getInstance()).navigate('/sign');
             return;
@@ -76,8 +83,8 @@ export class BlocksPage {
                 nn(Router.getInstance()).navigate('/files');
                 return;
             }
-            const { data: notebook } = await response.json();
-            this.#notebook = notebook;
+            const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
+            this.#notebook = body.data as unknown as Record<string, unknown>;
         } catch (_e) {
             nn(Router.getInstance()).navigate('/files');
             return;
@@ -85,18 +92,16 @@ export class BlocksPage {
 
         this.#isOwner = nn(this.#notebook).owner_id === this.#userId;
         this.#canComment = this.#isOwner;
-        if (!this.#canComment && this.#userId) {
+        if (!this.#canComment && this.#userId !== null) {
             try {
                 const permResponse = await this.#httpClient.get(
                     `/notebooks/${this.#notebookId}/permissions`
                 );
                 if (permResponse.ok) {
-                    const { data } = await permResponse.json();
-                    const perms = data as Record<string, unknown>[];
-                    const mine = perms.find(
-                        (p: Record<string, unknown>) => p.user_id === this.#userId
-                    );
-                    this.#canComment = (mine?.permission_level as string) === 'editor';
+                    const body = (await permResponse.json()) as ApiEnvelope<PermissionListResponse>;
+                    const perms = body.data.permissions;
+                    const mine = perms.find((p) => p.user_id === this.#userId);
+                    this.#canComment = mine?.permission_level === 'editor';
                 }
             } catch {
                 /* ignore */
@@ -364,20 +369,17 @@ export class BlocksPage {
                 noCache: true
             });
             if (!response.ok) return;
-            const { data: notebook } = await response.json();
-            const newTitle = (notebook.title as string) || 'Untitled';
+            const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
+            const notebook = body.data;
+            const newTitle = notebook.title || 'Untitled';
             if (this.#notebook && newTitle !== this.#notebook.title && this.#header) {
                 this.#header.setFilename(newTitle);
             }
-            this.#notebook = notebook;
+            this.#notebook = notebook as unknown as Record<string, unknown>;
             if (!nn(this.#cellList).containsActiveElement()) {
-                this.#loadSavedOutputs(
-                    ((notebook.blocks as BlockData[] | undefined) ?? []) as unknown as Record<
-                        string,
-                        unknown
-                    >[]
-                );
-                nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
+                const blocks = (notebook.blocks ?? []) as unknown as BlockData[];
+                this.#loadSavedOutputs(blocks as unknown as Record<string, unknown>[]);
+                nn(this.#cellList).updateBlocks(blocks);
             }
         } catch {
             /* tolerate */
@@ -437,9 +439,9 @@ export class BlocksPage {
                 noCache: true
             });
             if (!reloadResponse.ok) return;
-            const { data: notebook } = await reloadResponse.json();
-            this.#notebook = notebook;
-            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
+            const reloaded = (await reloadResponse.json()) as ApiEnvelope<NotebookDTO>;
+            this.#notebook = reloaded.data as unknown as Record<string, unknown>;
+            nn(this.#cellList).updateBlocks((reloaded.data.blocks ?? []) as unknown as BlockData[]);
         } catch (e: unknown) {
             logError('Failed to create block:', e);
         }
@@ -456,9 +458,9 @@ export class BlocksPage {
                 noCache: true
             });
             if (!reloadResponse.ok) return;
-            const { data: notebook } = await reloadResponse.json();
-            this.#notebook = notebook;
-            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
+            const reloaded = (await reloadResponse.json()) as ApiEnvelope<NotebookDTO>;
+            this.#notebook = reloaded.data as unknown as Record<string, unknown>;
+            nn(this.#cellList).updateBlocks((reloaded.data.blocks ?? []) as unknown as BlockData[]);
             this.#execNumbers.delete(blockId);
             this.#lastOutputs.delete(blockId);
         } catch (e: unknown) {
@@ -740,9 +742,9 @@ export class BlocksPage {
             if (!file) return;
             try {
                 const text = await file.text();
-                const ipynb = JSON.parse(text);
+                const ipynb = JSON.parse(text) as { cells?: Record<string, unknown>[] };
 
-                const blocks = ((ipynb.cells ?? []) as Record<string, unknown>[]).map((cell, i) => {
+                const blocks = (ipynb.cells ?? []).map((cell, i) => {
                     const content = Array.isArray(cell.source)
                         ? (cell.source as string[]).join('')
                         : (cell.source as string) || '';
@@ -835,8 +837,8 @@ export class BlocksPage {
                 title: newTitle
             });
             if (response.ok) {
-                const { data: notebook } = await response.json();
-                Object.assign(nn(this.#notebook), notebook);
+                const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
+                Object.assign(nn(this.#notebook), body.data);
             }
         } catch (e: unknown) {
             logError('Failed to rename notebook:', e);
