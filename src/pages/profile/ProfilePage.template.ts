@@ -1,3 +1,9 @@
+/**
+ * Рендерит каркас страницы профиля: sidebar с группами Аккаунт/Настройки и
+ * пустым content-контейнером (наполняется ProfilePage динамически в зависимости
+ * от выбранной секции).
+ * @returns HTML-разметка для innerHTML
+ */
 export function ProfilePageTemplate(): string {
     return `<main class="profile-page">
     <div class="profile-page__container">

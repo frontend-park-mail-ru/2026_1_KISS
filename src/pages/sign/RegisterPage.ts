@@ -7,6 +7,17 @@ const SESSION_ACTIVE_STATE = 'registerPageState';
 const LOGIN_STATE = 'login';
 const REGISTER_STATE = 'register';
 
+/**
+ * Объединённая страница входа и регистрации (`/sign`). На одном экране держит
+ * оба компонента (Register и Login), показывает один из них в зависимости от:
+ * 1) URL `?mode=login` или `?mode=register` (наивысший приоритет),
+ * 2) sessionStorage (последний выбор пользователя),
+ * 3) Register по умолчанию.
+ *
+ * Переключение между формами не пересоздаёт компоненты — просто mount/unmount.
+ * Переключение происходит через кнопки внутри форм (goOutBtn/goToRegisterBtn) и
+ * через шапку (loginBtn/registerBtn).
+ */
 export class RegisterPage {
     #root: HTMLElement;
     #elements: { header: GreenHeader | null; main: HTMLElement | null };
@@ -14,6 +25,10 @@ export class RegisterPage {
     #register: Register | null;
     #login: Login | null;
 
+    /**
+     * Инициализирует пустые ссылки. Реальные компоненты создаются в render().
+     * @param root - корневой элемент SPA
+     */
     public constructor(root: HTMLElement) {
         this.#root = root;
         this.#elements = {
@@ -25,6 +40,10 @@ export class RegisterPage {
         this.#login = null;
     }
 
+    /**
+     * Создаёт DOM-структуру (шапка + main + container), инстанцирует обе формы,
+     * восстанавливает active-форму через #restoreState и монтирует её.
+     */
     public render(): void {
         this.#root.innerHTML = '';
 
@@ -47,6 +66,11 @@ export class RegisterPage {
         this.#attachEvents();
     }
 
+    /**
+     * Навешивает 4 обработчика переключения форм (login/register × header/inline-link).
+     * Каждое переключение размонтирует одну форму, монтирует другую, сохраняет
+     * выбор в sessionStorage и зовёт update.
+     */
     #attachEvents(): void {
         const moveToRegister = (e: Event): void => {
             e.preventDefault();
@@ -74,10 +98,17 @@ export class RegisterPage {
         }
     }
 
+    /**
+     * Сбрасывает значения активной формы. Внешний API — может вызываться роутером
+     * (например при возврате с back-кнопки) для очистки полей.
+     */
     public update(): void {
         nn(this.#activeElement).update();
     }
 
+    /**
+     * Сохраняет текущий выбор формы в sessionStorage чтобы при F5 показать ту же.
+     */
     #saveState(): void {
         let activeView = REGISTER_STATE;
         if (this.#activeElement === this.#login) {
@@ -91,6 +122,11 @@ export class RegisterPage {
         );
     }
 
+    /**
+     * Определяет какую форму показать при заходе: сначала смотрит ?mode= в URL,
+     * затем sessionStorage, fallback — Register.
+     * @returns форма для показа
+     */
     #restoreState(): Login | Register {
         const urlMode = new URLSearchParams(window.location.search).get('mode');
         if (urlMode === LOGIN_STATE) return nn(this.#login);
@@ -109,6 +145,10 @@ export class RegisterPage {
         }
     }
 
+    /**
+     * Размонтирует обе формы (вне зависимости от того какая активна) и очищает
+     * root. Вызывается роутером при навигации.
+     */
     public destroy(): void {
         if (this.#login) this.#login.unmount();
         if (this.#register) this.#register.unmount();

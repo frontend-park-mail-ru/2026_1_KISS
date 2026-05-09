@@ -10,8 +10,22 @@ import { ProfilePageTemplate } from './ProfilePage.template.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Минимальный контракт виджета-секции профиля: должен поддерживать mount/unmount.
+ */
+interface MountableSection {
+    /**
+     * Монтирует секцию в указанный родительский элемент.
+     */
+    mount(): void;
+    /**
+     * Размонтирует секцию и снимает обработчики.
+     */
+    unmount(): void;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SECTION_MAP: Record<string, new (...args: any[]) => { mount(): void; unmount(): void }> = {
+const SECTION_MAP: Record<string, new (...args: any[]) => MountableSection> = {
     profile: ProfileSection,
     password: PasswordSection,
     subscription: SubscriptionSection,
@@ -19,21 +33,39 @@ const SECTION_MAP: Record<string, new (...args: any[]) => { mount(): void; unmou
     editor: EditorSettings
 };
 
+/**
+ * Страница профиля пользователя (`/profile`). Sidebar с пятью секциями:
+ * Профиль / Смена пароля / Подписка / Статистика / Оформление.
+ * Только одна секция активна; при переключении старая размонтируется,
+ * новая создаётся и монтируется. Все секции — самостоятельные виджеты с
+ * собственным lifecycle.
+ *
+ * Перед рендером проверяет авторизацию (/auth/me); при отсутствии — редирект на /sign.
+ */
 export class ProfilePage {
     #root: HTMLElement;
     #header: GreenHeader | null = null;
     #httpClient: HttpClient;
     #user: Record<string, unknown> | null = null;
     #activeKey = 'profile';
-    #activeSection: { mount(): void; unmount(): void } | null = null;
+    #activeSection: MountableSection | null = null;
     #contentArea: HTMLElement | null = null;
     #feedbackModal: FeedbackModal | null = null;
 
+    /**
+     * Сохраняет root и берёт singleton HttpClient.
+     * @param root - корневой элемент SPA
+     */
     public constructor(root: HTMLElement) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
     }
 
+    /**
+     * Загружает данные пользователя через /auth/me, рендерит шапку с user-pill
+     * (включая Админ-панель если is_admin), создаёт sidebar и контент-область,
+     * показывает дефолтную секцию 'profile'. При неавторизованном — редирект на /sign.
+     */
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
@@ -92,6 +124,12 @@ export class ProfilePage {
         this.#showSection('profile');
     }
 
+    /**
+     * Навешивает обработчики кликов по пунктам sidebar'а. Меняет active-класс
+     * и переключает текущую секцию через #showSection. Игнорирует клик по уже
+     * активной секции.
+     * @param main - корневой элемент содержимого страницы
+     */
     #attachSidebarEvents(main: HTMLElement): void {
         const items = main.querySelectorAll('.profile-page__sidebar-item');
         items.forEach((item) => {
@@ -108,6 +146,13 @@ export class ProfilePage {
         });
     }
 
+    /**
+     * Размонтирует текущую активную секцию (если есть) и монтирует новую по
+     * ключу из SECTION_MAP. Передаёт user и onUserUpdate в конструктор —
+     * onUserUpdate сохраняет обновлённые данные локально (например после
+     * смены аватара/email).
+     * @param key - идентификатор секции из SECTION_MAP
+     */
     #showSection(key: string): void {
         if (this.#activeSection) {
             this.#activeSection.unmount();
@@ -129,6 +174,9 @@ export class ProfilePage {
         this.#activeSection.mount();
     }
 
+    /**
+     * Размонтирует активную секцию и очищает root. Вызывается роутером.
+     */
     public destroy(): void {
         if (this.#activeSection) {
             this.#activeSection.unmount();

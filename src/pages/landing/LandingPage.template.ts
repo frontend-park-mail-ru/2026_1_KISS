@@ -1,3 +1,9 @@
+/**
+ * Рендерит главную (landing) страницу для гостей: hero-секция с CTA-кнопкой,
+ * блок features из 3 карточек. Полностью статична — без интерактивности кроме
+ * единственной кнопки "Создать блокнот".
+ * @returns HTML-разметка для innerHTML
+ */
 export function LandingPageTemplate(): string {
     return `<div class="landing-page">
     <main class="landing-page__main">
