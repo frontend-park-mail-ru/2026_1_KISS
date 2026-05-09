@@ -240,7 +240,7 @@ export class FilesPage {
                 const { data: notebook } = (await response.json()) as {
                     data: Record<string, unknown>;
                 };
-                nn(Router.getInstance()).navigate(`/notebooks/${notebook.id}`);
+                nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
             }
         } catch (e: unknown) {
             console.error('Failed to create notebook:', e);

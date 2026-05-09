@@ -504,7 +504,7 @@ export class AdminPage {
                 }
 
                 tr.innerHTML = `
-                    <td class="admin-table__muted">${user.id}</td>
+                    <td class="admin-table__muted">${String(user.id)}</td>
                     <td class="admin-table__cell-truncate" title="${this.#esc(user.username as string)}"><strong>${this.#esc(user.username as string)}</strong></td>
                     <td class="admin-table__cell-truncate" title="${this.#esc(user.email as string)}">${this.#esc(user.email as string)}</td>
                     <td>${badge}</td>
@@ -662,7 +662,7 @@ export class AdminPage {
     }
 
     async #banUser(user: Record<string, unknown>): Promise<void> {
-        if (!confirm(`Забанить "${user.username}"? Публичные блокноты станут приватными.`)) return;
+        if (!confirm(`Забанить "${String(user.username)}"? Публичные блокноты станут приватными.`)) return;
         try {
             await this.#adminApi.banUser(user.id as string | number);
             void this.#refreshUsersTable();
@@ -754,9 +754,9 @@ export class AdminPage {
                     : '<span class="admin-badge">private</span>';
 
                 tr.innerHTML = `
-                    <td class="admin-table__muted">${nb.id}</td>
+                    <td class="admin-table__muted">${String(nb.id)}</td>
                     <td class="admin-table__cell-truncate" title="${this.#esc(nb.title as string)}"><strong>${this.#esc(nb.title as string)}</strong></td>
-                    <td class="admin-table__muted">${nb.owner_id}</td>
+                    <td class="admin-table__muted">${String(nb.owner_id)}</td>
                     <td>${accessBadge}</td>
                     <td class="admin-table__muted">${new Date(nb.created_at as string).toLocaleDateString('ru-RU')}</td>`;
 
@@ -769,7 +769,7 @@ export class AdminPage {
                             danger: true,
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             handler: async () => {
-                                if (confirm(`Удалить блокнот "${nb.title}"?`)) {
+                                if (confirm(`Удалить блокнот "${String(nb.title)}"?`)) {
                                     try {
                                         await this.#adminApi.deleteNotebook(
                                             nb.id as string | number
@@ -972,10 +972,10 @@ export class AdminPage {
                 const preview = content.length > 60 ? `${content.substring(0, 60)  }...` : content;
 
                 tr.innerHTML = `
-                    <td class="admin-table__muted">${issue.id}</td>
+                    <td class="admin-table__muted">${String(issue.id)}</td>
                     <td>${catBadge}</td>
                     <td class="admin-table__cell-truncate" title="${this.#esc(content)}">${this.#esc(preview)}</td>
-                    <td class="admin-table__muted">${issue.user_id}</td>
+                    <td class="admin-table__muted">${String(issue.user_id)}</td>
                     <td>${statusBadge}</td>
                     <td class="admin-table__muted">${new Date(issue.created_at as string).toLocaleDateString('ru-RU')}</td>`;
 
@@ -1040,7 +1040,7 @@ export class AdminPage {
                             ${attachments
                                 .map(
                                     (att) =>
-                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${issueId}/attachments/${att.id}" target="_blank">${this.#esc((att.filename ?? att.name ?? 'Файл') as string)}</a>`
+                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${issueId}/attachments/${String(att.id)}" target="_blank">${this.#esc((att.filename ?? att.name ?? 'Файл') as string)}</a>`
                                 )
                                 .join('')}
                         </div>
@@ -1061,7 +1061,7 @@ export class AdminPage {
                         });
                         const author = m.is_admin
                             ? 'Администратор'
-                            : (m.username as string) || `User #${m.user_id}`;
+                            : (m.username as string) || `User #${String(m.user_id)}`;
                         const cls = m.is_admin
                             ? 'admin-issue-detail__message--admin'
                             : 'admin-issue-detail__message--user';
@@ -1082,10 +1082,10 @@ export class AdminPage {
             }
 
             container.innerHTML = `
-                <h2 class="admin-page__section-title">Обращение #${issue.id}</h2>
+                <h2 class="admin-page__section-title">Обращение #${String(issue.id)}</h2>
                 <div class="admin-issue-detail__meta">
                     ${catBadge} ${statusBadge}
-                    <span class="admin-table__muted">${this.#esc((issue.username as string) || `User #${issue.user_id}`)}</span>
+                    <span class="admin-table__muted">${this.#esc((issue.username as string) || `User #${String(issue.user_id)}`)}</span>
                     <span class="admin-table__muted">${date}</span>
                 </div>
                 <div class="admin-issue-detail__content">${this.#esc(issue.content as string)}</div>

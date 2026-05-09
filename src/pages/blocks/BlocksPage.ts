@@ -553,7 +553,7 @@ export class BlocksPage {
                 c.setOutput(out);
             });
         } catch (e: unknown) {
-            const errOut = { error: `Run-all failed: ${(e as Error).message || e}` };
+            const errOut = { error: `Run-all failed: ${String((e as Error).message || e)}` };
             codeCells.forEach((c) => {
                 const blockId = c.getBlockId();
                 if (savedOutputs.has(blockId)) {
@@ -766,7 +766,7 @@ export class BlocksPage {
                     const { data: notebook } = (await resp.json()) as {
                         data: Record<string, unknown>;
                     };
-                    nn(Router.getInstance()).navigate(`/notebooks/${notebook.id}`);
+                    nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
                 }
             } catch (err: unknown) {
                 console.error('Failed to import notebook:', err);

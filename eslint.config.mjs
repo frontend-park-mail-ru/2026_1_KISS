@@ -119,7 +119,8 @@ export default [
             '@typescript-eslint/explicit-member-accessibility': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/strict-boolean-expressions': 'error',
-            '@typescript-eslint/switch-exhaustiveness-check': 'error'
+            '@typescript-eslint/switch-exhaustiveness-check': 'error',
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }]
         }
     },
 
