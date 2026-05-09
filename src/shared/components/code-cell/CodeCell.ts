@@ -196,10 +196,12 @@ export class CodeCell extends BaseComponent {
             });
         }
 
-        const runBtn = this._element.querySelector('.code-cell__run-btn');
-        this._addListener(runBtn, 'click', () => {
-            if (this.#onRun && !this.#isRunning) this.#onRun(this.#blockData.id);
-        });
+        if (!this.#readonly) {
+            const runBtn = this._element.querySelector('.code-cell__run-btn');
+            this._addListener(runBtn, 'click', () => {
+                if (this.#onRun && !this.#isRunning) this.#onRun(this.#blockData.id);
+            });
+        }
     }
 
     /**

@@ -204,3 +204,19 @@
 .code-cell--error {
   border-color: var(--error-red);
 }
+
+.code-cell--readonly .code-cell__textarea {
+  cursor: default;
+  background: var(--light-grey);
+  color: var(--dark-primary);
+}
+
+.code-cell--readonly .code-cell__run-btn {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.code-cell--readonly:hover .code-cell__actions {
+  opacity: 0;
+  visibility: hidden;
+}

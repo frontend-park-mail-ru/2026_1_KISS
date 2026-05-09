@@ -11,12 +11,14 @@ import { escapeHtml } from '../../utils/escapeHtml.js';
  * @returns HTML-разметка для innerHTML
  */
 export function CodeCellTemplate(ctx: { id: string; content: string; readonly?: boolean }): string {
-    const readonlyClass = ctx.readonly === true ? ' code-cell--readonly' : '';
-    const readonlyAttr = ctx.readonly === true ? ' readonly' : '';
+    const isReadonly = ctx.readonly === true;
+    const readonlyClass = isReadonly ? ' code-cell--readonly' : '';
+    const readonlyAttr = isReadonly ? ' readonly' : '';
+    const runBtnAttrs = isReadonly ? ' disabled aria-disabled="true"' : '';
     return `<div class="code-cell${readonlyClass}" data-block-id="${escapeHtml(ctx.id)}">
     <div class="code-cell__gutter">
         <span class="code-cell__execution-number">[ ]</span>
-        <button class="code-cell__run-btn" title="Выполнить">
+        <button class="code-cell__run-btn" title="Выполнить"${runBtnAttrs}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M4 2l10 6-10 6V2z"/>
             </svg>
@@ -35,7 +37,7 @@ export function CodeCellTemplate(ctx: { id: string; content: string; readonly?: 
         </div>
     </div>
     ${
-        ctx.readonly === true
+        isReadonly
             ? ''
             : `<div class="code-cell__actions">
         <button class="code-cell__action-btn" data-action="move-up" title="Переместить вверх">
