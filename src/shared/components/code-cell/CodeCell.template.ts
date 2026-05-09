@@ -11,8 +11,8 @@ import { escapeHtml } from '../../utils/escapeHtml.js';
  * @returns HTML-разметка для innerHTML
  */
 export function CodeCellTemplate(ctx: { id: string; content: string; readonly?: boolean }): string {
-    const readonlyClass = ctx.readonly ? ' code-cell--readonly' : '';
-    const readonlyAttr = ctx.readonly ? ' readonly' : '';
+    const readonlyClass = ctx.readonly === true ? ' code-cell--readonly' : '';
+    const readonlyAttr = ctx.readonly === true ? ' readonly' : '';
     return `<div class="code-cell${readonlyClass}" data-block-id="${escapeHtml(ctx.id)}">
     <div class="code-cell__gutter">
         <span class="code-cell__execution-number">[ ]</span>
@@ -35,7 +35,7 @@ export function CodeCellTemplate(ctx: { id: string; content: string; readonly?: 
         </div>
     </div>
     ${
-        ctx.readonly
+        ctx.readonly === true
             ? ''
             : `<div class="code-cell__actions">
         <button class="code-cell__action-btn" data-action="move-up" title="Переместить вверх">

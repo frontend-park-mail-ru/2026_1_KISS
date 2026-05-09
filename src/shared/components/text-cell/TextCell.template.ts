@@ -10,12 +10,12 @@ import { escapeHtml } from '../../utils/escapeHtml.js';
  * @returns HTML-разметка для innerHTML
  */
 export function TextCellTemplate(ctx: { id: string; content: string; readonly?: boolean }): string {
-    const readonlyClass = ctx.readonly ? ' text-cell--readonly' : '';
-    const contentEditable = ctx.readonly ? 'false' : 'true';
+    const readonlyClass = ctx.readonly === true ? ' text-cell--readonly' : '';
+    const contentEditable = ctx.readonly === true ? 'false' : 'true';
     return `<div class="text-cell${readonlyClass}" data-block-id="${escapeHtml(ctx.id)}">
     <div class="text-cell__content" contenteditable="${contentEditable}" data-placeholder="Введите текст...">${escapeHtml(ctx.content)}</div>
     ${
-        ctx.readonly
+        ctx.readonly === true
             ? ''
             : `<div class="text-cell__actions">
         <button class="text-cell__action-btn" data-action="move-up" title="Переместить вверх">
