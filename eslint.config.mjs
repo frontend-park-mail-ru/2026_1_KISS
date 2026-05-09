@@ -7,7 +7,10 @@ import tseslint from 'typescript-eslint';
 const jsdocRequiredFiles = [
     'src/sw.ts',
     'src/shared/utils/**/*.ts',
-    'src/shared/components/**/*.ts'
+    'src/shared/components/**/*.ts',
+    'src/shared/http_client/**/*.ts',
+    'src/shared/router/**/*.ts',
+    'src/shared/types.ts'
 ];
 
 const jsdocRules = {
