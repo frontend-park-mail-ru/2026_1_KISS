@@ -327,7 +327,8 @@ export class CodeCell extends BaseComponent {
 
         (el as HTMLElement).hidden = !hasAny;
 
-        const stdoutText = (out.stdout?.length ?? 0) !== 0 ? out.stdout.join('\n') : '';
+        const stdoutText =
+            out.stdout !== undefined && out.stdout.length > 0 ? out.stdout.join('\n') : '';
         stdoutEl.innerHTML = stdoutText ? ansiToHtml(handleCarriageReturns(stdoutText)) : '';
 
         const stderrText = [out.stderr?.join('\n') ?? '', out.error ?? '']

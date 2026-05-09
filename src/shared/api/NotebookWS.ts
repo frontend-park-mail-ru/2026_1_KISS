@@ -125,7 +125,7 @@ export class NotebookWS {
      * @returns true если WebSocket в состоянии OPEN
      */
     public isOpen(): boolean {
-        return Boolean(this.#socket) && this.#socket.readyState === WebSocket.OPEN;
+        return this.#socket !== null && this.#socket.readyState === WebSocket.OPEN;
     }
 
     /**
