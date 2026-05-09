@@ -111,11 +111,12 @@ export class CodeCell extends BaseComponent {
         this._addListener(textarea, 'keydown', (e: unknown) => {
             if ((e as KeyboardEvent).key === 'Tab') {
                 (e as KeyboardEvent).preventDefault();
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                textarea.value =
-                    `${textarea.value.substring(0, start)  }    ${  textarea.value.substring(end)}`;
-                textarea.selectionStart = textarea.selectionEnd = start + 4;
+                const ta = textarea as HTMLTextAreaElement;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                ta.value =
+                    `${ta.value.substring(0, start)  }    ${  ta.value.substring(end)}`;
+                ta.selectionStart = ta.selectionEnd = start + 4;
                 this.#updateLineNumbers();
             }
         });
@@ -138,10 +139,10 @@ export class CodeCell extends BaseComponent {
     }
 
     #updateLineNumbers(): void {
-        const textarea = nn(this._element.querySelector('.code-cell__textarea'));
+        const textarea = nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea'));
         const lineNumbers = nn(this._element.querySelector('.code-cell__line-numbers'));
         const lines = textarea.value.split('\n');
-        lineNumbers.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
+        lineNumbers.innerHTML = lines.map((_: string, i: number) => `<div>${i + 1}</div>`).join('');
     }
 
     #autoResize(): void {
