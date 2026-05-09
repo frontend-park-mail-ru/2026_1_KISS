@@ -7,6 +7,7 @@ import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import type { Notebook } from '../../shared/types.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { logError } from '../../shared/utils/logger.js';
 
 interface FilesNotebook extends Notebook {
     _isShared?: boolean;
@@ -179,7 +180,7 @@ export class FilesPage {
 
             nn(this.#pagination).update(requestedPage - 1, totalPages);
         } catch (e: unknown) {
-            console.error('Failed to load notebooks:', e);
+            logError('Failed to load notebooks:', e);
         }
     }
 
@@ -251,7 +252,7 @@ export class FilesPage {
                 nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
             }
         } catch (e: unknown) {
-            console.error('Failed to create notebook:', e);
+            logError('Failed to create notebook:', e);
         }
     }
 
@@ -262,7 +263,7 @@ export class FilesPage {
                 await this.#loadNotebooks(this.#state.currentPage);
             }
         } catch (e: unknown) {
-            console.error('Failed to delete notebook:', e);
+            logError('Failed to delete notebook:', e);
         }
     }
 
@@ -275,7 +276,7 @@ export class FilesPage {
                 await this.#loadNotebooks(this.#state.currentPage);
             }
         } catch (e: unknown) {
-            console.error('Failed to rename notebook:', e);
+            logError('Failed to rename notebook:', e);
         }
     }
 }

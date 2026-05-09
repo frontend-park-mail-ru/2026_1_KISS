@@ -4,6 +4,7 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { RegisterTemplate } from './Register.template.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { logError } from '../../shared/utils/logger.js';
 
 const FIELD_NAMES = {
     login: 'login',
@@ -103,7 +104,7 @@ export class Register extends BaseComponent {
         }
 
         if (!response.ok) {
-            console.error(responseData);
+            logError(responseData);
             const errorElement = this._element.querySelector('.sign-error-message');
             if (errorElement) {
                 errorElement.textContent = translateError(responseData.error as string);
