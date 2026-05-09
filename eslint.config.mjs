@@ -56,8 +56,8 @@ const pragmaticDisables = {
 };
 
 const strictOverrides = {
-    'no-console': ['error', { allow: ['error', 'warn'] }],
-    'no-alert': 'off',
+    'no-console': 'error',
+    'no-alert': 'error',
     eqeqeq: 'error',
     curly: ['error', 'all'],
     'no-var': 'error',
@@ -115,30 +115,11 @@ export default [
             '@typescript-eslint/no-use-before-define': ['error', { classes: false }],
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/consistent-type-imports': 'error',
-            '@typescript-eslint/explicit-function-return-type': ['error', {
-                allowExpressions: true,
-                allowTypedFunctionExpressions: true,
-                allowHigherOrderFunctions: true,
-                allowDirectConstAssertionInArrowFunctions: true
-            }],
+            '@typescript-eslint/explicit-function-return-type': 'error',
             '@typescript-eslint/explicit-member-accessibility': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/strict-boolean-expressions': ['error', {
-                allowString: true,
-                allowNumber: true,
-                allowNullableObject: true,
-                allowNullableBoolean: true,
-                allowNullableString: true,
-                allowNullableNumber: true,
-                allowAny: true
-            }],
-            '@typescript-eslint/switch-exhaustiveness-check': 'error',
-            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-argument': 'off',
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-return': 'off'
+            '@typescript-eslint/strict-boolean-expressions': 'error',
+            '@typescript-eslint/switch-exhaustiveness-check': 'error'
         }
     },
 
