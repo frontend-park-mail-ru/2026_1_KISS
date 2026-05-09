@@ -34,7 +34,7 @@ jobs:
             git fetch origin main
             CHANGED=$(git diff --name-only HEAD origin/main)
 
-            git pull origin main
+            git reset --hard origin/main
 
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
