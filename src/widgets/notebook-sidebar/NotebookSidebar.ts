@@ -1,5 +1,6 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { RunnerApi } from '../../shared/api/RunnerApi.js';
+import { FindEngine } from '../../shared/search/FindEngine.js';
 import { NotebookSidebarTemplate } from './NotebookSidebar.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 
@@ -16,19 +17,77 @@ interface FindQuery {
 }
 
 /**
- * Опциональные обработчики и контекст для NotebookSidebar.
+ * Сериализованный снимок одной ячейки для FindEngine. Возвращается
+ * адаптером — sidebar сам не знает про конкретные классы CodeCell/TextCell.
+ */
+export interface SearchableCellSnapshot {
+    /** ID блока */
+    id: number | string;
+    /** Тип блока (для разной обработки highlight'а) */
+    kind: 'code' | 'text';
+    /** Текущее содержимое (с учётом несохранённых изменений) */
+    content: string;
+}
+
+/**
+ * Одно найденное совпадение поиска (структура из FindEngine).
+ */
+export interface SearchMatch {
+    /** ID блока, в котором найдено совпадение */
+    blockId: number | string;
+    /** Тип блока */
+    kind: 'code' | 'text';
+    /** Порядковый номер совпадения в этом блоке (0-based) */
+    index: number;
+    /** Начальная позиция в content */
+    start: number;
+    /** Конечная позиция в content */
+    end: number;
+}
+
+/**
+ * Адаптер, через который sidebar взаимодействует с ячейками блокнота.
+ * Создаётся страницей и передаётся в конструктор виджета. Это разрывает
+ * прямую связь sidebar → CodeCell/TextCell — виджет работает только с
+ * абстракциями, а классозависимое поведение (highlightRange/highlightMatch)
+ * прячется в реализации адаптера.
+ */
+export interface NotebookSearchAdapter {
+    /**
+     * Возвращает снимок всех ячеек блокнота для FindEngine.
+     * @returns массив SearchableCellSnapshot
+     */
+    getSearchableCells(): SearchableCellSnapshot[];
+    /**
+     * Снимает подсветку со всех ячеек (вызывается перед фокусом нового совпадения).
+     */
+    clearAllHighlights(): void;
+    /**
+     * Подсвечивает конкретное совпадение в нужной ячейке.
+     * @param match - параметры найденного совпадения
+     */
+    focusMatch(match: SearchMatch): void;
+    /**
+     * Возвращает текущее содержимое ячейки или null если ячейка не найдена.
+     * @param blockId - ID искомого блока
+     * @returns строка содержимого или null
+     */
+    getContent(blockId: number | string): string | null;
+    /**
+     * Устанавливает новое содержимое ячейки. Возвращает true при успехе.
+     * @param blockId - ID блока
+     * @param content - новое содержимое
+     * @returns true если ячейка найдена и обновлена
+     */
+    setContent(blockId: number | string, content: string): boolean;
+}
+
+/**
+ * Опциональный контекст для NotebookSidebar.
  */
 interface NotebookSidebarCallbacks {
-    /** Старт нового поиска */
-    onFind?: (q: FindQuery) => void;
-    /** Перейти к следующему совпадению */
-    onNext?: (q: FindQuery) => void;
-    /** Перейти к предыдущему совпадению */
-    onPrev?: (q: FindQuery) => void;
-    /** Заменить текущее совпадение */
-    onReplace?: (q: FindQuery) => void;
-    /** Заменить все совпадения */
-    onReplaceAll?: (q: FindQuery) => void;
+    /** Адаптер для поиска/замены по ячейкам (если не передан — search-панель не работает) */
+    searchTarget?: NotebookSearchAdapter;
     /** ID notebook'а — нужен для resources-панели (поллинг RunnerApi) */
     notebookId?: string | number;
 }
@@ -43,11 +102,8 @@ interface NotebookSidebarCallbacks {
  */
 export class NotebookSidebar extends BaseComponent {
     #activePanel: string | null = null;
-    #onFind: NotebookSidebarCallbacks['onFind'];
-    #onNext: NotebookSidebarCallbacks['onNext'];
-    #onPrev: NotebookSidebarCallbacks['onPrev'];
-    #onReplace: NotebookSidebarCallbacks['onReplace'];
-    #onReplaceAll: NotebookSidebarCallbacks['onReplaceAll'];
+    #searchTarget: NotebookSearchAdapter | null = null;
+    #findEngine = new FindEngine();
     #notebookId: string | number | undefined;
     #runnerApi: RunnerApi;
     #containerPollTimer: ReturnType<typeof setInterval> | null = null;
@@ -55,28 +111,17 @@ export class NotebookSidebar extends BaseComponent {
     #cpuHistory: number[] = [];
 
     /**
-     * Создаёт сайдбар. Все callback'и опциональны — их отсутствие просто значит
-     * что соответствующие кнопки не будут реагировать.
+     * Создаёт сайдбар. searchTarget опционален — без него search-панель
+     * присутствует, но кнопки не работают.
      * @param parent - родительский элемент
-     * @param callbacks - обработчики find/replace и notebookId для resources-панели
+     * @param callbacks - адаптер поиска и notebookId для resources-панели
      */
     public constructor(
         parent: HTMLElement,
-        {
-            onFind,
-            onNext,
-            onPrev,
-            onReplace,
-            onReplaceAll,
-            notebookId
-        }: NotebookSidebarCallbacks = {}
+        { searchTarget, notebookId }: NotebookSidebarCallbacks = {}
     ) {
         super(null, parent);
-        this.#onFind = onFind;
-        this.#onNext = onNext;
-        this.#onPrev = onPrev;
-        this.#onReplace = onReplace;
-        this.#onReplaceAll = onReplaceAll;
+        this.#searchTarget = searchTarget ?? null;
         this.#notebookId = notebookId;
         this.#runnerApi = new RunnerApi();
         this.#render();
@@ -166,11 +211,7 @@ export class NotebookSidebar extends BaseComponent {
                 if (ke.key !== 'Enter') return;
                 ke.preventDefault();
                 const q = this.getFindQuery();
-                if (ke.shiftKey) {
-                    if (this.#onPrev) this.#onPrev(q);
-                } else if (this.#onNext) {
-                    this.#onNext(q);
-                }
+                this.#runNav(q, ke.shiftKey ? 'prev' : 'next');
             });
         }
 
@@ -179,12 +220,101 @@ export class NotebookSidebar extends BaseComponent {
             this._addListener(btn, 'click', (e: Event) => {
                 e.preventDefault();
                 const q = this.getFindQuery();
-                if (action === 'find' && this.#onFind) this.#onFind(q);
-                else if (action === 'next' && this.#onNext) this.#onNext(q);
-                else if (action === 'prev' && this.#onPrev) this.#onPrev(q);
-                else if (action === 'replace' && this.#onReplace) this.#onReplace(q);
-                else if (action === 'replace-all' && this.#onReplaceAll) this.#onReplaceAll(q);
+                if (action === 'find') this.#runFind(q);
+                else if (action === 'next') this.#runNav(q, 'next');
+                else if (action === 'prev') this.#runNav(q, 'prev');
+                else if (action === 'replace') this.#runReplace(q);
+                else if (action === 'replace-all') this.#runReplaceAll(q);
             });
+        });
+    }
+
+    /**
+     * Запускает новый поиск через FindEngine: собирает текущие ячейки через
+     * адаптер, передаёт в движок, обновляет счётчик и фокусирует первое
+     * совпадение.
+     * @param q - параметры поиска
+     */
+    #runFind(q: FindQuery): void {
+        if (!this.#searchTarget) return;
+        const cells = this.#searchTarget.getSearchableCells();
+        const total = this.#findEngine.search(cells, q.query, q.caseSensitive);
+        this.setMatchCount(this.#findEngine.index(), total);
+        if (total > 0) this.#focusCurrent();
+    }
+
+    /**
+     * Навигация по результатам (next/prev). Если поиск ещё не запускали —
+     * запускает его перед навигацией.
+     * @param q - параметры поиска
+     * @param direction - 'next' или 'prev'
+     */
+    #runNav(q: FindQuery, direction: 'next' | 'prev'): void {
+        if (!this.#searchTarget) return;
+        if (this.#findEngine.total() === 0) {
+            this.#runFind(q);
+            return;
+        }
+        const m = direction === 'next' ? this.#findEngine.next() : this.#findEngine.prev();
+        if (m) {
+            this.setMatchCount(this.#findEngine.index(), this.#findEngine.total());
+            this.#focusCurrent();
+        }
+    }
+
+    /**
+     * Заменяет текущее совпадение и переходит к следующему. Если поиск ещё
+     * не активен — сначала запускает поиск.
+     * @param q - параметры замены (включая replacement)
+     */
+    #runReplace(q: FindQuery): void {
+        if (!this.#searchTarget) return;
+        if (this.#findEngine.total() === 0) {
+            this.#runFind(q);
+            if (this.#findEngine.total() === 0) return;
+        }
+        const m = this.#findEngine.current();
+        if (!m) return;
+        const content = this.#searchTarget.getContent(m.blockId);
+        if (content === null) return;
+        const updated = content.substring(0, m.start) + q.replacement + content.substring(m.end);
+        if (!this.#searchTarget.setContent(m.blockId, updated)) return;
+        this.#runFind(q);
+    }
+
+    /**
+     * Заменяет все вхождения query на replacement во всех ячейках одним
+     * RegExp.replace (с эскейпом метасимволов и флагом g/gi). Сбрасывает
+     * FindEngine — счётчик показывает 0 после операции.
+     * @param q - параметры массовой замены
+     */
+    #runReplaceAll(q: FindQuery): void {
+        if (!this.#searchTarget) return;
+        if (q.query === '') return;
+        const escaped = q.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(escaped, q.caseSensitive ? 'g' : 'gi');
+        for (const cell of this.#searchTarget.getSearchableCells()) {
+            const updated = cell.content.replace(re, q.replacement);
+            if (updated !== cell.content) this.#searchTarget.setContent(cell.id, updated);
+        }
+        this.#findEngine.reset();
+        this.setMatchCount(-1, 0);
+    }
+
+    /**
+     * Фокусирует и подсвечивает текущее совпадение через адаптер.
+     */
+    #focusCurrent(): void {
+        if (!this.#searchTarget) return;
+        this.#searchTarget.clearAllHighlights();
+        const m = this.#findEngine.current();
+        if (!m) return;
+        this.#searchTarget.focusMatch({
+            blockId: m.blockId,
+            kind: m.kind,
+            index: m.index,
+            start: m.start,
+            end: m.end
         });
     }
 
