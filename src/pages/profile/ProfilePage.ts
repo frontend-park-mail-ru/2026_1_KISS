@@ -75,7 +75,7 @@ export class ProfilePage {
             }
         };
         if (Boolean(nn(this.#user).is_admin)) {
-            headerConfig.onAdmin = () => {
+            headerConfig.onAdmin = (): void => {
                 nn(Router.getInstance()).navigate('/admin');
             };
         }
@@ -97,7 +97,7 @@ export class ProfilePage {
         items.forEach((item) => {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
-                if (Boolean(section) && section !== this.#activeKey) {
+                if (section !== undefined && section !== this.#activeKey) {
                     items.forEach((i) => {
                         i.classList.remove('profile-page__sidebar-item--active');
                     });
@@ -122,7 +122,7 @@ export class ProfilePage {
 
         this.#activeSection = new SectionClass(this.#contentArea, {
             user: this.#user,
-            onUserUpdate: (updatedUser: Record<string, unknown>) => {
+            onUserUpdate: (updatedUser: Record<string, unknown>): void => {
                 this.#user = updatedUser;
             }
         });

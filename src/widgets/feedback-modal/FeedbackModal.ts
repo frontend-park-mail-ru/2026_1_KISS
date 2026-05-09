@@ -11,7 +11,7 @@ export class FeedbackModal {
         this.#iframe.setAttribute('allowtransparency', 'true');
         document.body.appendChild(this.#iframe);
 
-        this.#onMessage = (e: MessageEvent<{ type?: string } | undefined>) => {
+        this.#onMessage = (e: MessageEvent<{ type?: string } | undefined>): void => {
             if (e.data?.type === 'feedback:close') {
                 this.close();
             } else if (e.data?.type === 'feedback:ready') {

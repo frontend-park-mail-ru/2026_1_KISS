@@ -96,7 +96,7 @@ export class FilesPage {
             }
         };
         if (this.#state.isAdmin) {
-            headerConfig.onAdmin = () => {
+            headerConfig.onAdmin = (): void => {
                 nn(Router.getInstance()).navigate('/admin');
             };
         }
@@ -113,8 +113,8 @@ export class FilesPage {
 
         this.#filterBar = new FilterBar(container, {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onCreate: () => this.#createNotebook(),
-            onFilterChange: (filters) => {
+            onCreate: (): Promise<void> => this.#createNotebook(),
+            onFilterChange: (filters): void => {
                 this.#onFilterChange(filters as Record<string, unknown>);
             }
         });
@@ -122,10 +122,10 @@ export class FilesPage {
 
         this.#filesTable = new FilesTable(container, {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onDelete: (id: string) => this.#deleteNotebook(id),
+            onDelete: (id: string): Promise<void> => this.#deleteNotebook(id),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRename: (id: string, newTitle: string) => this.#renameNotebook(id, newTitle),
-            onOpen: (id: string) => {
+            onRename: (id: string, newTitle: string): Promise<void> => this.#renameNotebook(id, newTitle),
+            onOpen: (id: string): void => {
                 nn(Router.getInstance()).navigate(`/notebooks/${id}`);
             }
         });
@@ -204,27 +204,27 @@ export class FilesPage {
     #applyFilters(): void {
         let filtered = [...this.#allNotebooks];
 
-        if (Boolean(this.#filters.owner)) {
+        if (this.#filters.owner !== null) {
             filtered = filtered.filter(() => this.#state.username === this.#filters.owner);
         }
 
-        if (Boolean(this.#filters.dateFrom)) {
+        if (this.#filters.dateFrom !== null) {
             const from = new Date(this.#filters.dateFrom);
             filtered = filtered.filter((n) => new Date(n.updated_at) >= from);
         }
 
-        if (Boolean(this.#filters.dateTo)) {
+        if (this.#filters.dateTo !== null) {
             const to = new Date(this.#filters.dateTo);
             to.setHours(23, 59, 59, 999);
             filtered = filtered.filter((n) => new Date(n.updated_at) <= to);
         }
 
         let sharedFiltered = [...this.#sharedNotebooks];
-        if (Boolean(this.#filters.dateFrom)) {
+        if (this.#filters.dateFrom !== null) {
             const from = new Date(this.#filters.dateFrom);
             sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) >= from);
         }
-        if (Boolean(this.#filters.dateTo)) {
+        if (this.#filters.dateTo !== null) {
             const to = new Date(this.#filters.dateTo);
             to.setHours(23, 59, 59, 999);
             sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) <= to);

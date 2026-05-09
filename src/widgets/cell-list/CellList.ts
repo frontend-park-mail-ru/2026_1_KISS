@@ -210,16 +210,16 @@ export class CellList extends BaseComponent {
     #buildCellCallbacks(block: BlockData): Record<string, unknown> {
         return {
             blockData: block,
-            onMoveUp: (id: string) => {
+            onMoveUp: (id: string): void => {
                 this.#moveBlock(id, -1);
             },
-            onMoveDown: (id: string) => {
+            onMoveDown: (id: string): void => {
                 this.#moveBlock(id, 1);
             },
-            onCopy: (id: string) => {
+            onCopy: (id: string): void => {
                 this.#copyBlock(id);
             },
-            onDelete: (id: string) => {
+            onDelete: (id: string): void => {
                 if (this.#onDeleteCell) this.#onDeleteCell(id);
             }
         };

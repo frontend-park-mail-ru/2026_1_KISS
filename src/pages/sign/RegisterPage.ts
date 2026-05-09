@@ -97,7 +97,7 @@ export class RegisterPage {
         if (urlMode === REGISTER_STATE) return nn(this.#register);
 
         const savedState = sessionStorage.getItem(SESSION_ACTIVE_STATE);
-        if (Boolean(savedState)) {
+        if (savedState !== null) {
             try {
                 const parsed = JSON.parse(savedState) as { activeView?: string };
                 return parsed.activeView === LOGIN_STATE

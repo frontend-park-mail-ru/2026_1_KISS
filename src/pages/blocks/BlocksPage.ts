@@ -125,28 +125,28 @@ export class BlocksPage {
             filename: (nn(this.#notebook).title as string) || 'Untitled',
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             isOwner,
-            onRename: isOwner ? (newTitle: string) => this.#renameNotebook(newTitle) : null,
+            onRename: isOwner ? (newTitle: string): Promise<void> => this.#renameNotebook(newTitle) : null,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onSave: () => this.#saveAll(),
+            onSave: (): Promise<void> => this.#saveAll(),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onSaveAs: () => this.#exportAsIpynb(),
-            onOpen: () => {
+            onSaveAs: (): Promise<void> => this.#exportAsIpynb(),
+            onOpen: (): void => {
                 this.#importNotebook();
             },
-            onProfile: () => {
+            onProfile: (): void => {
                 nn(Router.getInstance()).navigate('/profile');
             },
             onAdmin: this.#isAdmin
-                ? () => {
+                ? (): void => {
                       nn(Router.getInstance()).navigate('/admin');
                   }
                 : null,
-            onFeedback: () => {
+            onFeedback: (): void => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
             },
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onLogout: async () => {
+            onLogout: async (): Promise<void> => {
                 try {
                     await this.#httpClient.post('/auth/logout');
                 } catch (_e) {
@@ -155,7 +155,7 @@ export class BlocksPage {
                 nn(Router.getInstance()).navigate('/sign');
             },
             onShare: isOwner
-                ? () => {
+                ? (): void => {
                       this.#openShareModal();
                   }
                 : null
@@ -177,13 +177,13 @@ export class BlocksPage {
 
         this.#toolbar = new NotebookToolbar(headerArea, {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onAddCode: () => this.#createBlock('code'),
+            onAddCode: (): Promise<void> => this.#createBlock('code'),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onAddText: () => this.#createBlock('text'),
+            onAddText: (): Promise<void> => this.#createBlock('text'),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRunAll: () => this.#runAllBlocks(),
+            onRunAll: (): Promise<void> => this.#runAllBlocks(),
             commentsVisible,
-            onToggleComments: (visible: boolean) => {
+            onToggleComments: (visible: boolean): void => {
                 this.#cellList?.toggleComments(visible);
                 main.classList.toggle('blocks-page__main--with-comments', visible);
                 localStorage.setItem('notebook_comments_visible', String(visible));
@@ -192,19 +192,19 @@ export class BlocksPage {
         this.#toolbar.mount();
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
-            onFind: (q: { query: string; caseSensitive: boolean }) => {
+            onFind: (q: { query: string; caseSensitive: boolean }): void => {
                 this.#handleFind(q);
             },
-            onNext: (q: { query: string; caseSensitive: boolean }) => {
+            onNext: (q: { query: string; caseSensitive: boolean }): void => {
                 this.#handleFindNav(q, 'next');
             },
-            onPrev: (q: { query: string; caseSensitive: boolean }) => {
+            onPrev: (q: { query: string; caseSensitive: boolean }): void => {
                 this.#handleFindNav(q, 'prev');
             },
-            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }) => {
+            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }): void => {
                 this.#handleReplace(q);
             },
-            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }) => {
+            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }): void => {
                 this.#handleReplaceAll(q);
             },
             notebookId: this.#notebookId
@@ -217,20 +217,20 @@ export class BlocksPage {
             isOwner: this.#isOwner,
             canComment: this.#canComment,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
-            onRerender: () => {
+            onRunCell: (blockId: number | string): Promise<void> => this.#runSingleBlock(blockId),
+            onRerender: (): void => {
                 this.#reapplyCellState();
             },
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onDeleteCell: (blockId: number | string) => this.#deleteBlock(blockId),
+            onDeleteCell: (blockId: number | string): Promise<void> => this.#deleteBlock(blockId),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onSaveContent: (blockId: number | string, content: string) =>
+            onSaveContent: (blockId: number | string, content: string): Promise<void> =>
                 this.#saveTextCellContent(blockId, content),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onCodeContentChange: (blockId: number | string, content: string) =>
+            onCodeContentChange: (blockId: number | string, content: string): Promise<void> =>
                 this.#saveCodeCellContent(blockId, content),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onReorder: (blockIds: (number | string)[]) => this.#reorderBlocks(blockIds)
+            onReorder: (blockIds: (number | string)[]): Promise<void> => this.#reorderBlocks(blockIds)
         });
         this.#cellList.mount();
 
@@ -241,7 +241,7 @@ export class BlocksPage {
         this.#cellList.updateBlocks(blocks);
         this.#cellList.toggleComments(commentsVisible);
 
-        this.#beforeUnloadHandler = () => {
+        this.#beforeUnloadHandler = (): void => {
             if (this.#notebookId) this.#runnerApi.stopSessionBeacon(this.#notebookId);
         };
         window.addEventListener('beforeunload', this.#beforeUnloadHandler);
@@ -252,17 +252,17 @@ export class BlocksPage {
     #openWebSocket(): void {
         let skipNextResync = true;
         this.#ws = new NotebookWS(this.#notebookId, {
-            onEvent: (event: Record<string, unknown>) => {
+            onEvent: (event: Record<string, unknown>): void => {
                 this.#handleWSEvent(event);
             },
-            onConnect: () => {
+            onConnect: (): void => {
                 if (skipNextResync) {
                     skipNextResync = false;
                     return;
                 }
                 void this.#resyncFromServer();
             },
-            onClose: () => {
+            onClose: (): void => {
                 /* noop */
             }
         });
@@ -737,7 +737,7 @@ export class BlocksPage {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.ipynb';
-        input.onchange = async (e: Event) => {
+        input.onchange = async (e: Event): Promise<void> => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (!file) return;
             try {
