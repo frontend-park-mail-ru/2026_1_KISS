@@ -19,7 +19,11 @@ const jsdocRequiredFiles = [
     'src/widgets/register-form/**/*.ts',
     'src/widgets/password-section/**/*.ts',
     'src/widgets/stats-section/**/*.ts',
-    'src/widgets/filter-bar/**/*.ts'
+    'src/widgets/filter-bar/**/*.ts',
+    'src/widgets/notebook-toolbar/**/*.ts',
+    'src/widgets/notebook-sidebar/**/*.ts',
+    'src/widgets/files-table/**/*.ts',
+    'src/widgets/profile-section/**/*.ts'
 ];
 
 const jsdocRules = {
