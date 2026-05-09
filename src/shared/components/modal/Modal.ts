@@ -74,7 +74,7 @@ export class Modal extends BaseComponent {
                 } else {
                     input = document.createElement('input');
                     input.className = 'modal-card__input';
-                    input.type = type || 'text';
+                    input.type = type ?? 'text';
                     if (value !== undefined) input.value = value;
                 }
                 input.name = name;

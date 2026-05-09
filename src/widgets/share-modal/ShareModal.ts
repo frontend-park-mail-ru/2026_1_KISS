@@ -59,7 +59,7 @@ export class ShareModal extends BaseComponent {
                 this.#collaborators = (data.permissions ?? []).map(
                     (p: { user_id: number; email?: string; permission_level: string }) => ({
                         id: p.user_id,
-                        label: p.email || `Пользователь #${p.user_id}`,
+                        label: p.email ?? `Пользователь #${p.user_id}`,
                         permission_level: p.permission_level
                     })
                 );
@@ -168,7 +168,7 @@ export class ShareModal extends BaseComponent {
                 this.#showError('Пользователь не найден');
             } else {
                 const body = await res.json().catch(() => ({}));
-                this.#showError(body.error || 'Не удалось добавить пользователя');
+                this.#showError(body.error ?? 'Не удалось добавить пользователя');
             }
         } catch {
             this.#showError('Ошибка соединения');

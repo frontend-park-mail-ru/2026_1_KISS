@@ -180,22 +180,22 @@ export class AdminPage {
             const cards = [
                 {
                     label: 'Пользователи',
-                    value: stats.total_users || 0,
+                    value: stats.total_users ?? 0,
                     tooltip: 'Общее количество зарегистрированных пользователей на платформе'
                 },
                 {
                     label: 'Блокноты',
-                    value: stats.total_notebooks || 0,
+                    value: stats.total_notebooks ?? 0,
                     tooltip: 'Общее количество блокнотов на платформе'
                 },
                 {
                     label: 'DAU',
-                    value: stats.dau || 0,
+                    value: stats.dau ?? 0,
                     tooltip: 'Daily Active Users — уникальные пользователи за последние 24 часа'
                 },
                 {
                     label: 'MAU',
-                    value: stats.mau || 0,
+                    value: stats.mau ?? 0,
                     tooltip: 'Monthly Active Users — уникальные пользователи за последние 30 дней'
                 }
             ];
@@ -239,22 +239,22 @@ export class AdminPage {
                 const issueCards = [
                     {
                         label: 'Всего',
-                        value: issueStats.total || 0,
+                        value: issueStats.total ?? 0,
                         tooltip: 'Общее количество обращений от пользователей'
                     },
                     {
                         label: 'Открыто',
-                        value: issueStats.open || 0,
+                        value: issueStats.open ?? 0,
                         tooltip: 'Обращения, ожидающие рассмотрения'
                     },
                     {
                         label: 'В работе',
-                        value: issueStats.in_progress || 0,
+                        value: issueStats.in_progress ?? 0,
                         tooltip: 'Обращения, находящиеся в работе'
                     },
                     {
                         label: 'Закрыто',
-                        value: issueStats.closed || 0,
+                        value: issueStats.closed ?? 0,
                         tooltip: 'Решённые обращения'
                     }
                 ];
@@ -388,7 +388,7 @@ export class AdminPage {
             const d = new Date(now);
             d.setDate(d.getDate() - i);
             const key = d.toISOString().slice(0, 10);
-            result.push({ date: key, count: map.get(key) || 0 });
+            result.push({ date: key, count: map.get(key) ?? 0 });
         }
         return result;
     }
@@ -404,7 +404,7 @@ export class AdminPage {
         for (let i = count - 1; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            result.push({ month: key, count: map.get(key) || 0 });
+            result.push({ month: key, count: map.get(key) ?? 0 });
         }
         return result;
     }
@@ -1027,7 +1027,7 @@ export class AdminPage {
                             ${attachments
                                 .map(
                                     (att) =>
-                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${issueId}/attachments/${att.id}" target="_blank">${this.#esc((att.filename || att.name || 'Файл') as string)}</a>`
+                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${issueId}/attachments/${att.id}" target="_blank">${this.#esc((att.filename ?? att.name ?? 'Файл') as string)}</a>`
                                 )
                                 .join('')}
                         </div>

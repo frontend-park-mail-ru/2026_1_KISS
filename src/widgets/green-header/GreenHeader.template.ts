@@ -39,7 +39,7 @@ export function GreenHeaderTemplate(ctx: GreenHeaderTemplateCtx): string {
             </div>
         </div>`
                 : `<div class="header-buttons">
-            ${(ctx.buttons || [])
+            ${(ctx.buttons ?? [])
                 .map(
                     (
                         item

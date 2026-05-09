@@ -33,18 +33,18 @@ export class NotebookHeader extends BaseComponent {
     public constructor(parent: HTMLElement, config: NotebookHeaderConfig = {}) {
         super(null, parent);
         this.#config = config;
-        this.#onRename = config.onRename || null;
-        this.#onShare = config.onShare || null;
+        this.#onRename = config.onRename ?? null;
+        this.#onShare = config.onShare ?? null;
         this.#render();
     }
 
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = NotebookHeaderTemplate({
-            filename: this.#config.filename || 'Untitled',
-            user: this.#config.user || null,
+            filename: this.#config.filename ?? 'Untitled',
+            user: this.#config.user ?? null,
             isOwner: this.#config.isOwner ?? true,
-            onAdmin: this.#config.onAdmin || null
+            onAdmin: this.#config.onAdmin ?? null
         });
         this._element = tempContainer.firstElementChild as HTMLElement;
     }

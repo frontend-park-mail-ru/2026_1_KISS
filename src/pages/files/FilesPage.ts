@@ -59,8 +59,8 @@ export class FilesPage {
             }
             const { data: user } = await response.json();
             this.#state.username = user.username;
-            this.#state.avatarUrl = user.avatar_url || '';
-            this.#state.isAdmin = user.is_admin || false;
+            this.#state.avatarUrl = user.avatar_url ?? '';
+            this.#state.isAdmin = user.is_admin ?? false;
         } catch (_e) {
             Router.getInstance()!.navigate('/sign');
             return;

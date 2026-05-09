@@ -42,7 +42,7 @@ export function fillDays(
         const d = new Date(now);
         d.setDate(d.getDate() - i);
         const key = d.toISOString().slice(0, 10);
-        result.push({ date: key, count: map.get(key) || 0 });
+        result.push({ date: key, count: map.get(key) ?? 0 });
     }
     return result;
 }

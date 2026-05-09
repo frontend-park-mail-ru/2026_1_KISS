@@ -64,8 +64,8 @@ export class BlocksPage {
             const { data: user } = await response.json();
             this.#userId = user.id;
             this.#username = user.username;
-            this.#avatarUrl = user.avatar_url || '';
-            this.#isAdmin = user.is_admin || false;
+            this.#avatarUrl = user.avatar_url ?? '';
+            this.#isAdmin = user.is_admin ?? false;
         } catch (_e) {
             Router.getInstance()!.navigate('/sign');
             return;
@@ -245,7 +245,7 @@ export class BlocksPage {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
                 if (cell && cell instanceof CodeCell) {
-                    cell.setOutput({ error: String(event.message || 'execution error') });
+                    cell.setOutput({ error: String(event.message ?? 'execution error') });
                     cell.setRunning(false);
                 }
                 this.#streamingBlockId = null;
@@ -269,7 +269,7 @@ export class BlocksPage {
                 break;
             case 'stdout_chunk':
                 if (this.#streamingBlockId !== null) {
-                    this.#streamingStdout.push(String(event.message || ''));
+                    this.#streamingStdout.push(String(event.message ?? ''));
                     if (this.#streamingStdout.length > BlocksPage.#MAX_STREAM_LINES) {
                         this.#streamingStdout = this.#streamingStdout.slice(
                             -BlocksPage.#MAX_STREAM_LINES
@@ -280,7 +280,7 @@ export class BlocksPage {
                 break;
             case 'stderr_chunk':
                 if (this.#streamingBlockId !== null) {
-                    this.#streamingStderr.push(String(event.message || ''));
+                    this.#streamingStderr.push(String(event.message ?? ''));
                     if (this.#streamingStderr.length > BlocksPage.#MAX_STREAM_LINES) {
                         this.#streamingStderr = this.#streamingStderr.slice(
                             -BlocksPage.#MAX_STREAM_LINES
@@ -292,7 +292,7 @@ export class BlocksPage {
             case 'execute_completed': {
                 if (this.#streamingBlockId !== null) {
                     const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
-                    const result = (event.block || {}) as Record<string, unknown>;
+                    const result = (event.block ?? {}) as Record<string, unknown>;
                     if (cell && cell instanceof CodeCell) {
                         this.#executionCounter += 1;
                         this.#execNumbers.set(this.#streamingBlockId, this.#executionCounter);
@@ -591,7 +591,7 @@ export class BlocksPage {
                 else if (o.output_type === 'stderr') out.stderr = [o.content];
                 else if (o.output_type === 'result') out.result = o.content;
                 else {
-                    if (!out.outputs) out.outputs = [];
+                    out.outputs ??= [];
                     (out.outputs as Record<string, unknown>[]).push({
                         mime_type: o.output_type,
                         data: o.content
@@ -697,7 +697,7 @@ export class BlocksPage {
                 const text = await file.text();
                 const ipynb = JSON.parse(text);
 
-                const blocks = ((ipynb.cells || []) as Record<string, unknown>[]).map((cell, i) => {
+                const blocks = ((ipynb.cells ?? []) as Record<string, unknown>[]).map((cell, i) => {
                     const content = Array.isArray(cell.source)
                         ? (cell.source as string[]).join('')
                         : (cell.source as string) || '';
@@ -713,7 +713,7 @@ export class BlocksPage {
                                     ? (o.text as string[]).join('')
                                     : (o.text as string) || '';
                                 outputs.push({
-                                    output_type: o.name || 'stdout',
+                                    output_type: o.name ?? 'stdout',
                                     content: t,
                                     position: pos++
                                 });
@@ -736,7 +736,7 @@ export class BlocksPage {
                                     }
                                 }
                             } else if (o.output_type === 'error') {
-                                const tb = ((o.traceback || []) as string[]).join('\n');
+                                const tb = ((o.traceback ?? []) as string[]).join('\n');
                                 outputs.push({
                                     output_type: 'stderr',
                                     content: tb,

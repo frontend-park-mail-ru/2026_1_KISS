@@ -10,7 +10,7 @@ export class RunnerApi {
     async #parse(response: Response): Promise<unknown> {
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            const err = body?.error || `HTTP ${response.status}`;
+            const err = body?.error ?? `HTTP ${response.status}`;
             throw new Error(this.#formatError(err));
         }
         return body.data;

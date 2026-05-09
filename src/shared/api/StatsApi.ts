@@ -36,7 +36,7 @@ export class StatsApi {
     public async getMyStats(): Promise<UserStats> {
         const response = await this.#http.get('/users/me/stats');
         const body = await response.json();
-        if (!response.ok) throw new Error(body?.error || `HTTP ${response.status}`);
+        if (!response.ok) throw new Error(body?.error ?? `HTTP ${response.status}`);
         return body.data;
     }
 }

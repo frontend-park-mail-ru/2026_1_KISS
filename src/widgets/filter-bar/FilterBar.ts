@@ -182,10 +182,10 @@ export class FilterBar extends BaseComponent {
 
     #onDateChange(): void {
         const dateFrom =
-            (this._element.querySelector('.filter-bar__date-from')!).value ||
+            (this._element.querySelector('.filter-bar__date-from')!).value ??
             null;
         const dateTo =
-            (this._element.querySelector('.filter-bar__date-to')!).value || null;
+            (this._element.querySelector('.filter-bar__date-to')!).value ?? null;
         const dateBtn = this._element.querySelector('.filter-bar__date-btn')!;
 
         if (dateFrom || dateTo) {
