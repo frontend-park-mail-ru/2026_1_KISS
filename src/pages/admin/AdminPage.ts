@@ -65,17 +65,17 @@ export class AdminPage {
     #httpClient: HttpClient;
     #adminApi: AdminApi;
     #user: Record<string, unknown> | null = null;
-    #activeKey: string = 'stats';
+    #activeKey = 'stats';
     #contentArea: HTMLElement | null = null;
     #searchTimeout: ReturnType<typeof setTimeout> | null = null;
     #contextMenu: ContextMenu | null = null;
     #modal: Modal | null = null;
-    #currentUserPage: number = 1;
-    #currentUserSearch: string = '';
-    #currentNbPage: number = 1;
-    #currentNbSearch: string = '';
-    #currentIssuePage: number = 1;
-    #currentIssueSearch: string = '';
+    #currentUserPage = 1;
+    #currentUserSearch = '';
+    #currentNbPage = 1;
+    #currentNbSearch = '';
+    #currentIssuePage = 1;
+    #currentIssueSearch = '';
     #feedbackModal: FeedbackModal | null = null;
 
     constructor(root: HTMLElement) {
@@ -104,14 +104,14 @@ export class AdminPage {
             return;
         }
 
-        const initials = (this.#user!.username as string).substring(0, 2).toUpperCase();
+        const initials = (this.#user.username as string).substring(0, 2).toUpperCase();
         const header = new GreenHeader(this.#root, {
             user: {
-                username: this.#user!.username as string,
+                username: this.#user.username as string,
                 initials,
-                avatarUrl: (this.#user!.avatar_url as string) || ''
+                avatarUrl: (this.#user.avatar_url as string) || ''
             },
-            onProfile: () => Router.getInstance()!.navigate('/profile'),
+            onProfile: () => { Router.getInstance()!.navigate('/profile'); },
             onAdmin: () => {},
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
@@ -129,7 +129,7 @@ export class AdminPage {
         const main = tempContainer.firstElementChild!;
         this.#root.appendChild(main);
 
-        this.#contentArea = main.querySelector('.admin-page__content') as HTMLElement;
+        this.#contentArea = main.querySelector('.admin-page__content')!;
         this.#contextMenu = new ContextMenu();
         this.#modal = new Modal();
         this.#attachSidebarEvents(main as HTMLElement);
@@ -142,7 +142,7 @@ export class AdminPage {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
                 if (section && section !== this.#activeKey) {
-                    items.forEach((i) => i.classList.remove('admin-page__sidebar-item--active'));
+                    items.forEach((i) => { i.classList.remove('admin-page__sidebar-item--active'); });
                     item.classList.add('admin-page__sidebar-item--active');
                     this.#showSection(section);
                 }
@@ -609,7 +609,7 @@ export class AdminPage {
         const result = await this.#modal!.open('Сменить пароль', [
             { name: 'password', label: 'Новый пароль (минимум 8 символов)', type: 'password' }
         ]);
-        if (!result || !result.password) return;
+        if (!result?.password) return;
         try {
             await this.#adminApi.resetPassword(user.id as string | number, result.password);
             alert('Пароль изменён');
@@ -642,7 +642,7 @@ export class AdminPage {
             { name: 'subject', label: 'Тема', type: 'text' },
             { name: 'body', label: 'Сообщение', type: 'textarea' }
         ]);
-        if (!result || !result.subject || !result.body) return;
+        if (!result?.subject || !result.body) return;
         try {
             await this.#adminApi.sendEmail(user.email as string, result.subject, result.body);
             alert('Письмо отправлено');
@@ -807,7 +807,7 @@ export class AdminPage {
         prevBtn.className = 'admin-pagination__btn';
         prevBtn.textContent = '<';
         prevBtn.disabled = current <= 1;
-        prevBtn.addEventListener('click', () => onPage(current - 1));
+        prevBtn.addEventListener('click', () => { onPage(current - 1); });
         nav.appendChild(prevBtn);
 
         const start = Math.max(1, current - 2);
@@ -818,7 +818,7 @@ export class AdminPage {
             btn.className = 'admin-pagination__btn';
             if (i === current) btn.classList.add('admin-pagination__btn--active');
             btn.textContent = String(i);
-            btn.addEventListener('click', () => onPage(i));
+            btn.addEventListener('click', () => { onPage(i); });
             nav.appendChild(btn);
         }
 
@@ -826,7 +826,7 @@ export class AdminPage {
         nextBtn.className = 'admin-pagination__btn';
         nextBtn.textContent = '>';
         nextBtn.disabled = current >= total;
-        nextBtn.addEventListener('click', () => onPage(current + 1));
+        nextBtn.addEventListener('click', () => { onPage(current + 1); });
         nav.appendChild(nextBtn);
 
         container.appendChild(nav);
@@ -958,7 +958,7 @@ export class AdminPage {
                 const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category as string);
                 const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status as string);
                 const content = issue.content as string;
-                const preview = content.length > 60 ? content.substring(0, 60) + '...' : content;
+                const preview = content.length > 60 ? `${content.substring(0, 60)  }...` : content;
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${issue.id}</td>
@@ -997,7 +997,7 @@ export class AdminPage {
         const backBtn = document.createElement('button');
         backBtn.className = 'admin-issue-detail__back-btn';
         backBtn.innerHTML = '&larr; Назад к обращениям';
-        backBtn.addEventListener('click', () => this.#showSection('issues'));
+        backBtn.addEventListener('click', () => { this.#showSection('issues'); });
         this.#contentArea!.appendChild(backBtn);
 
         const container = document.createElement('div');
@@ -1098,10 +1098,10 @@ export class AdminPage {
 
             const statusSelect = container.querySelector(
                 '[data-role="status-select"]'
-            ) as HTMLSelectElement;
+            )!;
             const updateBtn = container.querySelector(
                 '[data-role="update-status"]'
-            ) as HTMLButtonElement;
+            )!;
             updateBtn.addEventListener('click', async () => {
                 try {
                     await this.#adminApi.updateIssueStatus(issueId, statusSelect.value);
@@ -1113,10 +1113,10 @@ export class AdminPage {
 
             const responseTextarea = container.querySelector(
                 '.admin-issue-detail__textarea'
-            ) as HTMLTextAreaElement;
+            )!;
             const sendBtn = container.querySelector(
                 '[data-role="send-response"]'
-            ) as HTMLButtonElement;
+            )!;
             sendBtn.addEventListener('click', async () => {
                 const text = responseTextarea.value.trim();
                 if (!text) return;

@@ -45,10 +45,10 @@ export class KebabMenu extends BaseComponent {
         this._addListener(dropdown, 'click', (e: unknown) => {
             const item = (e as MouseEvent & { target: HTMLElement }).target.closest(
                 '[data-action]'
-            ) as HTMLElement | null;
+            );
             if (!item) return;
             const action = this.#actions.find((a) => a.name === item.dataset.action);
-            if (action && action.handler) action.handler();
+            if (action?.handler) action.handler();
             this.#close();
         });
     }

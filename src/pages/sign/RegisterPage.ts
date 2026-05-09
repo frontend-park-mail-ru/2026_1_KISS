@@ -42,7 +42,7 @@ export class RegisterPage {
         this.#register = new Register(containerMain);
         this.#login = new Login(containerMain);
         this.#activeElement = this.#restoreState();
-        this.#activeElement!.mount();
+        this.#activeElement.mount();
         this.#attachEvents();
     }
 
@@ -85,7 +85,7 @@ export class RegisterPage {
         sessionStorage.setItem(
             SESSION_ACTIVE_STATE,
             JSON.stringify({
-                activeView: activeView
+                activeView
             })
         );
     }

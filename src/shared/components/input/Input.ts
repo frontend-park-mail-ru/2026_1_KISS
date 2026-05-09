@@ -74,12 +74,12 @@ export class Input extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
 
-        this.#input = this._element.querySelector('.input-field') as HTMLInputElement;
+        this.#input = this._element.querySelector('.input-field')!;
         this.#attachEvents();
 
         const toggleBtn = this._element.querySelector('.toggle-password-btn');
         if (toggleBtn) {
-            this.#input!.classList.add('input-field_has-toggle');
+            this.#input.classList.add('input-field_has-toggle');
             this._addListener(toggleBtn, 'click', () => {
                 const isPassword = this.#input!.type === 'password';
                 this.#input!.type = isPassword ? 'text' : 'password';

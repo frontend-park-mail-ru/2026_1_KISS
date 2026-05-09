@@ -67,14 +67,14 @@ export class NotebookHeader extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const logoLink = this._element.querySelector('.notebook-header__logo-link') as HTMLElement;
+        const logoLink = this._element.querySelector('.notebook-header__logo-link')!;
         this._addListener(logoLink, 'click', async (e: Event) => {
             e.preventDefault();
             await this.#finishEditing();
             Router.getInstance()!.navigate('/files');
         });
 
-        const editBtn = this._element.querySelector('.notebook-header__edit-btn') as HTMLElement;
+        const editBtn = this._element.querySelector('.notebook-header__edit-btn')!;
         this._addListener(editBtn, 'click', () => {
             this.#startRename();
         });
@@ -104,7 +104,7 @@ export class NotebookHeader extends BaseComponent {
                 e.stopPropagation();
                 const item = (e.target as HTMLElement).closest(
                     '[data-action]'
-                ) as HTMLElement | null;
+                );
                 if (!item) return;
                 const action = item.dataset.action;
                 if (action === 'save' && this.#config.onSave) this.#config.onSave();
@@ -131,7 +131,7 @@ export class NotebookHeader extends BaseComponent {
                     e.stopPropagation();
                     const item = (e.target as HTMLElement).closest(
                         '[data-action]'
-                    ) as HTMLElement | null;
+                    );
                     if (!item) return;
                     const action = item.dataset.action;
                     if (action === 'profile' && this.#config.onProfile) {
@@ -153,7 +153,7 @@ export class NotebookHeader extends BaseComponent {
         const cloudBtn = this._element.querySelector('[title="Облако"]');
         if (!cloudBtn) return;
         cloudBtn.classList.add('notebook-header__icon-btn--saving');
-        setTimeout(() => cloudBtn.classList.remove('notebook-header__icon-btn--saving'), 1500);
+        setTimeout(() => { cloudBtn.classList.remove('notebook-header__icon-btn--saving'); }, 1500);
     }
 
     async #finishEditing(): Promise<void> {
@@ -161,7 +161,7 @@ export class NotebookHeader extends BaseComponent {
 
         const filenameSpan = this._element.querySelector(
             '.notebook-header__filename'
-        ) as HTMLElement;
+        )!;
         this.#isEditing = false;
         filenameSpan.contentEditable = 'false';
         filenameSpan.classList.remove('notebook-header__filename--editing');
@@ -227,7 +227,7 @@ export class NotebookHeader extends BaseComponent {
     #startRename(): void {
         const filenameSpan = this._element.querySelector(
             '.notebook-header__filename'
-        ) as HTMLElement;
+        )!;
         this.#originalText = filenameSpan.textContent || '';
         this.#isEditing = true;
 

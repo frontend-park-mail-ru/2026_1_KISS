@@ -34,7 +34,7 @@ export class ShareModal extends BaseComponent {
         this.#buildElement();
         super.mount();
         document.body.style.overflow = 'hidden';
-        (this._element.querySelector('.share-modal__input') as HTMLElement | null)?.focus();
+        (this._element.querySelector('.share-modal__input'))?.focus();
     }
 
     close(): void {
@@ -81,21 +81,21 @@ export class ShareModal extends BaseComponent {
 
     #attachEvents(): void {
         this._addListener(
-            this._element.querySelector('.share-modal__overlay')!,
+            this._element.querySelector('.share-modal__overlay'),
             'click',
             (e: Event) => {
                 if (e.target === e.currentTarget) this.close();
             }
         );
-        this._addListener(this._element.querySelector('.share-modal__close-btn')!, 'click', () => {
+        this._addListener(this._element.querySelector('.share-modal__close-btn'), 'click', () => {
             this.close();
         });
         this._addListener(document, 'keydown', (e: Event) => {
             if ((e as KeyboardEvent).key === 'Escape') this.close();
         });
 
-        const input = this._element.querySelector('.share-modal__input') as HTMLInputElement;
-        const addBtn = this._element.querySelector('.share-modal__add-btn') as HTMLElement;
+        const input = this._element.querySelector('.share-modal__input')!;
+        const addBtn = this._element.querySelector('.share-modal__add-btn')!;
         this._addListener(addBtn, 'click', () => this.#handleAdd(input));
         this._addListener(input, 'keydown', (e: Event) => {
             if ((e as KeyboardEvent).key === 'Enter') this.#handleAdd(input);
@@ -106,23 +106,23 @@ export class ShareModal extends BaseComponent {
             this._addListener(list, 'click', (e: Event) => {
                 const btn = (e.target as HTMLElement).closest(
                     '.share-modal__remove-btn'
-                ) as HTMLElement | null;
-                if (btn) this.#handleRemove(btn.dataset.userId!);
+                );
+                if (btn) this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
                 const sel = (e.target as HTMLElement).closest(
                     '.share-modal__collaborator-level'
-                ) as HTMLSelectElement | null;
-                if (sel) this.#handleLevelChange(sel.dataset.userId!, sel.value);
+                );
+                if (sel) this.#handleLevelChange(sel.dataset.userId, sel.value);
             });
         }
 
         const toggle = this._element.querySelector(
             '.share-modal__toggle-input'
-        ) as HTMLInputElement;
+        )!;
         this._addListener(toggle, 'change', () => this.#handlePublicToggle(toggle.checked));
 
-        this._addListener(this._element.querySelector('.share-modal__copy-btn')!, 'click', () => {
+        this._addListener(this._element.querySelector('.share-modal__copy-btn'), 'click', () => {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 this.#showCopyFeedback();
             });
@@ -143,7 +143,7 @@ export class ShareModal extends BaseComponent {
             return;
         }
 
-        const addBtn = this._element.querySelector('.share-modal__add-btn') as HTMLButtonElement;
+        const addBtn = this._element.querySelector('.share-modal__add-btn')!;
         addBtn.disabled = true;
         this.#clearError();
 
@@ -228,14 +228,14 @@ export class ShareModal extends BaseComponent {
                 this.#isPublic = prev;
                 const toggle = this._element.querySelector(
                     '.share-modal__toggle-input'
-                ) as HTMLInputElement | null;
+                );
                 if (toggle) toggle.checked = prev;
             }
         } catch {
             this.#isPublic = prev;
             const toggle = this._element.querySelector(
                 '.share-modal__toggle-input'
-            ) as HTMLInputElement | null;
+            );
             if (toggle) toggle.checked = prev;
         }
     }
@@ -272,32 +272,32 @@ export class ShareModal extends BaseComponent {
             this._addListener(list, 'click', (e: Event) => {
                 const btn = (e.target as HTMLElement).closest(
                     '.share-modal__remove-btn'
-                ) as HTMLElement | null;
-                if (btn) this.#handleRemove(btn.dataset.userId!);
+                );
+                if (btn) this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
                 const sel = (e.target as HTMLElement).closest(
                     '.share-modal__collaborator-level'
-                ) as HTMLSelectElement | null;
-                if (sel) this.#handleLevelChange(sel.dataset.userId!, sel.value);
+                );
+                if (sel) this.#handleLevelChange(sel.dataset.userId, sel.value);
             });
         }
     }
 
     #showError(msg: string): void {
-        const el = this._element.querySelector('.share-modal__error') as HTMLElement | null;
+        const el = this._element.querySelector('.share-modal__error');
         if (!el) return;
         el.textContent = msg;
         el.hidden = false;
     }
 
     #clearError(): void {
-        const el = this._element.querySelector('.share-modal__error') as HTMLElement | null;
+        const el = this._element.querySelector('.share-modal__error');
         if (el) el.hidden = true;
     }
 
     #showCopyFeedback(): void {
-        const btn = this._element.querySelector('.share-modal__copy-btn') as HTMLElement | null;
+        const btn = this._element.querySelector('.share-modal__copy-btn');
         if (!btn) return;
         const original = btn.innerHTML;
         btn.textContent = 'Скопировано!';

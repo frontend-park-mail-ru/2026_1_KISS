@@ -24,7 +24,7 @@ export class IssueApi {
         const formData = new FormData();
         formData.append('category', category);
         formData.append('content', content);
-        files.forEach((file) => formData.append('files', file));
+        files.forEach((file) => { formData.append('files', file); });
 
         const csrfToken = this.#getCookie('csrf_token');
         const headers: Record<string, string> = {};
@@ -32,7 +32,7 @@ export class IssueApi {
             headers['X-CSRF-Token'] = csrfToken;
         }
 
-        const response = await fetch(this.#http.baseUrl + '/issues', {
+        const response = await fetch(`${this.#http.baseUrl  }/issues`, {
             method: 'POST',
             headers,
             body: formData,
@@ -66,7 +66,7 @@ export class IssueApi {
     }
 
     #getCookie(name: string): string {
-        const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        const match = new RegExp(`(?:^|; )${  name  }=([^;]*)`).exec(document.cookie);
         return match ? decodeURIComponent(match[1]) : '';
     }
 }

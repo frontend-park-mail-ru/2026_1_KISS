@@ -56,7 +56,7 @@ export class Register extends BaseComponent {
     }
 
     #createInputs(): void {
-        const fieldsContainer = this._element.querySelector('.form-fields') as HTMLElement;
+        const fieldsContainer = this._element.querySelector('.form-fields')!;
         const fieldsConfig = [
             { name: FIELD_NAMES.login, type: TYPE_INPUT_CONFIG.LOGIN },
             { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
@@ -76,7 +76,7 @@ export class Register extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const btn = this._element.querySelector('#register-btn') as HTMLElement;
+        const btn = this._element.querySelector('#register-btn')!;
         this._addListener(btn, 'click', (e: Event) => {
             e.preventDefault();
             this.#submit();
@@ -84,7 +84,7 @@ export class Register extends BaseComponent {
     }
 
     async #submit(): Promise<void> {
-        (this._element.querySelector('.sign-error-message') as HTMLElement).textContent = '';
+        (this._element.querySelector('.sign-error-message')!).textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {

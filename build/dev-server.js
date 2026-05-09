@@ -86,7 +86,7 @@ function proxyUpgrade(clientReq, clientSocket, head) {
                 lines.push(`${k}: ${v}`);
             }
         }
-        clientSocket.write(lines.join('\r\n') + '\r\n\r\n');
+        clientSocket.write(`${lines.join('\r\n')  }\r\n\r\n`);
         if (upstreamHead && upstreamHead.length) clientSocket.write(upstreamHead);
         upstreamSocket.pipe(clientSocket);
         clientSocket.pipe(upstreamSocket);

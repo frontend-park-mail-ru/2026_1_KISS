@@ -99,7 +99,7 @@ export class CodeCell extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const textarea = this._element.querySelector('.code-cell__textarea') as HTMLTextAreaElement;
+        const textarea = this._element.querySelector('.code-cell__textarea')!;
 
         this._addListener(textarea, 'input', () => {
             this.#updateLineNumbers();
@@ -113,7 +113,7 @@ export class CodeCell extends BaseComponent {
                 const start = textarea.selectionStart;
                 const end = textarea.selectionEnd;
                 textarea.value =
-                    textarea.value.substring(0, start) + '    ' + textarea.value.substring(end);
+                    `${textarea.value.substring(0, start)  }    ${  textarea.value.substring(end)}`;
                 textarea.selectionStart = textarea.selectionEnd = start + 4;
                 this.#updateLineNumbers();
             }
@@ -137,33 +137,33 @@ export class CodeCell extends BaseComponent {
     }
 
     #updateLineNumbers(): void {
-        const textarea = this._element.querySelector('.code-cell__textarea') as HTMLTextAreaElement;
+        const textarea = this._element.querySelector('.code-cell__textarea')!;
         const lineNumbers = this._element.querySelector('.code-cell__line-numbers')!;
         const lines = textarea.value.split('\n');
         lineNumbers.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
     }
 
     #autoResize(): void {
-        const textarea = this._element.querySelector('.code-cell__textarea') as HTMLTextAreaElement;
+        const textarea = this._element.querySelector('.code-cell__textarea')!;
         textarea.style.height = 'auto';
         const scrollH = textarea.scrollHeight;
         const editorH = this._element.querySelector('.code-cell__editor')!.clientHeight;
-        textarea.style.height = Math.max(scrollH, editorH) + 'px';
+        textarea.style.height = `${Math.max(scrollH, editorH)  }px`;
     }
 
     getContent(): string {
-        return (this._element.querySelector('.code-cell__textarea') as HTMLTextAreaElement).value;
+        return (this._element.querySelector('.code-cell__textarea')!).value;
     }
 
     setContent(text: string): void {
-        const textarea = this._element.querySelector('.code-cell__textarea') as HTMLTextAreaElement;
+        const textarea = this._element.querySelector('.code-cell__textarea')!;
         textarea.value = text;
         this.#updateLineNumbers();
         this.#autoResize();
     }
 
     highlightRange(start: number, end: number): void {
-        const textarea = this._element.querySelector('.code-cell__textarea') as HTMLTextAreaElement;
+        const textarea = this._element.querySelector('.code-cell__textarea')!;
         textarea.focus({ preventScroll: true });
         textarea.setSelectionRange(start, end);
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -198,8 +198,8 @@ export class CodeCell extends BaseComponent {
         const hasAny =
             (out.stdout?.length ?? 0) > 0 ||
             (out.stderr?.length ?? 0) > 0 ||
-            !!out.result ||
-            !!out.error ||
+            Boolean(out.result) ||
+            Boolean(out.error) ||
             imageOutputs.length > 0;
 
         (el as HTMLElement).hidden = !hasAny;
@@ -224,7 +224,7 @@ export class CodeCell extends BaseComponent {
             imagesEl.appendChild(img);
         }
 
-        this._element.classList.toggle('code-cell--error', !!(out.stderr?.length || out.error));
+        this._element.classList.toggle('code-cell--error', Boolean(out.stderr?.length || out.error));
     }
 
     clearOutput(): void {

@@ -68,13 +68,13 @@ export class TextCell extends BaseComponent {
         const contentEl = this._element.querySelector('.text-cell__content')!;
         this._addListener(contentEl, 'blur', () => {
             if (this.#onContentChange) {
-                this.#onContentChange(this.#blockData.id, contentEl.textContent!);
+                this.#onContentChange(this.#blockData.id, contentEl.textContent);
             }
         });
     }
 
     getContent(): string {
-        return this._element.querySelector('.text-cell__content')!.textContent!;
+        return this._element.querySelector('.text-cell__content')!.textContent;
     }
 
     setContent(text: string): void {
@@ -83,7 +83,7 @@ export class TextCell extends BaseComponent {
 
     highlightMatch(_matchIndex: number, start: number, end: number): void {
         const el = this._element.querySelector('.text-cell__content')!;
-        const raw = el.textContent!;
+        const raw = el.textContent;
         const before = raw.substring(0, start);
         const matchText = raw.substring(start, end);
         const after = raw.substring(end);
@@ -100,7 +100,7 @@ export class TextCell extends BaseComponent {
     clearHighlights(): void {
         const el = this._element.querySelector('.text-cell__content')!;
         el.querySelectorAll('mark.find-match').forEach((m) => {
-            m.replaceWith(document.createTextNode(m.textContent!));
+            m.replaceWith(document.createTextNode(m.textContent));
         });
         el.normalize();
     }

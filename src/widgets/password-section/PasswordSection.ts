@@ -27,7 +27,7 @@ export class PasswordSection extends BaseComponent {
         super.mount();
 
         this.#currentInput = new Input(
-            this._element.querySelector('.password-section__current-wrap') as HTMLElement,
+            this._element.querySelector('.password-section__current-wrap')!,
             {
                 ...TYPE_INPUT_CONFIG.PASSWORD,
                 id: `pwd-current-${Date.now()}`,
@@ -35,7 +35,7 @@ export class PasswordSection extends BaseComponent {
             }
         );
         this.#newInput = new Input(
-            this._element.querySelector('.password-section__new-wrap') as HTMLElement,
+            this._element.querySelector('.password-section__new-wrap')!,
             {
                 ...TYPE_INPUT_CONFIG.PASSWORD,
                 id: `pwd-new-${Date.now()}`,
@@ -43,7 +43,7 @@ export class PasswordSection extends BaseComponent {
             }
         );
         this.#confirmInput = new Input(
-            this._element.querySelector('.password-section__confirm-wrap') as HTMLElement,
+            this._element.querySelector('.password-section__confirm-wrap')!,
             {
                 ...TYPE_INPUT_CONFIG.REPEAT_PASSWORD,
                 id: `pwd-confirm-${Date.now()}`,
@@ -68,7 +68,7 @@ export class PasswordSection extends BaseComponent {
 
     #attachSubmit(): void {
         const btn = this._element.querySelector('.password-section__submit-btn')!;
-        const msgEl = this._element.querySelector('.password-section__msg') as HTMLElement;
+        const msgEl = this._element.querySelector('.password-section__msg')!;
 
         this._addListener(btn, 'click', async () => {
             const currentValid = this.#currentInput.validate();

@@ -70,9 +70,9 @@ export class CellList extends BaseComponent {
     #onReorder: CellListCallbacks['onReorder'];
 
     #notebookId: number | string = '';
-    #currentUserId: number = 0;
-    #isOwner: boolean = false;
-    #canComment: boolean = false;
+    #currentUserId = 0;
+    #isOwner = false;
+    #canComment = false;
     #api: NotebookApi | null = null;
 
     constructor(
@@ -126,8 +126,8 @@ export class CellList extends BaseComponent {
         this.#clearCells();
         this.#blocks = [...blocks];
 
-        const container = this._element.querySelector('.cell-list__cells') as HTMLElement;
-        const emptyState = this._element.querySelector('.cell-list__empty-state') as HTMLElement;
+        const container = this._element.querySelector('.cell-list__cells')!;
+        const emptyState = this._element.querySelector('.cell-list__empty-state')!;
 
         if (blocks.length === 0) {
             container.style.display = 'none';
@@ -205,9 +205,9 @@ export class CellList extends BaseComponent {
     #buildCellCallbacks(block: BlockData): Record<string, unknown> {
         return {
             blockData: block,
-            onMoveUp: (id: string) => this.#moveBlock(id, -1),
-            onMoveDown: (id: string) => this.#moveBlock(id, 1),
-            onCopy: (id: string) => this.#copyBlock(id),
+            onMoveUp: (id: string) => { this.#moveBlock(id, -1); },
+            onMoveDown: (id: string) => { this.#moveBlock(id, 1); },
+            onCopy: (id: string) => { this.#copyBlock(id); },
             onDelete: (id: string) => {
                 if (this.#onDeleteCell) this.#onDeleteCell(id);
             }
@@ -291,8 +291,8 @@ export class CellList extends BaseComponent {
         this.#syncTextCellsToBlocks();
         this.#blocks.splice(insertAt, 0, block);
 
-        const container = this._element.querySelector('.cell-list__cells') as HTMLElement;
-        const emptyState = this._element.querySelector('.cell-list__empty-state') as HTMLElement;
+        const container = this._element.querySelector('.cell-list__cells')!;
+        const emptyState = this._element.querySelector('.cell-list__empty-state')!;
         container.style.display = '';
         emptyState.style.display = 'none';
 
@@ -322,10 +322,10 @@ export class CellList extends BaseComponent {
         }
 
         if (this.#blocks.length === 0) {
-            const container = this._element.querySelector('.cell-list__cells') as HTMLElement;
+            const container = this._element.querySelector('.cell-list__cells')!;
             const emptyState = this._element.querySelector(
                 '.cell-list__empty-state'
-            ) as HTMLElement;
+            )!;
             container.style.display = 'none';
             emptyState.style.display = '';
         }
@@ -379,7 +379,7 @@ export class CellList extends BaseComponent {
     }
 
     #clearCells(): void {
-        this.#cells.forEach((row) => row.unmount());
+        this.#cells.forEach((row) => { row.unmount(); });
         this.#cells = [];
     }
 

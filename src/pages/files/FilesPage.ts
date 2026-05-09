@@ -70,7 +70,7 @@ export class FilesPage {
 
         const headerConfig: Record<string, unknown> = {
             user: { username: this.#state.username, initials, avatarUrl: this.#state.avatarUrl },
-            onProfile: () => Router.getInstance()!.navigate('/profile'),
+            onProfile: () => { Router.getInstance()!.navigate('/profile'); },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -85,7 +85,7 @@ export class FilesPage {
             }
         };
         if (this.#state.isAdmin) {
-            headerConfig.onAdmin = () => Router.getInstance()!.navigate('/admin');
+            headerConfig.onAdmin = () => { Router.getInstance()!.navigate('/admin'); };
         }
         this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
@@ -100,14 +100,14 @@ export class FilesPage {
 
         this.#filterBar = new FilterBar(container, {
             onCreate: () => this.#createNotebook(),
-            onFilterChange: (filters) => this.#onFilterChange(filters as Record<string, unknown>)
+            onFilterChange: (filters) => { this.#onFilterChange(filters as Record<string, unknown>); }
         });
         this.#filterBar.mount();
 
         this.#filesTable = new FilesTable(container, {
             onDelete: (id: string) => this.#deleteNotebook(id),
             onRename: (id: string, newTitle: string) => this.#renameNotebook(id, newTitle),
-            onOpen: (id: string) => Router.getInstance()!.navigate(`/notebooks/${id}`)
+            onOpen: (id: string) => { Router.getInstance()!.navigate(`/notebooks/${id}`); }
         });
         this.#filesTable.mount();
 
@@ -190,24 +190,24 @@ export class FilesPage {
 
         if (this.#filters.dateFrom) {
             const from = new Date(this.#filters.dateFrom);
-            filtered = filtered.filter((n) => new Date(n.updated_at as string) >= from);
+            filtered = filtered.filter((n) => new Date(n.updated_at) >= from);
         }
 
         if (this.#filters.dateTo) {
             const to = new Date(this.#filters.dateTo);
             to.setHours(23, 59, 59, 999);
-            filtered = filtered.filter((n) => new Date(n.updated_at as string) <= to);
+            filtered = filtered.filter((n) => new Date(n.updated_at) <= to);
         }
 
         let sharedFiltered = [...this.#sharedNotebooks];
         if (this.#filters.dateFrom) {
             const from = new Date(this.#filters.dateFrom);
-            sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at as string) >= from);
+            sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) >= from);
         }
         if (this.#filters.dateTo) {
             const to = new Date(this.#filters.dateTo);
             to.setHours(23, 59, 59, 999);
-            sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at as string) <= to);
+            sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) <= to);
         }
 
         this.#filesTable!.setData([...filtered, ...sharedFiltered], this.#state.username);
