@@ -1,12 +1,14 @@
 .files-table {
     width: 100%;
     margin-bottom: 24px;
+    overflow-x: auto;
 }
 
 .files-table__table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
+    min-width: 500px;
 }
 
 .files-table__header:nth-child(1) { width: 50%; }

@@ -96,9 +96,7 @@
     text-align: center;
     cursor: pointer;
     background: var(--white);
-    transition:
-        border-color 0.15s,
-        background 0.15s;
+    transition: border-color 0.15s, background 0.15s;
     font-family: inherit;
     font-size: 13px;
     color: var(--dark-primary);
@@ -166,9 +164,7 @@
     padding: 32px;
     text-align: center;
     cursor: pointer;
-    transition:
-        border-color 0.15s,
-        background 0.15s;
+    transition: border-color 0.15s, background 0.15s;
     position: relative;
 }
 
@@ -396,10 +392,7 @@
     font-size: 12px;
     font-family: inherit;
     cursor: pointer;
-    transition:
-        background 0.15s,
-        color 0.15s,
-        opacity 0.15s;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
 }
 
 .feedback-modal__issue-delete-btn:hover {
@@ -578,6 +571,55 @@
     padding: 40px 0;
     color: var(--accent);
     font-size: 14px;
+}
+
+.feedback-modal__messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.feedback-modal__message {
+    padding: 10px 14px;
+    border-radius: 8px;
+    max-width: 85%;
+}
+
+.feedback-modal__message--user {
+    background: var(--light-grey);
+    align-self: flex-start;
+}
+
+.feedback-modal__message--admin {
+    background: #e0f2f1;
+    align-self: flex-end;
+}
+
+.feedback-modal__message-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.feedback-modal__message-author {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal-green);
+}
+
+.feedback-modal__message-date {
+    font-size: 11px;
+    color: var(--accent);
+}
+
+.feedback-modal__message-text {
+    font-size: 13px;
+    color: var(--dark-primary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .feedback-modal__reply-section {
