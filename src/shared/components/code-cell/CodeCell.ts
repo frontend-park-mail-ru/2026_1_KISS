@@ -4,24 +4,49 @@ import { ansiToHtml, stripTracebackDashes, handleCarriageReturns } from '../../u
 import type { BlockData } from '../../types.js';
 import { nn } from '../../utils/notNull.js';
 
+/**
+ * Структура output блока: stdout/stderr/result для текстового вывода,
+ * outputs для бинарных вложений (PNG/JPEG из matplotlib и т.п.).
+ */
 interface CodeCellOutput {
+    /** Строки stdout, обычно из print() */
     stdout?: string[];
+    /** Строки stderr, обычно из traceback */
     stderr?: string[];
+    /** Возвращаемое значение последнего expression в ячейке */
     result?: string;
+    /** Текст ошибки выполнения (отдельно от stderr) */
     error?: string;
+    /** Бинарные выводы (изображения и т.п.) с MIME-типом и base64-данными */
     outputs?: { mime_type: string; data: string }[];
 }
 
+/**
+ * Опции конструктора CodeCell: данные блока + callback'и на действия пользователя.
+ */
 export interface CodeCellOptions {
+    /** Серверные данные блока (id, content, position) */
     blockData: BlockData;
+    /** Вызывается при клике на "Переместить вверх" */
     onMoveUp?: (id: string) => void;
+    /** Вызывается при клике на "Переместить вниз" */
     onMoveDown?: (id: string) => void;
+    /** Вызывается при клике на "Копировать" */
     onCopy?: (id: string) => void;
+    /** Вызывается при клике на "Удалить" */
     onDelete?: (id: string) => void;
+    /** Вызывается при клике на "Запустить" (если cell не в running-состоянии) */
     onRun?: (id: string) => void;
+    /** Вызывается при изменении содержимого с debounce 400ms */
     onContentChange?: (id: string, content: string) => void;
 }
 
+/**
+ * Ячейка с кодом в notebook'е (Jupyter-like). Содержит textarea с подсветкой
+ * номеров строк, кнопку Run, output-секцию (stdout/stderr/result/images) и
+ * action-кнопки (move/copy/delete). Поддерживает Tab→4 пробела, авто-resize
+ * под содержимое, дебаунс уведомлений об изменениях для снижения нагрузки на API.
+ */
 export class CodeCell extends BaseComponent {
     #blockData: BlockData;
     #onMoveUp?: (id: string) => void;
@@ -35,6 +60,11 @@ export class CodeCell extends BaseComponent {
 
     static #CONTENT_DEBOUNCE_MS = 400;
 
+    /**
+     * Создаёт ячейку с заданными данными блока и набором обработчиков действий.
+     * @param parent - родительский элемент
+     * @param options - данные блока и callback'и (см. CodeCellOptions)
+     */
     public constructor(
         parent: HTMLElement,
         {
@@ -58,6 +88,9 @@ export class CodeCell extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер; в DOM попадает при mount().
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = CodeCellTemplate({
@@ -67,6 +100,10 @@ export class CodeCell extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит ячейку, отрисовывает номера строк, подгоняет высоту textarea
+     * под содержимое и навешивает обработчики.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -75,6 +112,10 @@ export class CodeCell extends BaseComponent {
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM, отменяет ожидающий debounce-таймер чтобы не дёрнуть
+     * onContentChange после размонтирования.
+     */
     public unmount(): void {
         if (this.#contentChangeTimer !== null) {
             clearTimeout(this.#contentChangeTimer);
@@ -84,6 +125,11 @@ export class CodeCell extends BaseComponent {
         super.unmount();
     }
 
+    /**
+     * Перезапускает debounce-таймер уведомления об изменении содержимого.
+     * Реальный onContentChange вызовется только если в течение CONTENT_DEBOUNCE_MS
+     * не было новых правок — снижает нагрузку на API при наборе.
+     */
     #scheduleContentChange(): void {
         if (!this.#onContentChange) return;
         if (this.#contentChangeTimer !== null) clearTimeout(this.#contentChangeTimer);
@@ -93,12 +139,20 @@ export class CodeCell extends BaseComponent {
         }, CodeCell.#CONTENT_DEBOUNCE_MS);
     }
 
+    /**
+     * Принудительно отменяет ожидающий debounce-таймер БЕЗ вызова callback'а.
+     * Используется при ручном save (Ctrl+S) — чтобы не отправлять второй запрос.
+     */
     public flushContentChange(): void {
         if (this.#contentChangeTimer === null) return;
         clearTimeout(this.#contentChangeTimer);
         this.#contentChangeTimer = null;
     }
 
+    /**
+     * Навешивает обработчики: input для авто-resize и debounce, keydown для
+     * Tab→4 пробела, click для Run и action-кнопок.
+     */
     #attachEvents(): void {
         const textarea = nn(
             this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
@@ -140,6 +194,9 @@ export class CodeCell extends BaseComponent {
         });
     }
 
+    /**
+     * Перерисовывает колонку с номерами строк по содержимому textarea.
+     */
     #updateLineNumbers(): void {
         const textarea = nn(
             this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
@@ -151,6 +208,10 @@ export class CodeCell extends BaseComponent {
             .join('');
     }
 
+    /**
+     * Подгоняет высоту textarea под содержимое (минимум — высота родительского
+     * редактора). Вызывается при каждом input.
+     */
     #autoResize(): void {
         const textarea = nn(
             this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
@@ -163,10 +224,19 @@ export class CodeCell extends BaseComponent {
         textarea.style.height = `${String(Math.max(scrollH, editorH))}px`;
     }
 
+    /**
+     * Возвращает текущий код из textarea.
+     * @returns строка содержимого
+     */
     public getContent(): string {
         return nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')).value;
     }
 
+    /**
+     * Устанавливает содержимое textarea и перерисовывает номера строк/высоту.
+     * Используется при undo/синхронизации с сервером.
+     * @param text - новое содержимое
+     */
     public setContent(text: string): void {
         const textarea = nn(
             this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
@@ -176,6 +246,12 @@ export class CodeCell extends BaseComponent {
         this.#autoResize();
     }
 
+    /**
+     * Подсвечивает диапазон символов в textarea и скроллит к ячейке.
+     * Используется в find-in-notebook (поиск по тексту).
+     * @param start - индекс начала диапазона
+     * @param end - индекс конца диапазона
+     */
     public highlightRange(start: number, end: number): void {
         const textarea = nn(
             this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
@@ -185,21 +261,41 @@ export class CodeCell extends BaseComponent {
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
+    /**
+     * Возвращает идентификатор связанного с ячейкой блока в notebook'е.
+     * @returns ID блока (UUID-строка)
+     */
     public getBlockId(): string {
         return this.#blockData.id;
     }
 
+    /**
+     * Помечает ячейку как выполняющуюся: добавляет CSS-класс (для спиннера)
+     * и очищает предыдущий output. При false — снимает класс.
+     * @param isRunning - идёт ли сейчас выполнение
+     */
     public setRunning(isRunning: boolean): void {
         this.#isRunning = isRunning;
         this._element.classList.toggle('code-cell--running', isRunning);
         if (isRunning) this.clearOutput();
     }
 
+    /**
+     * Обновляет номер выполнения [N] слева от ячейки. null показывает [ ].
+     * Аналог Jupyter execution count.
+     * @param n - номер выполнения или null
+     */
     public setExecutionNumber(n: number | null): void {
         const el = this._element.querySelector('.code-cell__execution-number');
         if (el) el.textContent = `[${String(n ?? ' ')}]`;
     }
 
+    /**
+     * Заполняет output-секцию: stdout/stderr через ansiToHtml (для цветов),
+     * result как текст, изображения как <img> с base64-data-URL.
+     * Скрывает секцию если выводов нет, добавляет класс error при stderr.
+     * @param out - данные output (см. CodeCellOutput)
+     */
     public setOutput(out: CodeCellOutput = {}): void {
         const el = nn(this._element.querySelector('.code-cell__output'));
         const stdoutEl = nn(el.querySelector('.code-cell__output-stdout'));
@@ -246,6 +342,10 @@ export class CodeCell extends BaseComponent {
         );
     }
 
+    /**
+     * Очищает все секции output и снимает error-класс. Вызывается перед каждым
+     * новым запуском кода.
+     */
     public clearOutput(): void {
         const el = this._element.querySelector('.code-cell__output');
         if (!el) return;

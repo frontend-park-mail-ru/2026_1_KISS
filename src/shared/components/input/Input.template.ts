@@ -1,5 +1,12 @@
 import { escapeHtml } from '../../utils/escapeHtml.js';
 
+/**
+ * Рендерит HTML-разметку поля Input с обвязкой (label/error-msg/eye-кнопка).
+ * Все динамические значения проходят через escapeHtml для защиты от XSS.
+ * Для type='password' добавляет кнопку показа/скрытия пароля с двумя иконками.
+ * @param ctx - контекст шаблона (см. поля в сигнатуре)
+ * @returns строка HTML, готовая для вставки в innerHTML
+ */
 export function InputTemplate(ctx: {
     type: string;
     id: string;

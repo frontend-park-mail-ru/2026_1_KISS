@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint';
 
 const jsdocRequiredFiles = [
     'src/sw.ts',
-    'src/shared/utils/**/*.ts'
+    'src/shared/utils/**/*.ts',
+    'src/shared/components/**/*.ts'
 ];
 
 const jsdocRules = {
@@ -32,16 +33,16 @@ const jsdocRules = {
         }
     ],
     'jsdoc/require-description': 'error',
-    'jsdoc/require-param': 'error',
+    'jsdoc/require-param': ['error', { checkDestructured: false }],
     'jsdoc/require-param-description': 'error',
     'jsdoc/require-param-name': 'error',
+    'jsdoc/check-param-names': ['error', { checkDestructured: false }],
     'jsdoc/require-returns': ['error', { forceRequireReturn: false }],
     'jsdoc/require-returns-description': 'error',
     'jsdoc/no-types': 'error',
     'jsdoc/check-tag-names': 'error',
     'jsdoc/check-alignment': 'error',
-    'jsdoc/no-undefined-types': 'off',
-    'jsdoc/check-param-names': 'error'
+    'jsdoc/no-undefined-types': 'off'
 };
 
 const pragmaticDisables = {

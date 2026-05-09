@@ -2,12 +2,24 @@ import { BaseComponent } from '../base-component/BaseComponent.js';
 import type { PageChangeCallback } from '../../types.js';
 import { nn } from '../../utils/notNull.js';
 
+/**
+ * Компонент пагинации с поддержкой эллипсисов и кнопок prev/next.
+ * Виден только при totalPages > 1; иначе скрывает себя через display:none.
+ * Стиль кнопок намеренно стилизован "под код" (i=0, n=N, --i, i++) — отражает
+ * математическую/программистскую тему проекта.
+ */
 export class Pagination extends BaseComponent {
     #currentPage: number;
     #totalPages: number | null;
     #onPageChange: PageChangeCallback;
     #visiblePagesCount = 5;
 
+    /**
+     * Создаёт пагинацию с callback'ом на изменение страницы. Сразу рендерит
+     * пустой контейнер; реальные кнопки появляются после первого вызова update().
+     * @param parent - родительский элемент
+     * @param onPageChange - вызывается с индексом новой страницы (0-based)
+     */
     public constructor(parent: HTMLElement, onPageChange: PageChangeCallback) {
         super(null, parent);
         this.#currentPage = 0;
@@ -16,12 +28,20 @@ export class Pagination extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Создаёт корневой div и сразу обновляет содержимое (которое будет пустым
+     * пока totalPages не задан).
+     */
     #render(): void {
         this._element = document.createElement('div');
         this._element.className = 'pagination';
         this.#updateElementContent();
     }
 
+    /**
+     * Перерисовывает innerHTML на основе текущего #currentPage/#totalPages.
+     * Если страниц <= 1 — оставляет пустым.
+     */
     #updateElementContent(): void {
         if (this.#totalPages === null || this.#totalPages <= 1) {
             this._element.innerHTML = '';
@@ -30,6 +50,11 @@ export class Pagination extends BaseComponent {
         this._element.innerHTML = this.#generateHTML();
     }
 
+    /**
+     * Генерирует строку HTML кнопок пагинации. Включает prev (если не первая
+     * страница), видимые номера с эллипсисами и next (если не последняя).
+     * @returns HTML-разметка для innerHTML
+     */
     #generateHTML(): string {
         const hasPrev = this.#currentPage > 0;
         const hasNext = this.#currentPage < nn(this.#totalPages) - 1;
@@ -73,6 +98,12 @@ export class Pagination extends BaseComponent {
         return html;
     }
 
+    /**
+     * Вычисляет какие номера страниц показать в навигации (с учётом эллипсисов).
+     * Логика: если страниц мало — показать все; иначе сцентрировать окно вокруг
+     * текущей страницы, добавив эллипсисы в начало/конец где нужно.
+     * @returns массив номеров страниц или строк-маркеров эллипсисов
+     */
     #getVisiblePages(): (number | string)[] {
         const pages: (number | string)[] = [];
         const total = nn(this.#totalPages);
@@ -120,6 +151,13 @@ export class Pagination extends BaseComponent {
         return pages;
     }
 
+    /**
+     * Обновляет состояние пагинации: текущую страницу и общее количество.
+     * Принимает любые числа — клампит к [0; totalPages-1] и приводит NaN к 0.
+     * Автоматически скрывает себя если страниц <= 1.
+     * @param currentPage - индекс текущей страницы (0-based)
+     * @param totalPages - общее количество страниц
+     */
     public update(currentPage: number, totalPages: number): void {
         const safeTotalPages =
             typeof totalPages === 'number' && Number.isFinite(totalPages)
@@ -142,14 +180,24 @@ export class Pagination extends BaseComponent {
         }
     }
 
+    /**
+     * Делает компонент видимым (убирает display:none).
+     */
     public show(): void {
         this._element.style.display = '';
     }
 
+    /**
+     * Скрывает компонент через display:none. Слушатели и состояние сохраняются.
+     */
     public hide(): void {
         this._element.style.display = 'none';
     }
 
+    /**
+     * Маунтит компонент в DOM скрытым (логика показа в update()) и навешивает
+     * делегированный обработчик кликов по кнопкам.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -157,11 +205,18 @@ export class Pagination extends BaseComponent {
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM и снимает обработчики (через super.unmount → _clearListeners).
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
 
+    /**
+     * Делегированный обработчик кликов: парсит data-page кнопки (число, 'prev'
+     * или 'next'), валидирует целевую страницу и вызывает onPageChange.
+     */
     #attachEvents(): void {
         this._addListener(this._element, 'click', (e: unknown) => {
             const btn = ((e as MouseEvent).target as HTMLElement).closest<HTMLButtonElement>(

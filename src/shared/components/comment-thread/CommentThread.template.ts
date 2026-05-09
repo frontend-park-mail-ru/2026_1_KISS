@@ -1,5 +1,10 @@
 import type { Comment } from '../../types.js';
 
+/**
+ * Рендерит каркас ветки комментариев: контейнер списка и форму ввода
+ * (изначально hidden — видимость управляется через canComment в компоненте).
+ * @returns HTML-разметка для innerHTML
+ */
 export function CommentThreadTemplate(): string {
     return `<div class="comment-thread">
         <div class="comment-thread__list">
@@ -18,12 +23,25 @@ export function CommentThreadTemplate(): string {
     </div>`;
 }
 
+/**
+ * Локальный HTML-эскейп через DOM API. Дублирует логику escapeHtml.ts чтобы
+ * не тащить зависимость в шаблон.
+ * @param text - текст для эскейпа
+ * @returns HTML-безопасная строка
+ */
 function escapeHtml(text: string): string {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
+/**
+ * Рендерит один комментарий: автор, время отправки, текст, опционально кнопку
+ * удаления. Время форматируется как "HH:MM".
+ * @param comment - объект комментария от сервера
+ * @param canDelete - показывать ли кнопку удаления (свой комментарий или owner)
+ * @returns HTML-разметка одного элемента ветки
+ */
 export function CommentItemTemplate(comment: Comment, canDelete: boolean): string {
     const date = new Date(comment.created_at);
     const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
