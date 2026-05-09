@@ -5,11 +5,11 @@
  */
 export function NotebookToolbarTemplate(): string {
     return `<div class="notebook-toolbar">
-        <label class="notebook-toolbar__toggle" data-action="toggle-comments">
-            <input type="checkbox" class="notebook-toolbar__toggle-input">
-            <span class="notebook-toolbar__toggle-label">Комментарии</span>
-            <span class="notebook-toolbar__toggle-icon"></span>
-        </label>
+    <label class="notebook-toolbar__toggle" data-action="toggle-comments">
+        <input type="checkbox" class="notebook-toolbar__toggle-input" aria-label="Показать комментарии">
+        <span class="notebook-toolbar__toggle-label">Комментарии</span>
+        <span class="notebook-toolbar__toggle-icon" aria-hidden="true"></span>
+    </label>
     <div class="notebook-toolbar__buttons">
         <button class="notebook-toolbar__btn notebook-toolbar__btn--add" data-action="add-code">+ Код</button>
         <button class="notebook-toolbar__btn notebook-toolbar__btn--add" data-action="add-text">+ Текст</button>

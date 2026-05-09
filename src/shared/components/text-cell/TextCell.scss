@@ -69,3 +69,13 @@
     background: var(--light-grey);
     color: var(--dark-primary);
 }
+
+.text-cell--readonly .text-cell__content {
+    cursor: default;
+    background: var(--light-grey);
+}
+
+.text-cell--readonly:hover .text-cell__actions {
+    opacity: 0;
+    visibility: hidden;
+}

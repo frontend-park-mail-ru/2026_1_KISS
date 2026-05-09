@@ -52,7 +52,13 @@ interface CellListOptions extends CellListCallbacks {
     currentUserId: number;
     /** true если текущий пользователь — владелец */
     isOwner: boolean;
-    /** Имеет ли пользователь право комментировать */
+    /**
+     * Имеет ли пользователь право комментировать. В текущей модели прав уровень
+     * editor включает в себя и редактирование ячеек, и комментирование, поэтому
+     * canComment одновременно используется как признак «может править ячейки»
+     * (см. #createCell: readonly = !isOwner && !canComment). Если в будущем
+     * появится отдельный уровень commenter — флаги нужно будет разнести.
+     */
     canComment: boolean;
 }
 
@@ -291,11 +297,11 @@ export class CellList extends BaseComponent {
      */
     #createCell(container: HTMLElement, block: BlockData): CodeCell | TextCell {
         const callbacks = this.#buildCellCallbacks(block);
-        const isReadonly = !this.#isOwner && !this.#canComment;
+        const canEdit = this.#isOwner || this.#canComment;
         if (block.type === 'code') {
             return new CodeCell(container, {
                 ...callbacks,
-                readonly: isReadonly,
+                readonly: !canEdit,
                 onRun: (id: string) => {
                     if (this.#onRunCell) this.#onRunCell(id);
                 },
@@ -306,7 +312,7 @@ export class CellList extends BaseComponent {
         }
         return new TextCell(container, {
             ...callbacks,
-            readonly: isReadonly,
+            readonly: !canEdit,
             onContentChange: (id: string, content: string) => {
                 if (this.#onSaveContent) this.#onSaveContent(id, content);
             }
