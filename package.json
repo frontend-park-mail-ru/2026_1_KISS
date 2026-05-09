@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "tsc --watch & node build/dev-server.js",
         "start": "node build/dev-server.js",
-        "build": "tsc && node build/bundler.js --src-dir=.ts-out && node build/css-concat.js",
+        "build": "tsc && node build/bundler.js --src-dir=.ts-out && node build/scss-transpiler.js",
         "typecheck": "tsc --noEmit",
         "lint": "eslint . --max-warnings 0",
         "lint:fix": "eslint . --fix --max-warnings 0",
