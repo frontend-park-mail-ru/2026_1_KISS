@@ -1,30 +1,30 @@
 export class HttpClient {
     static #instance: HttpClient | null = null;
 
-    baseUrl = `${window.location.origin}/api/v1`;
+    public baseUrl = `${window.location.origin}/api/v1`;
 
-    headers: Record<string, string> = {
+    public headers: Record<string, string> = {
         'Content-Type': 'application/json'
     };
 
     #cache = new Map<string, { data: unknown; ts: number }>();
     #cacheTTL = 30_000;
 
-    constructor() {
+    public constructor() {
         if (HttpClient.#instance) {
             throw new Error('Use HttpClient.getInstance() instead of new HttpClient()');
         }
         HttpClient.#instance = this;
     }
 
-    static getInstance(): HttpClient {
+    public static getInstance(): HttpClient {
         if (!HttpClient.#instance) {
             new HttpClient();
         }
         return HttpClient.#instance!;
     }
 
-    get(url: string, options?: { noCache?: boolean }): Promise<Response> {
+    public get(url: string, options?: { noCache?: boolean }): Promise<Response> {
         if (!options?.noCache) {
             const cached = this.#cache.get(url);
             if (cached && Date.now() - cached.ts < this.#cacheTTL) {
@@ -45,23 +45,23 @@ export class HttpClient {
         });
     }
 
-    post(url: string, data?: unknown): Promise<Response> {
+    public post(url: string, data?: unknown): Promise<Response> {
         return this.request('POST', url, data);
     }
 
-    put(url: string, data: unknown): Promise<Response> {
+    public put(url: string, data: unknown): Promise<Response> {
         return this.request('PUT', url, data);
     }
 
-    delete(url: string): Promise<Response> {
+    public delete(url: string): Promise<Response> {
         return this.request('DELETE', url);
     }
 
-    patch(url: string, data: unknown): Promise<Response> {
+    public patch(url: string, data: unknown): Promise<Response> {
         return this.request('PATCH', url, data);
     }
 
-    upload(url: string, file: File, fieldName = 'avatar'): Promise<Response> {
+    public upload(url: string, file: File, fieldName = 'avatar'): Promise<Response> {
         const boundary = `----FormBoundary${Date.now()}${Math.random().toString(36).slice(2)}`;
         const safeName = file.name.replace(/["\r\n]/g, '_');
         const body = new Blob([
@@ -90,7 +90,7 @@ export class HttpClient {
         return match ? decodeURIComponent(match[1]) : '';
     }
 
-    request(method: string, url: string, data: unknown = null): Promise<Response> {
+    public request(method: string, url: string, data: unknown = null): Promise<Response> {
         if (method !== 'GET' && method !== 'HEAD') {
             this.#cache.clear();
         }

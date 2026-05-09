@@ -3,7 +3,7 @@ import { HttpClient } from '../http_client/HttpClient.js';
 export class RunnerApi {
     #http: HttpClient;
 
-    constructor() {
+    public constructor() {
         this.#http = HttpClient.getInstance();
     }
 
@@ -34,21 +34,21 @@ export class RunnerApi {
         return raw;
     }
 
-    async executeBlock(notebookId: number | string, blockPosition: number): Promise<unknown> {
+    public async executeBlock(notebookId: number | string, blockPosition: number): Promise<unknown> {
         const response = await this.#http.post(
             `/runner/${notebookId}/block?block_position=${blockPosition}`
         );
         return this.#parse(response);
     }
 
-    async executeFromPosition(notebookId: number | string, startPosition = 0): Promise<unknown> {
+    public async executeFromPosition(notebookId: number | string, startPosition = 0): Promise<unknown> {
         const response = await this.#http.post(
             `/runner/${notebookId}?block_position=${startPosition}`
         );
         return this.#parse(response);
     }
 
-    stopSession(notebookId: number | string): Promise<void> {
+    public stopSession(notebookId: number | string): Promise<void> {
         try {
             return this.#http.post(`/runner/${notebookId}/stop`).catch(() => {}) as Promise<void>;
         } catch {
@@ -56,13 +56,13 @@ export class RunnerApi {
         }
     }
 
-    stopSessionBeacon(notebookId: number | string): void {
+    public stopSessionBeacon(notebookId: number | string): void {
         if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
             navigator.sendBeacon(`/api/v1/runner/${notebookId}/stop`);
         }
     }
 
-    async getContainerStats(notebookId: number | string): Promise<{
+    public async getContainerStats(notebookId: number | string): Promise<{
         cpu_percent: number;
         memory_usage: number;
         memory_limit: number;

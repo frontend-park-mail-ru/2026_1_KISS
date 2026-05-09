@@ -15,7 +15,7 @@ export class Register extends BaseComponent {
     #inputs: Input[] = [];
     #httpClient: HttpClient;
 
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
@@ -32,7 +32,7 @@ export class Register extends BaseComponent {
         this.#createInputs();
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#inputs.forEach((input) => {
@@ -41,7 +41,7 @@ export class Register extends BaseComponent {
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
         this.#inputs.forEach((input) => {
@@ -49,7 +49,7 @@ export class Register extends BaseComponent {
         });
     }
 
-    update(): void {
+    public update(): void {
         this.#inputs.forEach((input) => {
             input.update();
         });
@@ -131,7 +131,7 @@ export class Register extends BaseComponent {
             </div>`;
     }
 
-    validateFields(): boolean {
+    public validateFields(): boolean {
         let allValid = true;
         this.#inputs.forEach((input) => {
             if (!input.validate()) {
@@ -146,7 +146,7 @@ export class Register extends BaseComponent {
         return allValid;
     }
 
-    get goOutBtn(): HTMLElement | null {
+    public get goOutBtn(): HTMLElement | null {
         return this._element.querySelector('#go-out-btn');
     }
 }

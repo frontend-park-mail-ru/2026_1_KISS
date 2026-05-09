@@ -14,7 +14,7 @@ export class Login extends BaseComponent {
     #inputs: Input[] = [];
     #httpClient: HttpClient;
 
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
@@ -30,7 +30,7 @@ export class Login extends BaseComponent {
         this.#createInputs();
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#inputs.forEach((input) => {
@@ -39,7 +39,7 @@ export class Login extends BaseComponent {
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
         this.#inputs.forEach((input) => {
@@ -47,7 +47,7 @@ export class Login extends BaseComponent {
         });
     }
 
-    update(): void {
+    public update(): void {
         this.#inputs.forEach((input) => {
             input.update();
         });
@@ -111,7 +111,7 @@ export class Login extends BaseComponent {
         }
     }
 
-    validateFields(): boolean {
+    public validateFields(): boolean {
         let allValid = true;
         this.#inputs.forEach((input) => {
             if (!input.validate()) {
@@ -121,7 +121,7 @@ export class Login extends BaseComponent {
         return allValid;
     }
 
-    get goToRegisterBtn(): HTMLElement | null {
+    public get goToRegisterBtn(): HTMLElement | null {
         return this._element.querySelector('#register-from-login-btn');
     }
 }

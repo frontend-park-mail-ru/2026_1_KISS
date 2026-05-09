@@ -28,12 +28,12 @@ export class ProfilePage {
     #contentArea: HTMLElement | null = null;
     #feedbackModal: FeedbackModal | null = null;
 
-    constructor(root: HTMLElement) {
+    public constructor(root: HTMLElement) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
     }
 
-    async render(): Promise<void> {
+    public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
         try {
@@ -120,7 +120,7 @@ export class ProfilePage {
         this.#activeSection.mount();
     }
 
-    destroy(): void {
+    public destroy(): void {
         if (this.#activeSection) {
             this.#activeSection.unmount();
         }

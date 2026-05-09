@@ -21,7 +21,7 @@ export class CommentThread extends BaseComponent {
     #api: NotebookApi;
     #comments: Comment[] = [];
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         { notebookId, blockId, currentUserId, isOwner, canComment, api }: CommentThreadOptions
     ) {
@@ -41,14 +41,14 @@ export class CommentThread extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
         this.#loadComments();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
@@ -127,7 +127,7 @@ export class CommentThread extends BaseComponent {
         }
     }
 
-    appendComment(comment: Comment): void {
+    public appendComment(comment: Comment): void {
         this.#comments.push(comment);
         const list = this._element.querySelector('.comment-thread__list')!;
         const form = list.querySelector('.comment-thread__form');
@@ -142,7 +142,7 @@ export class CommentThread extends BaseComponent {
         }
     }
 
-    removeComment(commentId: number): void {
+    public removeComment(commentId: number): void {
         this.#comments = this.#comments.filter((c) => c.id !== commentId);
         const el = this._element.querySelector(
             `.comment-thread__item[data-comment-id="${commentId}"]`
@@ -150,7 +150,7 @@ export class CommentThread extends BaseComponent {
         if (el) el.remove();
     }
 
-    hasComments(): boolean {
+    public hasComments(): boolean {
         return this.#comments.length > 0;
     }
 }

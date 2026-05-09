@@ -4,7 +4,7 @@ import type { Comment } from '../types.js';
 export class NotebookApi {
     #http: HttpClient;
 
-    constructor() {
+    public constructor() {
         this.#http = HttpClient.getInstance();
     }
 
@@ -16,14 +16,14 @@ export class NotebookApi {
         return body.data;
     }
 
-    async getComments(notebookId: number | string, blockId: number | string): Promise<Comment[]> {
+    public async getComments(notebookId: number | string, blockId: number | string): Promise<Comment[]> {
         const response = await this.#http.get(
             `/notebooks/${notebookId}/blocks/${blockId}/comments`
         );
         return this.#parse(response) as Promise<Comment[]>;
     }
 
-    async addComment(
+    public async addComment(
         notebookId: number | string,
         blockId: number | string,
         text: string
@@ -35,7 +35,7 @@ export class NotebookApi {
         return this.#parse(response) as Promise<Comment>;
     }
 
-    async deleteComment(
+    public async deleteComment(
         notebookId: number | string,
         blockId: number | string,
         commentId: number | string

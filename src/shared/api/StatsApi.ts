@@ -29,11 +29,11 @@ export interface UserStats {
 export class StatsApi {
     #http: HttpClient;
 
-    constructor() {
+    public constructor() {
         this.#http = HttpClient.getInstance();
     }
 
-    async getMyStats(): Promise<UserStats> {
+    public async getMyStats(): Promise<UserStats> {
         const response = await this.#http.get('/users/me/stats');
         const body = await response.json();
         if (!response.ok) throw new Error(body?.error || `HTTP ${response.status}`);

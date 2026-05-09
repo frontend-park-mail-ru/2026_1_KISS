@@ -10,7 +10,7 @@ export class PasswordSection extends BaseComponent {
     #newInput!: Input;
     #confirmInput!: Input;
 
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
@@ -22,7 +22,7 @@ export class PasswordSection extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
 
@@ -58,7 +58,7 @@ export class PasswordSection extends BaseComponent {
         this.#attachSubmit();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         if (this.#currentInput) this.#currentInput.unmount();
         if (this.#newInput) this.#newInput.unmount();

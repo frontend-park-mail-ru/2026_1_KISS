@@ -7,7 +7,7 @@ export class Pagination extends BaseComponent {
     #onPageChange: PageChangeCallback;
     #visiblePagesCount = 5;
 
-    constructor(parent: HTMLElement, onPageChange: PageChangeCallback) {
+    public constructor(parent: HTMLElement, onPageChange: PageChangeCallback) {
         super(null, parent);
         this.#currentPage = 0;
         this.#totalPages = null;
@@ -119,7 +119,7 @@ export class Pagination extends BaseComponent {
         return pages;
     }
 
-    update(currentPage: number, totalPages: number): void {
+    public update(currentPage: number, totalPages: number): void {
         const safeTotalPages =
             typeof totalPages === 'number' && Number.isFinite(totalPages)
                 ? Math.max(0, Math.floor(totalPages))
@@ -141,26 +141,26 @@ export class Pagination extends BaseComponent {
         }
     }
 
-    show(): void {
+    public show(): void {
         if (this._element) {
             this._element.style.display = '';
         }
     }
 
-    hide(): void {
+    public hide(): void {
         if (this._element) {
             this._element.style.display = 'none';
         }
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.hide();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }

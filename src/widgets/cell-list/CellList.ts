@@ -34,25 +34,25 @@ class CellRow {
     #commentThread: CommentThread;
     #rowElement: HTMLElement;
 
-    constructor(rowElement: HTMLElement, cell: CodeCell | TextCell, commentThread: CommentThread) {
+    public constructor(rowElement: HTMLElement, cell: CodeCell | TextCell, commentThread: CommentThread) {
         this.#rowElement = rowElement;
         this.#cell = cell;
         this.#commentThread = commentThread;
     }
 
-    getCell(): CodeCell | TextCell {
+    public getCell(): CodeCell | TextCell {
         return this.#cell;
     }
 
-    getCommentThread(): CommentThread {
+    public getCommentThread(): CommentThread {
         return this.#commentThread;
     }
 
-    getRowElement(): HTMLElement {
+    public getRowElement(): HTMLElement {
         return this.#rowElement;
     }
 
-    unmount(): void {
+    public unmount(): void {
         this.#commentThread.unmount();
         this.#cell.unmount();
         this.#rowElement.remove();
@@ -75,7 +75,7 @@ export class CellList extends BaseComponent {
     #canComment = false;
     #api: NotebookApi | null = null;
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         {
             onRunCell,
@@ -111,18 +111,18 @@ export class CellList extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
     }
 
-    unmount(): void {
+    public unmount(): void {
         this.#clearCells();
         if (!this._isMounted) return;
         super.unmount();
     }
 
-    updateBlocks(blocks: BlockData[]): void {
+    public updateBlocks(blocks: BlockData[]): void {
         this.#clearCells();
         this.#blocks = [...blocks];
 
@@ -214,7 +214,7 @@ export class CellList extends BaseComponent {
         };
     }
 
-    applyRemoteEvent(
+    public applyRemoteEvent(
         event: {
             type: string;
             block?: BlockData;
@@ -332,7 +332,7 @@ export class CellList extends BaseComponent {
         if (this.#onRerender) this.#onRerender();
     }
 
-    addBlock(blockData: BlockData): void {
+    public addBlock(blockData: BlockData): void {
         this.#blocks.push(blockData);
         this.updateBlocks(this.#blocks);
     }
@@ -383,32 +383,32 @@ export class CellList extends BaseComponent {
         this.#cells = [];
     }
 
-    getCellByBlockId(id: string | number): CodeCell | TextCell | null {
+    public getCellByBlockId(id: string | number): CodeCell | TextCell | null {
         const row = this.#cells.find((r) => r.getCell().getBlockId() === id);
         return row ? row.getCell() : null;
     }
 
-    getAllCells(): (CodeCell | TextCell)[] {
+    public getAllCells(): (CodeCell | TextCell)[] {
         return this.#cells.map((r) => r.getCell());
     }
 
-    getCodeCellsInOrder(): CodeCell[] {
+    public getCodeCellsInOrder(): CodeCell[] {
         return this.#cells
             .map((r) => r.getCell())
             .filter((c): c is CodeCell => c instanceof CodeCell);
     }
 
-    getBlockPositionById(id: string | number): number {
+    public getBlockPositionById(id: string | number): number {
         return this.#blocks.findIndex((b) => b.id === id);
     }
 
-    containsActiveElement(): boolean {
+    public containsActiveElement(): boolean {
         const active = document.activeElement;
         if (!active) return false;
         return this.#cells.some((r) => r.getRowElement().contains(active));
     }
 
-    toggleComments(visible: boolean): void {
+    public toggleComments(visible: boolean): void {
         if (!this._element) return;
         this._element.classList.toggle('cell-list--hide-comments', !visible);
     }

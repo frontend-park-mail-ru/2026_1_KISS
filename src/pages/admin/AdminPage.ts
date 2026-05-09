@@ -78,13 +78,13 @@ export class AdminPage {
     #currentIssueSearch = '';
     #feedbackModal: FeedbackModal | null = null;
 
-    constructor(root: HTMLElement) {
+    public constructor(root: HTMLElement) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
         this.#adminApi = new AdminApi();
     }
 
-    async render(): Promise<void> {
+    public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
         try {
@@ -1137,7 +1137,7 @@ export class AdminPage {
         return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 
-    destroy(): void {
+    public destroy(): void {
         this.#root.innerHTML = '';
     }
 }

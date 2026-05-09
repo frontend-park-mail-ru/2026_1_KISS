@@ -7,11 +7,11 @@ export class LandingPage {
     #root: HTMLElement;
     #header: GreenHeader | null = null;
 
-    constructor(root: HTMLElement) {
+    public constructor(root: HTMLElement) {
         this.#root = root;
     }
 
-    async render(): Promise<void> {
+    public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
         try {
@@ -52,7 +52,7 @@ export class LandingPage {
         });
     }
 
-    destroy(): void {
+    public destroy(): void {
         if (this.#header) this.#header.destroy();
         this.#root.innerHTML = '';
     }

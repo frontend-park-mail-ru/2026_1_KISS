@@ -41,12 +41,12 @@ export class FeedbackPage {
     #selectedCategory: string | null = null;
     #escHandler: ((e: KeyboardEvent) => void) | null = null;
 
-    constructor(root: HTMLElement) {
+    public constructor(root: HTMLElement) {
         this.#root = root;
         this.#issueApi = new IssueApi();
     }
 
-    init(): void {
+    public init(): void {
         window.addEventListener('message', (e: MessageEvent) => {
             if (e.data?.type === 'feedback:open') {
                 this.#selectedCategory = null;

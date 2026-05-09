@@ -6,7 +6,7 @@ export class KebabMenu extends BaseComponent {
     #actions: KebabAction[];
     #isOpen = false;
 
-    constructor(parent: HTMLElement, actions: KebabAction[]) {
+    public constructor(parent: HTMLElement, actions: KebabAction[]) {
         super(null, parent);
         this.#actions = actions;
         this.#render();
@@ -18,13 +18,13 @@ export class KebabMenu extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         this.#isOpen = false;
         super.unmount();

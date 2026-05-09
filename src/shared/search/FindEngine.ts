@@ -19,7 +19,7 @@ export class FindEngine {
     #matches: MatchEntry[] = [];
     #currentIdx = -1;
 
-    search(cells: CellInput[], query: string, caseSensitive: boolean): number {
+    public search(cells: CellInput[], query: string, caseSensitive: boolean): number {
         this.#matches = [];
         this.#currentIdx = -1;
         if (!query) return 0;
@@ -42,32 +42,32 @@ export class FindEngine {
         return this.#matches.length;
     }
 
-    next(): MatchResult | null {
+    public next(): MatchResult | null {
         if (this.#matches.length === 0) return null;
         this.#currentIdx = (this.#currentIdx + 1) % this.#matches.length;
         return this.current();
     }
 
-    prev(): MatchResult | null {
+    public prev(): MatchResult | null {
         if (this.#matches.length === 0) return null;
         this.#currentIdx = (this.#currentIdx - 1 + this.#matches.length) % this.#matches.length;
         return this.current();
     }
 
-    current(): MatchResult | null {
+    public current(): MatchResult | null {
         if (this.#currentIdx < 0) return null;
         return { ...this.#matches[this.#currentIdx], index: this.#currentIdx };
     }
 
-    total(): number {
+    public total(): number {
         return this.#matches.length;
     }
 
-    index(): number {
+    public index(): number {
         return this.#currentIdx;
     }
 
-    reset(): void {
+    public reset(): void {
         this.#matches = [];
         this.#currentIdx = -1;
     }

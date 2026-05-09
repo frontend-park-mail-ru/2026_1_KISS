@@ -5,7 +5,7 @@ import { ResourceBannerTemplate } from './ResourceBanner.template.js';
 export class ResourceBanner extends BaseComponent {
     #api: StatsApi;
 
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#api = new StatsApi();
         this.#render();
@@ -17,7 +17,7 @@ export class ResourceBanner extends BaseComponent {
         this._element = tmp.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         super.mount();
         this.#loadStats();
     }

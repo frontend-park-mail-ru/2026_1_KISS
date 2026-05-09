@@ -2,7 +2,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { SubscriptionSectionTemplate } from './SubscriptionSection.template.js';
 
 export class SubscriptionSection extends BaseComponent {
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#render();
     }

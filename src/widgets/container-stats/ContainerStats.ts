@@ -9,7 +9,7 @@ export class ContainerStats extends BaseComponent {
     #notebookId: number | string;
     #timer: ReturnType<typeof setInterval> | null = null;
 
-    constructor(parent: HTMLElement, config: { notebookId: number | string }) {
+    public constructor(parent: HTMLElement, config: { notebookId: number | string }) {
         super(null, parent);
         this.#api = new RunnerApi();
         this.#notebookId = config.notebookId;
@@ -22,12 +22,12 @@ export class ContainerStats extends BaseComponent {
         this._element = tmp.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         super.mount();
         this.#startPolling();
     }
 
-    unmount(): void {
+    public unmount(): void {
         this.#stopPolling();
         super.unmount();
     }
