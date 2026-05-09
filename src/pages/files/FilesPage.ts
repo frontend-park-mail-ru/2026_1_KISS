@@ -82,6 +82,7 @@ export class FilesPage {
      * (включая Админ-панель если is_admin), создаёт FilterBar/FilesTable/Pagination,
      * подгружает первую страницу + расшаренные. При неавторизации — редирект на /sign.
      */
+    // eslint-disable-next-line max-statements -- TODO(refactor): split into #buildHeader + #initTables + #loadData; pre-existing tech debt
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
 

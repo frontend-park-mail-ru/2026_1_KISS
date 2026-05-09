@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import globals from 'globals';
 import jsdoc from 'eslint-plugin-jsdoc';
+import boundaries from 'eslint-plugin-boundaries';
 import tseslint from 'typescript-eslint';
 
 const jsdocRequiredFiles = ['src/**/*.ts'];
@@ -157,7 +158,28 @@ export default [
             '@typescript-eslint/explicit-member-accessibility': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/strict-boolean-expressions': 'error',
-            '@typescript-eslint/switch-exhaustiveness-check': 'error'
+            '@typescript-eslint/switch-exhaustiveness-check': 'error',
+            'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
+            'max-lines-per-function': [
+                'error',
+                { max: 100, skipBlankLines: true, skipComments: true, IIFEs: true }
+            ],
+            'max-classes-per-file': ['error', 1],
+            complexity: ['error', { max: 15 }],
+            'max-depth': ['error', 4],
+            'max-params': ['error', 5],
+            'max-statements': ['error', 30]
+        }
+    },
+
+    {
+        files: ['src/**/*.template.ts'],
+        rules: {
+            'max-lines-per-function': [
+                'error',
+                { max: 200, skipBlankLines: true, skipComments: true, IIFEs: true }
+            ],
+            'max-statements': 'off'
         }
     },
 
@@ -165,6 +187,98 @@ export default [
         files: jsdocRequiredFiles,
         plugins: { jsdoc },
         rules: jsdocRules
+    },
+
+    {
+        files: ['src/**/*.ts'],
+        plugins: { boundaries },
+        settings: {
+            'boundaries/elements': [
+                { type: 'data', pattern: 'src/shared/api' },
+                { type: 'domain', pattern: 'src/shared/domain' },
+                { type: 'validation', pattern: 'src/shared/validation' },
+                { type: 'shared', pattern: 'src/shared' },
+                { type: 'widget', pattern: 'src/widgets' },
+                { type: 'page', pattern: 'src/pages' },
+                { type: 'app', pattern: 'src/app' },
+                { type: 'feedback', pattern: 'src/feedback' },
+                { type: 'sw', pattern: 'src/sw.ts', mode: 'file' }
+            ],
+            'boundaries/include': ['src/**/*.ts']
+        },
+        rules: {
+            'boundaries/dependencies': [
+                'error',
+                {
+                    default: 'disallow',
+                    rules: [
+                        {
+                            from: { type: 'data' },
+                            allow: { to: { type: ['shared', 'data'] } }
+                        },
+                        {
+                            from: { type: 'domain' },
+                            allow: { to: { type: ['data', 'shared', 'validation', 'domain'] } }
+                        },
+                        {
+                            from: { type: 'validation' },
+                            allow: { to: { type: ['shared', 'validation'] } }
+                        },
+                        {
+                            from: { type: 'shared' },
+                            allow: { to: { type: ['shared'] } }
+                        },
+                        {
+                            from: { type: 'widget' },
+                            allow: {
+                                to: { type: ['data', 'domain', 'validation', 'shared', 'widget'] }
+                            }
+                        },
+                        {
+                            from: { type: 'page' },
+                            allow: {
+                                to: {
+                                    type: [
+                                        'data',
+                                        'domain',
+                                        'validation',
+                                        'shared',
+                                        'widget',
+                                        'page'
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            from: { type: 'app' },
+                            allow: {
+                                to: {
+                                    type: [
+                                        'data',
+                                        'domain',
+                                        'validation',
+                                        'shared',
+                                        'widget',
+                                        'page',
+                                        'app'
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            from: { type: 'feedback' },
+                            allow: { to: { type: ['shared', 'feedback'] } }
+                        },
+                        {
+                            from: { type: 'sw' },
+                            allow: { to: { type: ['shared'] } }
+                        }
+                    ]
+                }
+            ],
+            'boundaries/no-unknown-files': 'off',
+            'boundaries/no-unknown': 'off'
+        }
     },
 
     {

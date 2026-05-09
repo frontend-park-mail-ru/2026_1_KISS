@@ -63,6 +63,7 @@ export class Modal extends BaseComponent {
      * @returns промис со значениями формы или null
      */
     public open(title: string, fields: ModalField[]): Promise<Record<string, string> | null> {
+        // eslint-disable-next-line max-statements -- TODO(refactor): extract field-rendering loop into #renderField; pre-existing tech debt
         return new Promise((resolve) => {
             this.#resolve = resolve;
             this._element.innerHTML = '';

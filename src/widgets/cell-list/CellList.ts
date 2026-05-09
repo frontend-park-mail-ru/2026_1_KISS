@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file -- TODO(refactor): split inner helper class out of CellList.ts; pre-existing tech debt */
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { CellListTemplate } from './CellList.template.js';
 import { CodeCell, type CodeCellOptions } from '../../shared/components/code-cell/CodeCell.js';

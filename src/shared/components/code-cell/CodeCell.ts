@@ -296,6 +296,7 @@ export class CodeCell extends BaseComponent {
      * Скрывает секцию если выводов нет, добавляет класс error при stderr.
      * @param out - данные output (см. CodeCellOutput)
      */
+    // eslint-disable-next-line complexity -- TODO(refactor): split per-output-type renderers into #renderStdout/#renderStderr/#renderResult/#renderImages; pre-existing tech debt
     public setOutput(out: CodeCellOutput = {}): void {
         const el = nn(this._element.querySelector('.code-cell__output'));
         const stdoutEl = nn(el.querySelector('.code-cell__output-stdout'));

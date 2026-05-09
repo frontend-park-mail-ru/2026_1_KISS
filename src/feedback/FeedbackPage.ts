@@ -1,3 +1,4 @@
+/* eslint-disable max-lines, max-lines-per-function -- TODO(refactor): split #renderDetail into header/messages/attachments helpers; pre-existing tech debt */
 import { IssueApi } from '../shared/api/IssueApi.js';
 import { nn } from '../shared/utils/notNull.js';
 
