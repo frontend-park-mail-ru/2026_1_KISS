@@ -50,7 +50,7 @@ export class RunnerApi {
 
     public stopSession(notebookId: number | string): Promise<void> {
         try {
-            return this.#http.post(`/runner/${notebookId}/stop`).catch(() => {}) as Promise<void>;
+            return this.#http.post(`/runner/${notebookId}/stop`).catch(() => { /* noop */ }) as Promise<void>;
         } catch {
             return Promise.resolve();
         }

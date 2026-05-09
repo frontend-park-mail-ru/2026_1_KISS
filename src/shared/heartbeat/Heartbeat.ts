@@ -42,7 +42,7 @@ export class Heartbeat {
     }
 
     #send(): void {
-        this.#eventApi.trackEvent('heartbeat').catch(() => {});
+        this.#eventApi.trackEvent('heartbeat').catch(() => { /* noop */ });
     }
 
     #onUnload = (): void => {

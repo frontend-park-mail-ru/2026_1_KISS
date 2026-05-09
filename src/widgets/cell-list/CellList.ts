@@ -373,7 +373,7 @@ export class CellList extends BaseComponent {
         if (!cell) return;
 
         const content = cell.getCell().getContent();
-        navigator.clipboard.writeText(content).catch(() => {});
+        navigator.clipboard.writeText(content).catch(() => { /* noop */ });
     }
 
     #clearCells(): void {

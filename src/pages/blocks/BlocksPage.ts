@@ -227,7 +227,7 @@ export class BlocksPage {
                 }
                 this.#resyncFromServer();
             },
-            onClose: () => {}
+            onClose: () => { /* noop */ }
         });
         this.#ws.connect();
     }

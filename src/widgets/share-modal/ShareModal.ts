@@ -44,7 +44,7 @@ export class ShareModal extends BaseComponent {
         document.body.style.overflow = '';
     }
 
-    public mount(): void {}
+    public mount(): void { /* noop */ }
 
     public unmount(): void {
         this.close();
