@@ -52,10 +52,10 @@ export class ResourceBanner extends BaseComponent {
             const h = Math.floor(stats.quota.total_time_seconds / 3600);
             const m = Math.floor((stats.quota.total_time_seconds % 3600) / 60);
             const lh = Math.floor(stats.quota.time_limit_seconds / 3600);
-            quotaEl.textContent = `${h}ч ${m}мин / ${lh}ч`;
+            quotaEl.textContent = `${String(h)}ч ${String(m)}мин / ${String(lh)}ч`;
 
             const pct = Math.min(100, stats.quota.usage_percent);
-            fill.style.width = `${pct}%`;
+            fill.style.width = `${String(pct)}%`;
             if (pct >= 80) fill.classList.add('resource-banner__progress-fill--warning');
         } else {
             quotaEl.textContent = 'Безлимит';
@@ -70,7 +70,7 @@ export class ResourceBanner extends BaseComponent {
     }
 
     #formatBytes(bytes: number): string {
-        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024) return `${String(bytes)} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }

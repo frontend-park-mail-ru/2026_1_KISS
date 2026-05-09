@@ -113,8 +113,8 @@ export class FeedbackPage {
                 </div>
                 <div class="feedback-modal__field">
                     <label class="feedback-modal__label">Описание <span style="color: var(--error-red)">*</span></label>
-                    <textarea class="feedback-modal__textarea" maxlength="${MAX_CONTENT_LENGTH}" placeholder="Расскажите подробнее, что произошло / что можно улучшить...\nЧто вы делали? Что ожидали? Что пошло не так?"></textarea>
-                    <span class="feedback-modal__char-count">0 / ${MAX_CONTENT_LENGTH}</span>
+                    <textarea class="feedback-modal__textarea" maxlength="${String(MAX_CONTENT_LENGTH)}" placeholder="Расскажите подробнее, что произошло / что можно улучшить...\nЧто вы делали? Что ожидали? Что пошло не так?"></textarea>
+                    <span class="feedback-modal__char-count">0 / ${String(MAX_CONTENT_LENGTH)}</span>
                 </div>
                 <div class="feedback-modal__error" hidden></div>
                 <div class="feedback-modal__actions">
@@ -146,7 +146,7 @@ export class FeedbackPage {
         const textarea = nn(modal.querySelector<HTMLTextAreaElement>('.feedback-modal__textarea'));
         const charCount = nn(modal.querySelector('.feedback-modal__char-count'));
         textarea.addEventListener('input', () => {
-            charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
+            charCount.textContent = `${String(textarea.value.length)} / ${String(MAX_CONTENT_LENGTH)}`;
         });
 
         nn(modal.querySelector('.feedback-modal__history-btn'))
@@ -446,7 +446,7 @@ export class FeedbackPage {
             const replyError = nn(body.querySelector<HTMLElement>('.feedback-modal__reply-error'));
 
             replyTextarea.addEventListener('input', () => {
-                replyCount.textContent = `${replyTextarea.value.length} / 2000`;
+                replyCount.textContent = `${String(replyTextarea.value.length)} / 2000`;
             });
 
             // eslint-disable-next-line @typescript-eslint/no-misused-promises

@@ -38,7 +38,7 @@ export class StatsApi {
         const response = await this.#http.get('/users/me/stats');
         const body = (await response.json()) as Partial<ApiEnvelope<UserStats>>;
         if (!response.ok) {
-            throw new Error(body.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
         return body.data as UserStats;
     }

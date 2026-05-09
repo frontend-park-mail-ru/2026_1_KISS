@@ -55,7 +55,7 @@ export class ProfileSection extends BaseComponent {
         );
         this.#usernameInput = new Input(usernameWrap, {
             ...TYPE_INPUT_CONFIG.LOGIN,
-            id: `profile-username-${Date.now()}`,
+            id: `profile-username-${String(Date.now())}`,
             placeholder: 'Имя пользователя'
         });
         this.#usernameInput.mount();
@@ -197,7 +197,7 @@ export class ProfileSection extends BaseComponent {
         );
         const passwordInput = new Input(passwordWrap, {
             ...TYPE_INPUT_CONFIG.PASSWORD,
-            id: `email-password-${Date.now()}`,
+            id: `email-password-${String(Date.now())}`,
             placeholder: 'Текущий пароль'
         });
 

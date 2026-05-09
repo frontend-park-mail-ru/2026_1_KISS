@@ -38,18 +38,18 @@ export class ContextMenu extends BaseComponent {
             this._element.appendChild(item);
         });
 
-        this._element.style.left = `${x}px`;
-        this._element.style.top = `${y}px`;
+        this._element.style.left = `${String(x)}px`;
+        this._element.style.top = `${String(y)}px`;
         this._element.classList.add('context-menu--visible');
         this.#isVisible = true;
 
         requestAnimationFrame(() => {
             const rect = this._element.getBoundingClientRect();
             if (rect.right > window.innerWidth) {
-                this._element.style.left = `${x - rect.width}px`;
+                this._element.style.left = `${String(x - rect.width)}px`;
             }
             if (rect.bottom > window.innerHeight) {
-                this._element.style.top = `${y - rect.height}px`;
+                this._element.style.top = `${String(y - rect.height)}px`;
             }
         });
     }

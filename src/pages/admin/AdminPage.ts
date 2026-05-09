@@ -312,14 +312,14 @@ export class AdminPage {
 
         const ticks = this.#calcYTicks(maxVal);
 
-        let svg = `<svg viewBox="0 0 ${width} ${height}" class="admin-chart__svg">`;
-        svg += `<line x1="${padding.left}" y1="${padding.top + chartH}" x2="${padding.left + chartW}" y2="${padding.top + chartH}" stroke="var(--cell-border)" stroke-width="1"/>`;
+        let svg = `<svg viewBox="0 0 ${String(width)} ${String(height)}" class="admin-chart__svg">`;
+        svg += `<line x1="${String(padding.left)}" y1="${String(padding.top + chartH)}" x2="${String(padding.left + chartW)}" y2="${String(padding.top + chartH)}" stroke="var(--cell-border)" stroke-width="1"/>`;
 
         ticks.forEach(({ value, label }) => {
             const y = padding.top + chartH - (value / maxVal) * chartH;
-            svg += `<text x="${padding.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--accent)">${label}</text>`;
+            svg += `<text x="${String(padding.left - 6)}" y="${String(y + 4)}" text-anchor="end" font-size="10" fill="var(--accent)">${label}</text>`;
             if (value > 0)
-                svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1" stroke-dasharray="4,3"/>`;
+                svg += `<line x1="${String(padding.left)}" y1="${String(y)}" x2="${String(padding.left + chartW)}" y2="${String(y)}" stroke="var(--light-grey)" stroke-width="1" stroke-dasharray="4,3"/>`;
         });
 
         const labelStep = Math.max(1, Math.ceil(data.length / 15));
@@ -331,13 +331,13 @@ export class AdminPage {
             const y = padding.top + chartH - barH;
 
             const opacity = val > 0 ? 1 : 0.15;
-            svg += `<rect x="${x}" y="${val > 0 ? y : padding.top + chartH - 2}" width="${barW}" height="${val > 0 ? barH : 2}" fill="var(--teal-green)" opacity="${opacity}" rx="1"><title>${this.#formatChartLabel(entry[keyField] as string, keyField)}: ${val}</title></rect>`;
+            svg += `<rect x="${String(x)}" y="${String(val > 0 ? y : padding.top + chartH - 2)}" width="${String(barW)}" height="${String(val > 0 ? barH : 2)}" fill="var(--teal-green)" opacity="${String(opacity)}" rx="1"><title>${this.#formatChartLabel(entry[keyField] as string, keyField)}: ${String(val)}</title></rect>`;
 
             if (i % labelStep === 0) {
                 const lbl = this.#formatChartLabel(entry[keyField] as string, keyField);
                 const tx = x + barW / 2;
                 const ty = padding.top + chartH + 10;
-                svg += `<text x="${tx}" y="${ty}" text-anchor="end" font-size="9" fill="var(--accent)" transform="rotate(-45 ${tx} ${ty})">${lbl}</text>`;
+                svg += `<text x="${String(tx)}" y="${String(ty)}" text-anchor="end" font-size="9" fill="var(--accent)" transform="rotate(-45 ${String(tx)} ${String(ty)})">${lbl}</text>`;
             }
         });
 
@@ -405,7 +405,7 @@ export class AdminPage {
         const now = new Date();
         for (let i = count - 1; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const key = `${String(d.getFullYear())}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             result.push({ month: key, count: map.get(key) ?? 0 });
         }
         return result;
@@ -468,7 +468,7 @@ export class AdminPage {
             const users = data.users as unknown as Record<string, unknown>[];
             const total = data.total;
             if (countEl)
-                countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
+                countEl.textContent = `${String(total)} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
 
             if (users.length === 0) {
                 tableContainer.innerHTML = '<div class="admin-empty">Пользователи не найдены</div>';
@@ -735,7 +735,7 @@ export class AdminPage {
             const notebooks = data.notebooks as unknown as Record<string, unknown>[];
             const total = data.total;
             if (countEl)
-                countEl.textContent = `${total} блокнот${this.#plural(total, '', 'а', 'ов')}`;
+                countEl.textContent = `${String(total)} блокнот${this.#plural(total, '', 'а', 'ов')}`;
 
             if (notebooks.length === 0) {
                 tableContainer.innerHTML = '<div class="admin-empty">Блокноты не найдены</div>';
@@ -869,11 +869,11 @@ export class AdminPage {
         if (diffMs < 0) return 'Только что';
         const diffMin = Math.floor(diffMs / 60000);
         if (diffMin < 1) return 'Только что';
-        if (diffMin < 60) return `${diffMin} мин. назад`;
+        if (diffMin < 60) return `${String(diffMin)} мин. назад`;
         const diffHrs = Math.floor(diffMin / 60);
-        if (diffHrs < 24) return `${diffHrs} ч. назад`;
+        if (diffHrs < 24) return `${String(diffHrs)} ч. назад`;
         const diffDays = Math.floor(diffHrs / 24);
-        if (diffDays < 30) return `${diffDays} дн. назад`;
+        if (diffDays < 30) return `${String(diffDays)} дн. назад`;
         return date.toLocaleDateString('ru-RU');
     }
 
@@ -881,8 +881,8 @@ export class AdminPage {
         if (!seconds || seconds <= 0) return '0 мин.';
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
-        if (hrs > 0) return `${hrs} ч. ${mins} мин.`;
-        return `${mins} мин.`;
+        if (hrs > 0) return `${String(hrs)} ч. ${String(mins)} мин.`;
+        return `${String(mins)} мин.`;
     }
 
     #esc(value: string | number): string {
@@ -957,7 +957,7 @@ export class AdminPage {
             const issues = data.issues as unknown as Record<string, unknown>[];
             const total = data.total;
             if (countEl)
-                countEl.textContent = `${total} обращени${this.#plural(total, 'е', 'я', 'й')}`;
+                countEl.textContent = `${String(total)} обращени${this.#plural(total, 'е', 'я', 'й')}`;
 
             if (issues.length === 0) {
                 tableContainer.innerHTML = '<div class="admin-empty">Обращения не найдены</div>';
@@ -1058,7 +1058,7 @@ export class AdminPage {
                             ${attachments
                                 .map(
                                     (att) =>
-                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${issueId}/attachments/${String(att.id)}" target="_blank">${this.#esc((att.filename ?? att.name ?? 'Файл') as string)}</a>`
+                                        `<a class="admin-issue-detail__attachment" href="/api/v1/issues/${String(issueId)}/attachments/${String(att.id)}" target="_blank">${this.#esc((att.filename ?? att.name ?? 'Файл') as string)}</a>`
                                 )
                                 .join('')}
                         </div>

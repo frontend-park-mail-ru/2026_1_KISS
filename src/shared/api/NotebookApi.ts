@@ -12,7 +12,7 @@ export class NotebookApi {
     async #parse<T>(response: Response): Promise<T> {
         const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            throw new Error(body.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
         return body.data as T;
     }
@@ -22,7 +22,7 @@ export class NotebookApi {
         blockId: number | string
     ): Promise<Comment[]> {
         const response = await this.#http.get(
-            `/notebooks/${notebookId}/blocks/${blockId}/comments`
+            `/notebooks/${String(notebookId)}/blocks/${String(blockId)}/comments`
         );
         return this.#parse<Comment[]>(response);
     }
@@ -33,7 +33,7 @@ export class NotebookApi {
         text: string
     ): Promise<Comment> {
         const response = await this.#http.post(
-            `/notebooks/${notebookId}/blocks/${blockId}/comments`,
+            `/notebooks/${String(notebookId)}/blocks/${String(blockId)}/comments`,
             { text }
         );
         return this.#parse<Comment>(response);
@@ -45,11 +45,11 @@ export class NotebookApi {
         commentId: number | string
     ): Promise<void> {
         const response = await this.#http.delete(
-            `/notebooks/${notebookId}/blocks/${blockId}/comments/${commentId}`
+            `/notebooks/${String(notebookId)}/blocks/${String(blockId)}/comments/${String(commentId)}`
         );
         if (!response.ok) {
             const body = (await response.json().catch(() => ({}))) as { error?: string };
-            throw new Error(body.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
     }
 }

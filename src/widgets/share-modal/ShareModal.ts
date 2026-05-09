@@ -59,7 +59,7 @@ export class ShareModal extends BaseComponent {
 
     async #fetchPermissions(): Promise<void> {
         try {
-            const res = await this.#http.get(`/notebooks/${this.#notebookId}/permissions`, {
+            const res = await this.#http.get(`/notebooks/${String(this.#notebookId)}/permissions`, {
                 noCache: true
             });
             if (res.ok) {
@@ -67,7 +67,7 @@ export class ShareModal extends BaseComponent {
                 const perms = body.data?.permissions ?? [];
                 this.#collaborators = perms.map((p) => ({
                     id: p.user_id,
-                    label: p.email ?? `Пользователь #${p.user_id}`,
+                    label: p.email ?? `Пользователь #${String(p.user_id)}`,
                     permission_level: p.permission_level
                 }));
             }
@@ -165,7 +165,7 @@ export class ShareModal extends BaseComponent {
         try {
             const level = 'readonly';
 
-            const res = await this.#http.post(`/notebooks/${this.#notebookId}/permissions/invite`, {
+            const res = await this.#http.post(`/notebooks/${String(this.#notebookId)}/permissions/invite`, {
                 identifier: email,
                 level
             });
@@ -199,7 +199,7 @@ export class ShareModal extends BaseComponent {
     async #handleRemove(userId: string): Promise<void> {
         try {
             const res = await this.#http.delete(
-                `/notebooks/${this.#notebookId}/permissions/${userId}`
+                `/notebooks/${String(this.#notebookId)}/permissions/${userId}`
             );
             if (res.ok || res.status === 204) {
                 this.#collaborators = this.#collaborators.filter((c) => String(c.id) !== userId);
@@ -219,7 +219,7 @@ export class ShareModal extends BaseComponent {
 
         try {
             const res = await this.#http.put(
-                `/notebooks/${this.#notebookId}/permissions/${userId}`,
+                `/notebooks/${String(this.#notebookId)}/permissions/${userId}`,
                 { level }
             );
             if (!res.ok) {
@@ -237,7 +237,7 @@ export class ShareModal extends BaseComponent {
         this.#isPublic = checked;
 
         try {
-            const res = await this.#http.put(`/notebooks/${this.#notebookId}`, {
+            const res = await this.#http.put(`/notebooks/${String(this.#notebookId)}`, {
                 title: this.#notebookTitle,
                 is_public: checked
             });
@@ -268,13 +268,13 @@ export class ShareModal extends BaseComponent {
         const items = this.#collaborators
             .map(
                 (c) => `
-            <div class="share-modal__collaborator" data-user-id="${c.id}">
+            <div class="share-modal__collaborator" data-user-id="${String(c.id)}">
                 <span class="share-modal__collaborator-email">${this.#escape(c.label)}</span>
-                <select class="share-modal__collaborator-level" data-user-id="${c.id}" title="Уровень доступа">
+                <select class="share-modal__collaborator-level" data-user-id="${String(c.id)}" title="Уровень доступа">
                     <option value="readonly" ${c.permission_level === 'readonly' ? 'selected' : ''}>Просмотр</option>
                     <option value="editor" ${c.permission_level === 'editor' ? 'selected' : ''}>Редактор</option>
                 </select>
-                <button class="share-modal__remove-btn" title="Убрать доступ" data-user-id="${c.id}">
+                <button class="share-modal__remove-btn" title="Убрать доступ" data-user-id="${String(c.id)}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
