@@ -2,13 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const ENTRY = path.resolve(ROOT, 'src/app/index.scss');
 const OUT = path.resolve(ROOT, 'dist/app.css');
 
-const variables = new Map();
-const resolved = new Set();
+let variables = new Map();
+let resolved = new Set();
 
 function resolveFile(importPath, fromDir) {
     let candidate = path.resolve(fromDir, importPath);
@@ -151,15 +152,23 @@ function expandNesting(css) {
     return output.join('\n');
 }
 
-function transpile() {
-    console.log('[scss] Processing...');
-    let css = processFile(ENTRY);
+export function transpileToString(entry = ENTRY) {
+    variables = new Map();
+    resolved = new Set();
+    let css = processFile(entry);
     css = substituteVariables(css);
     css = expandNesting(css);
-    css = `${css.replace(/\n{3,}/g, '\n\n').trim()}\n`;
+    return `${css.replace(/\n{3,}/g, '\n\n').trim()}\n`;
+}
+
+export function transpile() {
+    console.log('[scss] Processing...');
+    const css = transpileToString(ENTRY);
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     fs.writeFileSync(OUT, css, 'utf-8');
     console.log(`[scss] -> dist/app.css (${(css.length / 1024).toFixed(1)} kB)`);
 }
 
-transpile();
+if (process.argv[1] === __filename) {
+    transpile();
+}

@@ -2,11 +2,13 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { transpileToString } from './scss-transpiler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SRC_ROOT = path.resolve(__dirname, '..', 'src');
 const TS_OUT_ROOT = path.resolve(__dirname, '..', '.ts-out');
 const PUBLIC_ROOT = path.resolve(__dirname, '..', 'public');
+const SCSS_ENTRY = path.resolve(SRC_ROOT, 'app', 'index.scss');
 const PORT = Number(process.env.PORT) || 3000;
 const API_TARGET = process.env.API_TARGET || 'http://localhost:8080';
 
@@ -110,6 +112,18 @@ const server = http.createServer((req, res) => {
 
     if (pathname === '/feedback') {
         serveFile(res, path.join(SRC_ROOT, 'feedback', 'feedback.html'));
+        return;
+    }
+
+    if (pathname === '/app/index.css') {
+        try {
+            const css = transpileToString(SCSS_ENTRY);
+            res.writeHead(200, { 'Content-Type': MIME['.css'], 'Cache-Control': 'no-store' });
+            res.end(css);
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end(`SCSS transpile error: ${err.message}`);
+        }
         return;
     }
 
