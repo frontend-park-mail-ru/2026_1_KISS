@@ -63,8 +63,10 @@ export class FilesTable extends BaseComponent {
         this.#notebooks = [...notebooks];
         this.#ownerName = ownerName;
 
-        const table = nn(this._element.querySelector('.files-table__table'));
-        const emptyState = nn(this._element.querySelector('.files-table__empty-state'));
+        const table = nn(this._element.querySelector<HTMLElement>('.files-table__table'));
+        const emptyState = nn(
+            this._element.querySelector<HTMLElement>('.files-table__empty-state')
+        );
 
         if (notebooks.length === 0) {
             table.style.display = 'none';
@@ -253,10 +255,12 @@ export class FilesTable extends BaseComponent {
         const dropdown = nn(this._element.querySelector('.files-table__sort-dropdown'));
         this._addListener(dropdown, 'click', (e: Event) => {
             e.stopPropagation();
-            const arrow = (e.target as HTMLElement).closest('.files-table__sort-arrow');
+            const arrow = (e.target as HTMLElement).closest<HTMLElement>(
+                '.files-table__sort-arrow'
+            );
             if (!arrow) return;
 
-            const option = nn(arrow.closest('.files-table__sort-option'));
+            const option = nn(arrow.closest<HTMLElement>('.files-table__sort-option'));
             const field = nn(option.dataset.sort);
             const dir = nn(arrow.dataset.dir);
 
