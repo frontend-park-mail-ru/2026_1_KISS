@@ -2,6 +2,11 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { ShareModalTemplate } from './ShareModal.template.js';
 import { nn } from '../../shared/utils/notNull.js';
+import type {
+    ApiEnvelope,
+    PermissionDTO,
+    PermissionListResponse
+} from '../../shared/api/types.js';
 
 interface Collaborator {
     id: number;
@@ -35,7 +40,7 @@ export class ShareModal extends BaseComponent {
         this.#buildElement();
         super.mount();
         document.body.style.overflow = 'hidden';
-        this._element.querySelector('.share-modal__input')?.focus();
+        this._element.querySelector<HTMLInputElement>('.share-modal__input')?.focus();
     }
 
     public close(): void {
@@ -58,14 +63,13 @@ export class ShareModal extends BaseComponent {
                 noCache: true
             });
             if (res.ok) {
-                const { data } = await res.json();
-                this.#collaborators = (data.permissions ?? []).map(
-                    (p: { user_id: number; email?: string; permission_level: string }) => ({
-                        id: p.user_id,
-                        label: p.email ?? `Пользователь #${p.user_id}`,
-                        permission_level: p.permission_level
-                    })
-                );
+                const body = (await res.json()) as Partial<ApiEnvelope<PermissionListResponse>>;
+                const perms = body.data?.permissions ?? [];
+                this.#collaborators = perms.map((p) => ({
+                    id: p.user_id,
+                    label: p.email ?? `Пользователь #${p.user_id}`,
+                    permission_level: p.permission_level
+                }));
             }
         } catch {
             /* empty */
@@ -97,9 +101,11 @@ export class ShareModal extends BaseComponent {
             if ((e as KeyboardEvent).key === 'Escape') this.close();
         });
 
-        const input = nn(this._element.querySelector('.share-modal__input'));
-        const addBtn = nn(this._element.querySelector('.share-modal__add-btn'));
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        const input = nn(this._element.querySelector<HTMLInputElement>('.share-modal__input'));
+        const addBtn = nn(
+            this._element.querySelector<HTMLButtonElement>('.share-modal__add-btn')
+        );
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async event handler
         this._addListener(addBtn, 'click', () => this.#handleAdd(input));
         this._addListener(input, 'keydown', (e: Event) => {
             if ((e as KeyboardEvent).key === 'Enter') void this.#handleAdd(input);
@@ -108,17 +114,25 @@ export class ShareModal extends BaseComponent {
         const list = this._element.querySelector('.share-modal__collaborators');
         if (list) {
             this._addListener(list, 'click', (e: Event) => {
-                const btn = (e.target as HTMLElement).closest('.share-modal__remove-btn');
-                if (btn) void this.#handleRemove(btn.dataset.userId);
+                const btn = (e.target as HTMLElement).closest<HTMLElement>(
+                    '.share-modal__remove-btn'
+                );
+                if (btn?.dataset.userId !== undefined) void this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
-                const sel = (e.target as HTMLElement).closest('.share-modal__collaborator-level');
-                if (sel) void this.#handleLevelChange(sel.dataset.userId, sel.value);
+                const sel = (e.target as HTMLElement).closest<HTMLSelectElement>(
+                    '.share-modal__collaborator-level'
+                );
+                if (sel?.dataset.userId !== undefined) {
+                    void this.#handleLevelChange(sel.dataset.userId, sel.value);
+                }
             });
         }
 
-        const toggle = nn(this._element.querySelector('.share-modal__toggle-input'));
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        const toggle = nn(
+            this._element.querySelector<HTMLInputElement>('.share-modal__toggle-input')
+        );
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async event handler
         this._addListener(toggle, 'change', () => this.#handlePublicToggle(toggle.checked));
 
         this._addListener(this._element.querySelector('.share-modal__copy-btn'), 'click', () => {
@@ -142,7 +156,9 @@ export class ShareModal extends BaseComponent {
             return;
         }
 
-        const addBtn = nn(this._element.querySelector('.share-modal__add-btn'));
+        const addBtn = nn(
+            this._element.querySelector<HTMLButtonElement>('.share-modal__add-btn')
+        );
         addBtn.disabled = true;
         this.#clearError();
 
@@ -155,19 +171,22 @@ export class ShareModal extends BaseComponent {
             });
 
             if (res.ok) {
-                const { data } = await res.json();
-                this.#collaborators.push({
-                    id: data.user_id,
-                    label: email,
-                    permission_level: data.permission_level
-                });
+                const body = (await res.json()) as Partial<ApiEnvelope<PermissionDTO>>;
+                const created = body.data;
+                if (created) {
+                    this.#collaborators.push({
+                        id: created.user_id,
+                        label: email,
+                        permission_level: created.permission_level
+                    });
+                }
                 // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
                 input.value = '';
                 this.#rerenderList();
             } else if (res.status === 404) {
                 this.#showError('Пользователь не найден');
             } else {
-                const body = await res.json().catch(() => ({}));
+                const body = (await res.json().catch(() => ({}))) as { error?: string };
                 this.#showError(body.error ?? 'Не удалось добавить пользователя');
             }
         } catch {
@@ -224,12 +243,16 @@ export class ShareModal extends BaseComponent {
             });
             if (!res.ok) {
                 this.#isPublic = prev;
-                const toggle = this._element.querySelector('.share-modal__toggle-input');
+                const toggle = this._element.querySelector<HTMLInputElement>(
+                    '.share-modal__toggle-input'
+                );
                 if (toggle) toggle.checked = prev;
             }
         } catch {
             this.#isPublic = prev;
-            const toggle = this._element.querySelector('.share-modal__toggle-input');
+            const toggle = this._element.querySelector<HTMLInputElement>(
+                '.share-modal__toggle-input'
+            );
             if (toggle) toggle.checked = prev;
         }
     }
@@ -264,25 +287,31 @@ export class ShareModal extends BaseComponent {
         const list = section.querySelector('.share-modal__collaborators');
         if (list) {
             this._addListener(list, 'click', (e: Event) => {
-                const btn = (e.target as HTMLElement).closest('.share-modal__remove-btn');
-                if (btn) void this.#handleRemove(btn.dataset.userId);
+                const btn = (e.target as HTMLElement).closest<HTMLElement>(
+                    '.share-modal__remove-btn'
+                );
+                if (btn?.dataset.userId !== undefined) void this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
-                const sel = (e.target as HTMLElement).closest('.share-modal__collaborator-level');
-                if (sel) void this.#handleLevelChange(sel.dataset.userId, sel.value);
+                const sel = (e.target as HTMLElement).closest<HTMLSelectElement>(
+                    '.share-modal__collaborator-level'
+                );
+                if (sel?.dataset.userId !== undefined) {
+                    void this.#handleLevelChange(sel.dataset.userId, sel.value);
+                }
             });
         }
     }
 
     #showError(msg: string): void {
-        const el = this._element.querySelector('.share-modal__error');
+        const el = this._element.querySelector<HTMLElement>('.share-modal__error');
         if (!el) return;
         el.textContent = msg;
         el.hidden = false;
     }
 
     #clearError(): void {
-        const el = this._element.querySelector('.share-modal__error');
+        const el = this._element.querySelector<HTMLElement>('.share-modal__error');
         if (el) el.hidden = true;
     }
 
