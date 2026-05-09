@@ -62,7 +62,7 @@ export class CommentThread extends BaseComponent {
             form.hidden = false;
         }
 
-        const autoResize = () => {
+        const autoResize = (): void => {
             textarea.style.height = 'auto';
             textarea.style.height = `${textarea.scrollHeight  }px`;
         };

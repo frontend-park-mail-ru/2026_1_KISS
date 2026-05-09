@@ -115,7 +115,12 @@ export default [
             '@typescript-eslint/no-use-before-define': ['error', { classes: false }],
             '@typescript-eslint/no-shadow': 'error',
             '@typescript-eslint/consistent-type-imports': 'error',
-            '@typescript-eslint/explicit-function-return-type': 'error',
+            '@typescript-eslint/explicit-function-return-type': ['error', {
+                allowExpressions: true,
+                allowTypedFunctionExpressions: true,
+                allowHigherOrderFunctions: true,
+                allowDirectConstAssertionInArrowFunctions: true
+            }],
             '@typescript-eslint/explicit-member-accessibility': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
             '@typescript-eslint/strict-boolean-expressions': ['error', {
