@@ -70,7 +70,7 @@ export class FeedbackPage {
     #setEsc(fn: () => void): void {
         if (this.#escHandler)
             document.removeEventListener('keydown', this.#escHandler as EventListener);
-        this.#escHandler = (e: KeyboardEvent) => {
+        this.#escHandler = (e: KeyboardEvent): void => {
             if (e.key === 'Escape') fn();
         };
         document.addEventListener('keydown', this.#escHandler as EventListener);

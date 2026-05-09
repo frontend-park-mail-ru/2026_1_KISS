@@ -25,7 +25,7 @@ export class NotebookWS {
         this.#notebookId = notebookId;
         this.#onEvent =
             onEvent ??
-            (() => {
+            ((): void => {
                 /* noop */
             });
         this.#onConnect = onConnect ?? null;
@@ -39,7 +39,7 @@ export class NotebookWS {
 
     public close(): void {
         this.#closedByUser = true;
-        if (Boolean(this.#reconnectTimer)) {
+        if (this.#reconnectTimer !== null) {
             clearTimeout(this.#reconnectTimer);
             this.#reconnectTimer = null;
         }
@@ -142,7 +142,7 @@ export class NotebookWS {
     }
 
     #stopPing(): void {
-        if (Boolean(this.#pingTimer)) {
+        if (this.#pingTimer !== null) {
             clearInterval(this.#pingTimer);
             this.#pingTimer = null;
         }

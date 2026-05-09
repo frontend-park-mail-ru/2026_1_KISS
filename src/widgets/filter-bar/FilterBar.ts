@@ -108,7 +108,7 @@ export class FilterBar extends BaseComponent {
         this._addListener(ownerDropdown, 'click', (e: Event) => {
             e.stopPropagation();
             const item = (e.target as HTMLElement).closest<HTMLElement>('[data-owner]');
-            if (!Boolean(item?.dataset.owner)) return;
+            if (item?.dataset.owner === undefined) return;
             this.#selectOwner(item.dataset.owner);
             this.#closeOwnerDropdown();
         });
@@ -184,11 +184,11 @@ export class FilterBar extends BaseComponent {
             null;
         const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
 
-        if (Boolean(dateFrom) || Boolean(dateTo)) {
+        if (dateFrom !== null || dateTo !== null) {
             dateBtn.classList.add('filter-bar__dropdown-btn_active');
             const parts: string[] = [];
-            if (Boolean(dateFrom)) parts.push(`с ${this.#formatDate(dateFrom)}`);
-            if (Boolean(dateTo)) parts.push(`по ${this.#formatDate(dateTo)}`);
+            if (dateFrom !== null) parts.push(`с ${this.#formatDate(dateFrom)}`);
+            if (dateTo !== null) parts.push(`по ${this.#formatDate(dateTo)}`);
             dateBtn.textContent = parts.join(' ');
         } else {
             dateBtn.classList.remove('filter-bar__dropdown-btn_active');

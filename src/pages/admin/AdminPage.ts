@@ -112,18 +112,18 @@ export class AdminPage {
                 initials,
                 avatarUrl: (this.#user.avatar_url as string) || ''
             },
-            onProfile: () => {
+            onProfile: (): void => {
                 nn(Router.getInstance()).navigate('/profile');
             },
-            onAdmin: () => {
+            onAdmin: (): void => {
                 /* noop */
             },
-            onFeedback: () => {
+            onFeedback: (): void => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
             },
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onLogout: async () => {
+            onLogout: async (): Promise<void> => {
                 await this.#httpClient.post('/auth/logout').catch(() => {
                     /* noop */
                 });
@@ -149,7 +149,7 @@ export class AdminPage {
         items.forEach((item) => {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
-                if (Boolean(section) && section !== this.#activeKey) {
+                if (section !== undefined && section !== this.#activeKey) {
                     items.forEach((i) => {
                         i.classList.remove('admin-page__sidebar-item--active');
                     });
@@ -618,7 +618,7 @@ export class AdminPage {
         const result = await nn(this.#modal).open('Сменить пароль', [
             { name: 'password', label: 'Новый пароль (минимум 8 символов)', type: 'password' }
         ]);
-        if (!Boolean(result?.password)) return;
+        if (result === null || result.password === undefined || result.password === '') return;
         try {
             await this.#adminApi.resetPassword(user.id as string | number, result.password);
             // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
@@ -654,7 +654,15 @@ export class AdminPage {
             { name: 'subject', label: 'Тема', type: 'text' },
             { name: 'body', label: 'Сообщение', type: 'textarea' }
         ]);
-        if (!Boolean(result?.subject) || !result.body) return;
+        if (
+            result === null ||
+            result.subject === undefined ||
+            result.subject === '' ||
+            result.body === undefined ||
+            result.body === ''
+        ) {
+            return;
+        }
         try {
             await this.#adminApi.sendEmail(user.email as string, result.subject, result.body);
             // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
@@ -774,7 +782,7 @@ export class AdminPage {
                             label: 'Удалить',
                             danger: true,
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            handler: async () => {
+                            handler: async (): Promise<void> => {
                                 // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
                                 if (confirm(`Удалить блокнот "${String(nb.title)}"?`)) {
                                     try {

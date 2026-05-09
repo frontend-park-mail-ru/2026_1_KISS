@@ -17,7 +17,7 @@ export class Heartbeat {
     }
 
     public start(): void {
-        if (Boolean(this.#intervalId)) {
+        if (this.#intervalId !== null) {
             return;
         }
         this.#send();
