@@ -4,18 +4,34 @@ import { nn } from '../../shared/utils/notNull.js';
 
 const STORAGE_KEY = 'kisscolab_editor';
 
+/**
+ * Панель настроек редактора (размер шрифта, размер табуляции). Сохраняет
+ * выбор пользователя в localStorage по STORAGE_KEY и подгружает при mount.
+ * Показывает кратковременное сообщение "Настройки сохранены" после изменения.
+ */
 export class EditorSettings extends BaseComponent {
+    /**
+     * Создаёт и рендерит панель.
+     * @param parent - родительский элемент
+     */
     public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = EditorSettingsTemplate();
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит панель, восстанавливает значения из localStorage и навешивает
+     * обработчики change на все select'ы.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -23,6 +39,11 @@ export class EditorSettings extends BaseComponent {
         this.#attachEvents();
     }
 
+    /**
+     * Восстанавливает значения select'ов из localStorage. Молча игнорирует
+     * парс-ошибки (например если ключ был испорчен) — просто оставляет
+     * дефолтные selected из шаблона.
+     */
     #loadSettings(): void {
         try {
             const saved = JSON.parse(nn(localStorage.getItem(STORAGE_KEY))) as Record<
@@ -45,6 +66,10 @@ export class EditorSettings extends BaseComponent {
         }
     }
 
+    /**
+     * Навешивает change-обработчики: каждое изменение сохраняет всё, и показывает
+     * подтверждающее сообщение на 2 секунды.
+     */
     #attachEvents(): void {
         const selects = this._element.querySelectorAll<HTMLSelectElement>(
             '.editor-settings__select'
@@ -62,6 +87,10 @@ export class EditorSettings extends BaseComponent {
         });
     }
 
+    /**
+     * Сериализует все select'ы в одно значение localStorage. Использует
+     * data-setting атрибут как ключ.
+     */
     #saveSettings(): void {
         const selects = this._element.querySelectorAll<HTMLSelectElement>(
             '.editor-settings__select'
