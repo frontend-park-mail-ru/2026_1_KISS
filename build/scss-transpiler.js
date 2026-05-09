@@ -31,16 +31,16 @@ function processFile(filePath, alias = null) {
     for (const line of content.split('\n')) {
         const useMatch = line.match(/^@use\s+['"]([^'"]+)['"]\s*(?:as\s+(\w+))?\s*;?\s*$/);
         if (useMatch) {
-            const resolved = resolveFile(useMatch[1], dir);
+            const resolvedPath = resolveFile(useMatch[1], dir);
             const localAlias = useMatch[2] || null;
-            result += processFile(resolved, localAlias);
+            result += processFile(resolvedPath, localAlias);
             continue;
         }
 
         const importMatch = line.match(/^@import\s+['"]([^'"]+)['"]\s*;?\s*$/);
         if (importMatch) {
-            const resolved = resolveFile(importMatch[1], dir);
-            result += processFile(resolved);
+            const resolvedPath = resolveFile(importMatch[1], dir);
+            result += processFile(resolvedPath);
             continue;
         }
 
@@ -133,13 +133,13 @@ function expandNesting(css) {
                 }
 
                 const selectors = rawSelector.split(',').map((s) => s.trim());
-                const resolved = selectors.map((sel) => {
+                const expanded = selectors.map((sel) => {
                     if (!parentSelector) return sel;
                     if (sel.includes('&')) return sel.replace(/&/g, parentSelector);
                     return `${parentSelector} ${sel}`;
                 });
 
-                const fullSelector = resolved.join(', ');
+                const fullSelector = expanded.join(', ');
                 output.push(`\n${fullSelector} {`);
                 parseBlock(fullSelector.split(',')[0].trim());
                 output.push('}');

@@ -27,6 +27,7 @@ function codeToStyle(code: number): string | null {
     return null;
 }
 
+// eslint-disable-next-line no-control-regex -- ANSI escape sequences are control characters by definition
 const ANSI_REGEX = /\x1b\[([0-9;]*)m/g;
 
 export function ansiToHtml(text: string): string {

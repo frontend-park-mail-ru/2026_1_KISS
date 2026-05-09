@@ -1,5 +1,4 @@
 import { EventApi } from '../api/EventApi.js';
-import { nn } from '../utils/notNull.js';
 
 const HEARTBEAT_INTERVAL_MS = 60_000;
 
@@ -9,18 +8,12 @@ export class Heartbeat {
     #eventApi!: EventApi;
 
     public constructor() {
-        if (Heartbeat.#instance) {
-            return Heartbeat.#instance;
-        }
         this.#eventApi = new EventApi();
-        Heartbeat.#instance = this;
     }
 
     public static getInstance(): Heartbeat {
-        if (!Heartbeat.#instance) {
-            new Heartbeat();
-        }
-        return nn(Heartbeat.#instance);
+        Heartbeat.#instance ??= new Heartbeat();
+        return Heartbeat.#instance;
     }
 
     public start(): void {

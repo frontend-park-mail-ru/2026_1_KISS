@@ -116,7 +116,8 @@ export class CodeCell extends BaseComponent {
                 const end = ta.selectionEnd;
                 ta.value =
                     `${ta.value.substring(0, start)  }    ${  ta.value.substring(end)}`;
-                ta.selectionStart = ta.selectionEnd = start + 4;
+                ta.selectionStart = start + 4;
+                ta.selectionEnd = start + 4;
                 this.#updateLineNumbers();
             }
         });
