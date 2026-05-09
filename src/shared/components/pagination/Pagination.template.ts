@@ -18,7 +18,7 @@ export function PaginationTemplate(ctx: {
 
     <button class="pagination__btn" data-page="${escapeHtml(ctx.prevPage)}" ${!ctx.hasPrev ? 'disabled' : ''}>&lt;</button>
 
-    ${(ctx.pages || [])
+    ${ctx.pages
         .map((item) => {
             if (item.type === 'ellipsis') {
                 return '<span class="pagination__ellipsis">...</span>';

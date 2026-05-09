@@ -23,9 +23,7 @@ export class BaseComponent {
 
     public unmount(): void {
         this._clearListeners();
-        if (this._element && this._parent) {
-            this._parent.removeChild(this._element);
-        }
+        this._parent.removeChild(this._element);
         this._isMounted = false;
     }
 

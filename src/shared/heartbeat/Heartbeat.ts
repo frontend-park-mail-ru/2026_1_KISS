@@ -46,7 +46,7 @@ export class Heartbeat {
     }
 
     #onUnload = (): void => {
-        if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        if (typeof navigator !== 'undefined') {
             const body = JSON.stringify({ event_type: 'heartbeat', metadata: '{}' });
             navigator.sendBeacon(
                 '/api/v1/events/track',

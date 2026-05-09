@@ -61,9 +61,9 @@ export class PasswordSection extends BaseComponent {
 
     public unmount(): void {
         if (!this._isMounted) return;
-        if (this.#currentInput) this.#currentInput.unmount();
-        if (this.#newInput) this.#newInput.unmount();
-        if (this.#confirmInput) this.#confirmInput.unmount();
+        this.#currentInput.unmount();
+        this.#newInput.unmount();
+        this.#confirmInput.unmount();
         super.unmount();
     }
 
