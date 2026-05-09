@@ -201,11 +201,11 @@ export class AdminStatsSection {
      * @param keyField - имя поля с ключом X (date/month/label)
      * @param valueField - имя поля с числовым значением Y
      */
-    #renderTimeSeriesChart(
+    #renderTimeSeriesChart<T extends object>(
         titleText: string,
-        data: Record<string, unknown>[],
-        keyField: string,
-        valueField: string
+        data: T[],
+        keyField: keyof T & string,
+        valueField: keyof T & string
     ): void {
         const chart = document.createElement('div');
         chart.className = 'admin-chart';

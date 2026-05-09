@@ -288,9 +288,9 @@ export class FilterBar extends BaseComponent {
         dateBtn.classList.remove('filter-bar__dropdown-btn_active');
         dateBtn.textContent = 'Изменено';
 
-        nn(this._element.querySelector('.filter-bar__date-from')).value = '';
-        nn(this._element.querySelector('.filter-bar__date-to')).value = '';
-        nn(this._element.querySelector('.filter-bar__search-input')).value = '';
+        nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-from')).value = '';
+        nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-to')).value = '';
+        nn(this._element.querySelector<HTMLInputElement>('.filter-bar__search-input')).value = '';
 
         clearTimeout(nn(this.#searchDebounce));
         this.#onFilterChange({ owner: null, dateFrom: null, dateTo: null, search: '' });

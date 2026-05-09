@@ -106,7 +106,7 @@ export class ProfilePage {
                 nn(Router.getInstance()).navigate('/sign');
             }
         };
-        if (nn(this.#user).is_admin !== undefined && is_admin !== null) {
+        if (nn(this.#user).is_admin !== undefined && nn(this.#user).is_admin !== null) {
             headerConfig.onAdmin = (): void => {
                 nn(Router.getInstance()).navigate('/admin');
             };

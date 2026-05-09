@@ -55,7 +55,7 @@ export class Heartbeat {
      * logout'е чтобы прекратить трекинг.
      */
     public stop(): void {
-        if ((this.#intervalId ?? 0) !== 0) {
+        if (this.#intervalId !== null) {
             clearInterval(this.#intervalId);
             this.#intervalId = null;
         }

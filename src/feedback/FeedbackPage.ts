@@ -226,7 +226,7 @@ export class FeedbackPage {
         submitBtn.textContent = 'Отправка...';
 
         try {
-            await this.#issueApi.createIssue(this.#selectedCategory, content);
+            await this.#issueApi.createIssue(nn(this.#selectedCategory), content);
             this.#renderSuccess();
         } catch (e: unknown) {
             errorEl.textContent = (e as Error).message || 'Не удалось отправить обращение';
@@ -349,7 +349,9 @@ export class FeedbackPage {
                     </div>
                     <div class="feedback-modal__issue-preview">${this.#esc(preview)}</div>`;
 
-                const deleteBtn = nn(card.querySelector('.feedback-modal__issue-delete-btn'));
+                const deleteBtn = nn(
+                    card.querySelector<HTMLButtonElement>('.feedback-modal__issue-delete-btn')
+                );
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 deleteBtn.addEventListener('click', async (e: Event) => {
                     e.stopPropagation();

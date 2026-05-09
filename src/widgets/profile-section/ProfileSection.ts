@@ -149,7 +149,7 @@ export class ProfileSection extends BaseComponent {
                     const result = (await response.json()) as Partial<ApiEnvelope<UserDTO>>;
 
                     if (!response.ok) {
-                        errorEl.textContent = translateError(result.error);
+                        errorEl.textContent = translateError(result.error ?? '');
                         return;
                     }
 
@@ -218,7 +218,7 @@ export class ProfileSection extends BaseComponent {
                 const result = (await response.json()) as Partial<ApiEnvelope<UserDTO>>;
 
                 if (!response.ok) {
-                    msgEl.textContent = translateError(result.error);
+                    msgEl.textContent = translateError(result.error ?? '');
                     msgEl.classList.add('profile-section__save-msg--error');
                     return;
                 }
@@ -310,7 +310,7 @@ export class ProfileSection extends BaseComponent {
                 const result = (await response.json()) as Partial<ApiEnvelope<UserDTO>>;
 
                 if (!response.ok) {
-                    emailMsg.textContent = translateError(result.error);
+                    emailMsg.textContent = translateError(result.error ?? '');
                     emailMsg.style.color = 'var(--error-red)';
                     return;
                 }

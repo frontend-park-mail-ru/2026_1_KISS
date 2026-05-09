@@ -364,7 +364,7 @@ export class NotebookSidebar extends BaseComponent {
      * Останавливает поллинг container stats.
      */
     #stopContainerPolling(): void {
-        if ((this.#containerPollTimer ?? 0) !== 0) {
+        if (this.#containerPollTimer !== null) {
             clearInterval(this.#containerPollTimer);
             this.#containerPollTimer = null;
         }
