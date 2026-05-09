@@ -23,7 +23,7 @@ export class HttpClient {
     }
 
     public get(url: string, options?: { noCache?: boolean }): Promise<Response> {
-        if (!options?.noCache) {
+        if (!Boolean(options?.noCache)) {
             const cached = this.#cache.get(url);
             if (cached && Date.now() - cached.ts < this.#cacheTTL) {
                 return Promise.resolve(
@@ -35,7 +35,7 @@ export class HttpClient {
             }
         }
         return this.request('GET', url).then(async (response) => {
-            if (response.ok && !options?.noCache) {
+            if (response.ok && !Boolean(options?.noCache)) {
                 const data = (await response.clone().json()) as unknown;
                 this.#cache.set(url, { data, ts: Date.now() });
             }
@@ -102,7 +102,7 @@ export class HttpClient {
         return fetch(this.baseUrl + url, {
             method,
             headers,
-            body: data ? JSON.stringify(data) : null,
+            body: Boolean(data) ? JSON.stringify(data) : null,
             credentials: 'include'
         });
     }

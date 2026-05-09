@@ -51,12 +51,12 @@ export function NotebookHeaderTemplate(ctx: NotebookHeaderTemplateCtx): string {
                 ctx.user
                     ? `<div class="notebook-header__user-pill-wrapper">
                 <div class="notebook-header__user-pill">
-                    ${ctx.user.avatarUrl ? `<img class="notebook-header__pill-avatar" src="${escapeHtml(ctx.user.avatarUrl)}" alt="" />` : `<span class="notebook-header__pill-avatar notebook-header__pill-avatar--default">${escapeHtml(ctx.user.initials)}</span>`}
+                    ${Boolean(ctx.user.avatarUrl) ? `<img class="notebook-header__pill-avatar" src="${escapeHtml(ctx.user.avatarUrl)}" alt="" />` : `<span class="notebook-header__pill-avatar notebook-header__pill-avatar--default">${escapeHtml(ctx.user.initials)}</span>`}
                     <span>${escapeHtml(ctx.user.username)}</span>
                 </div>
                 <div class="header-user-dropdown notebook-header__user-dropdown">
                     <button class="header-user-dropdown__item" data-action="profile">Профиль</button>
-                    ${ctx.onAdmin ? '<button class="header-user-dropdown__item" data-action="admin">Админ-панель</button>' : ''}
+                    ${Boolean(ctx.onAdmin) ? '<button class="header-user-dropdown__item" data-action="admin">Админ-панель</button>' : ''}
                     <button class="header-user-dropdown__item" data-action="feedback">Обратная связь</button>
                     <button class="header-user-dropdown__item header-user-dropdown__item--danger" data-action="logout">Выйти из аккаунта</button>
                 </div>

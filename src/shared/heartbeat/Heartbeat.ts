@@ -17,7 +17,7 @@ export class Heartbeat {
     }
 
     public start(): void {
-        if (this.#intervalId) {
+        if (Boolean(this.#intervalId)) {
             return;
         }
         this.#send();
@@ -29,7 +29,7 @@ export class Heartbeat {
     }
 
     public stop(): void {
-        if (this.#intervalId) {
+        if (Boolean(this.#intervalId)) {
             clearInterval(this.#intervalId);
             this.#intervalId = null;
         }

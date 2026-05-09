@@ -278,7 +278,7 @@ export class BlocksPage {
     static readonly #STREAM_THROTTLE_MS = 200;
 
     #handleWSEvent(event: Record<string, unknown>): void {
-        if (!event.type) return;
+        if (!Boolean(event.type)) return;
         if (event.type === 'error' || event.type === 'execute_error') {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
@@ -566,7 +566,7 @@ export class BlocksPage {
                     return;
                 }
 
-                if (r.error) {
+                if (Boolean(r.error)) {
                     const errOut = { error: r.error } as Record<string, unknown>;
                     this.#lastOutputs.set(blockId, errOut);
                     c.setOutput(errOut);
@@ -683,7 +683,7 @@ export class BlocksPage {
                         text: (out.stderr as string[]).map((s: string) => `${s}\n`)
                     });
                 }
-                if (out.result) {
+                if (Boolean(out.result)) {
                     outputs.push({
                         output_type: 'execute_result',
                         execution_count: null,
@@ -691,7 +691,7 @@ export class BlocksPage {
                         metadata: {}
                     });
                 }
-                if (out.outputs) {
+                if (Boolean(out.outputs)) {
                     for (const o of out.outputs as { mime_type: string; data: string }[]) {
                         outputs.push({
                             output_type: 'display_data',
@@ -768,7 +768,7 @@ export class BlocksPage {
                                 o.output_type === 'execute_result' ||
                                 o.output_type === 'display_data'
                             ) {
-                                if (o.data) {
+                                if (Boolean(o.data)) {
                                     for (const [mime, val] of Object.entries(
                                         o.data as Record<string, unknown>
                                     )) {

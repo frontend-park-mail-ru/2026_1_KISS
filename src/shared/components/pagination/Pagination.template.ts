@@ -24,7 +24,7 @@ export function PaginationTemplate(ctx: {
                 return '<span class="pagination__ellipsis">...</span>';
             }
             return `<button class="pagination__btn ${
-                item.isActive ? 'pagination__btn_active' : ''
+                Boolean(item.isActive) ? 'pagination__btn_active' : ''
             }" data-page="${escapeHtml(item.number)}">${escapeHtml(item.number)}</button>`;
         })
         .join('\n    ')}

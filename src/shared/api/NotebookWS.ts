@@ -39,7 +39,7 @@ export class NotebookWS {
 
     public close(): void {
         this.#closedByUser = true;
-        if (this.#reconnectTimer) {
+        if (Boolean(this.#reconnectTimer)) {
             clearTimeout(this.#reconnectTimer);
             this.#reconnectTimer = null;
         }
@@ -142,7 +142,7 @@ export class NotebookWS {
     }
 
     #stopPing(): void {
-        if (this.#pingTimer) {
+        if (Boolean(this.#pingTimer)) {
             clearInterval(this.#pingTimer);
             this.#pingTimer = null;
         }

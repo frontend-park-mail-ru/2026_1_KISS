@@ -76,7 +76,7 @@ export class CodeCell extends BaseComponent {
     }
 
     public unmount(): void {
-        if (this.#contentChangeTimer) {
+        if (Boolean(this.#contentChangeTimer)) {
             clearTimeout(this.#contentChangeTimer);
             this.#contentChangeTimer = null;
         }
@@ -86,7 +86,7 @@ export class CodeCell extends BaseComponent {
 
     #scheduleContentChange(): void {
         if (!this.#onContentChange) return;
-        if (this.#contentChangeTimer) clearTimeout(this.#contentChangeTimer);
+        if (Boolean(this.#contentChangeTimer)) clearTimeout(this.#contentChangeTimer);
         this.#contentChangeTimer = setTimeout(() => {
             this.#contentChangeTimer = null;
             nn(this.#onContentChange)(this.#blockData.id, this.getContent());
@@ -94,7 +94,7 @@ export class CodeCell extends BaseComponent {
     }
 
     public flushContentChange(): void {
-        if (!this.#contentChangeTimer) return;
+        if (!Boolean(this.#contentChangeTimer)) return;
         clearTimeout(this.#contentChangeTimer);
         this.#contentChangeTimer = null;
     }
@@ -208,7 +208,7 @@ export class CodeCell extends BaseComponent {
 
         (el as HTMLElement).hidden = !hasAny;
 
-        const stdoutText = out.stdout?.length ? out.stdout.join('\n') : '';
+        const stdoutText = Boolean(out.stdout?.length) ? out.stdout.join('\n') : '';
         stdoutEl.innerHTML = stdoutText ? ansiToHtml(handleCarriageReturns(stdoutText)) : '';
 
         const stderrText = [out.stderr?.join('\n') ?? '', out.error ?? '']

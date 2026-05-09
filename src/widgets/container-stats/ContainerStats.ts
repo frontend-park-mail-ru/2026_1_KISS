@@ -39,7 +39,7 @@ export class ContainerStats extends BaseComponent {
     }
 
     #stopPolling(): void {
-        if (this.#timer) {
+        if (Boolean(this.#timer)) {
             clearInterval(this.#timer);
             this.#timer = null;
         }

@@ -28,12 +28,12 @@ export function GreenHeaderTemplate(ctx: GreenHeaderTemplateCtx): string {
             ctx.user
                 ? `<div class="header-user-pill-wrapper">
             <div class="header-user-pill">
-                ${ctx.user.avatarUrl ? `<img class="header-user-pill__avatar" src="${escapeHtml(ctx.user.avatarUrl)}" alt="" />` : `<span class="header-user-pill__avatar header-user-pill__avatar--default">${escapeHtml(ctx.user.initials)}</span>`}
+                ${Boolean(ctx.user.avatarUrl) ? `<img class="header-user-pill__avatar" src="${escapeHtml(ctx.user.avatarUrl)}" alt="" />` : `<span class="header-user-pill__avatar header-user-pill__avatar--default">${escapeHtml(ctx.user.initials)}</span>`}
                 <span class="header-user-pill__name">${escapeHtml(ctx.user.username)}</span>
             </div>
             <div class="header-user-dropdown">
                 <button class="header-user-dropdown__item" data-action="profile">Профиль</button>
-                ${ctx.onAdmin ? '<button class="header-user-dropdown__item" data-action="admin">Админ-панель</button>' : ''}
+                ${Boolean(ctx.onAdmin) ? '<button class="header-user-dropdown__item" data-action="admin">Админ-панель</button>' : ''}
                 <button class="header-user-dropdown__item" data-action="feedback">Обратная связь</button>
                 <button class="header-user-dropdown__item header-user-dropdown__item--danger" data-action="logout">Выйти из аккаунта</button>
             </div>
