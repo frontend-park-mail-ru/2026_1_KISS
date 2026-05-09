@@ -7,34 +7,70 @@ import { NotebookApi } from '../../shared/api/NotebookApi.js';
 import type { Comment } from '../../shared/types.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Опциональные callback'и CellList — все вызываются родителем (BlocksPage)
+ * чтобы синхронизировать состояние с сервером.
+ */
 interface CellListCallbacks {
+    /** Запустить блок (для CodeCell.Run) */
     onRunCell?: (id: string) => void;
+    /** Сообщить что список перерисован (например для пересчёта outline) */
     onRerender?: () => void;
+    /** Удалить блок */
     onDeleteCell?: (id: string) => void;
+    /** Сохранить содержимое (для TextCell.blur и аналогов) */
     onSaveContent?: (id: string, content: string) => void;
+    /** Изменено содержимое code-cell (debounced) */
     onCodeContentChange?: (id: string, content: string) => void;
+    /** Изменён порядок блоков (move up/down) */
     onReorder?: (ids: string[]) => void;
 }
 
+/**
+ * Локальное представление блока в CellList. Расширяется при applyRemoteEvent
+ * (приходящие WS-события могут добавлять position).
+ */
 interface BlockData {
+    /** ID блока */
     id: string;
+    /** Тип: 'code' / 'text' */
     type: string;
+    /** Содержимое */
     content?: string;
+    /** Позиция в notebook'е */
     position?: number;
 }
 
+/**
+ * Полные опции конструктора CellList: callback'и + контекст notebook'а.
+ */
 interface CellListOptions extends CellListCallbacks {
+    /** ID notebook'а — пробрасывается в CommentThread */
     notebookId: number | string;
+    /** ID текущего пользователя — для определения "своих" комментариев */
     currentUserId: number;
+    /** true если текущий пользователь — владелец */
     isOwner: boolean;
+    /** Имеет ли пользователь право комментировать */
     canComment: boolean;
 }
 
+/**
+ * Внутренний holder для одной строки CellList: связывает Cell (Code/Text),
+ * CommentThread и DOM-row. Инкапсулирует размонтирование (cleanup всех трёх
+ * частей одной строки за один unmount).
+ */
 class CellRow {
     #cell: CodeCell | TextCell;
     #commentThread: CommentThread;
     #rowElement: HTMLElement;
 
+    /**
+     * Сохраняет ссылки на DOM-row и компоненты cell + commentThread.
+     * @param rowElement - DOM-элемент строки
+     * @param cell - Code- или Text-cell компонент
+     * @param commentThread - связанная ветка комментариев
+     */
     public constructor(
         rowElement: HTMLElement,
         cell: CodeCell | TextCell,
@@ -45,18 +81,33 @@ class CellRow {
         this.#commentThread = commentThread;
     }
 
+    /**
+     * Возвращает компонент ячейки для прямых операций (highlight/setContent/...).
+     * @returns Code- или Text-cell
+     */
     public getCell(): CodeCell | TextCell {
         return this.#cell;
     }
 
+    /**
+     * Возвращает ветку комментариев строки.
+     * @returns CommentThread
+     */
     public getCommentThread(): CommentThread {
         return this.#commentThread;
     }
 
+    /**
+     * Возвращает DOM-элемент строки (для перестановки/измерений/проверок focus).
+     * @returns HTMLElement строки
+     */
     public getRowElement(): HTMLElement {
         return this.#rowElement;
     }
 
+    /**
+     * Размонтирует все три части (commentThread → cell → row из DOM).
+     */
     public unmount(): void {
         this.#commentThread.unmount();
         this.#cell.unmount();
@@ -64,6 +115,20 @@ class CellRow {
     }
 }
 
+/**
+ * Список ячеек notebook'а — основной композитный виджет страницы блоков.
+ * Управляет коллекцией строк (Cell + CommentThread), синхронизирует их с
+ * массивом #blocks, обрабатывает локальные действия (move/copy/delete/run)
+ * через callback'и родителю и применяет real-time события от WS через
+ * applyRemoteEvent (block_added/updated/deleted, comment_added/deleted).
+ *
+ * Особенности:
+ * - При фокусе внутри ячейки игнорирует block_updated от WS — иначе пользователь
+ *   потеряет правки во время чужого изменения. Это допустимая UX-цена за избегание
+ *   полноценной CRDT-синхронизации.
+ * - При move/copy текстовых ячеек сначала вызывает #syncTextCellsToBlocks —
+ *   TextCell хранит актуальное содержимое в DOM (contenteditable), а не в #blocks.
+ */
 export class CellList extends BaseComponent {
     #cells: CellRow[] = [];
     #blocks: BlockData[] = [];
@@ -80,6 +145,11 @@ export class CellList extends BaseComponent {
     #canComment = false;
     #api: NotebookApi | null = null;
 
+    /**
+     * Создаёт CellList с callback'ами и контекстом notebook'а.
+     * @param parent - родительский элемент
+     * @param options - callback'и + notebookId/currentUserId/isOwner/canComment
+     */
     public constructor(
         parent: HTMLElement,
         {
@@ -110,23 +180,38 @@ export class CellList extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит каркас списка из шаблона.
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = CellListTemplate();
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит каркас. Реальные строки появляются при первом updateBlocks.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
     }
 
+    /**
+     * Размонтирует все строки (cell + comment thread каждой) и сам каркас.
+     */
     public unmount(): void {
         this.#clearCells();
         if (!this._isMounted) return;
         super.unmount();
     }
 
+    /**
+     * Полностью пересоздаёт строки из переданного массива блоков. Используется
+     * при первоначальной загрузке notebook'а и после move/reorder. Управляет
+     * видимостью empty-state vs контейнера ячеек. После рендера зовёт onRerender.
+     * @param blocks - новый массив блоков (заменяет текущий)
+     */
     public updateBlocks(blocks: BlockData[]): void {
         this.#clearCells();
         this.#blocks = [...blocks];
@@ -154,6 +239,15 @@ export class CellList extends BaseComponent {
         if (this.#onRerender) this.#onRerender();
     }
 
+    /**
+     * Создаёт DOM-row + cell-wrapper + comment-wrapper + CodeCell/TextCell
+     * + CommentThread. Возвращает обёртку CellRow для последующей работы.
+     * Сама row уже добавлена в container; cell и thread ещё НЕ смонтированы
+     * (вызывающий должен сделать это).
+     * @param container - DOM-контейнер для строк
+     * @param block - данные блока
+     * @returns обёртка CellRow
+     */
     #createRow(container: HTMLElement, block: BlockData): CellRow {
         const rowElement = document.createElement('div');
         rowElement.className = 'cell-row';
@@ -186,6 +280,14 @@ export class CellList extends BaseComponent {
         return new CellRow(rowElement, cell, commentThread);
     }
 
+    /**
+     * Создаёт CodeCell или TextCell по типу блока с правильными callback'ами.
+     * Для CodeCell добавляет onRun (запуск) и onContentChange (debounced save).
+     * Для TextCell — onContentChange как onSaveContent (без debounce — blur).
+     * @param container - DOM-контейнер для самой ячейки
+     * @param block - данные блока
+     * @returns Code- или Text-cell
+     */
     #createCell(container: HTMLElement, block: BlockData): CodeCell | TextCell {
         const callbacks = this.#buildCellCallbacks(block);
         if (block.type === 'code') {
@@ -207,6 +309,13 @@ export class CellList extends BaseComponent {
         } as TextCellOptions);
     }
 
+    /**
+     * Собирает общие для Code- и Text-cell callback'и (move/copy/delete) +
+     * blockData. Возвращается как Record<string, unknown> чтобы потом spread'ить
+     * в специфичные опции каждого типа cell.
+     * @param block - данные блока для blockData
+     * @returns объект общих callback'ов
+     */
     #buildCellCallbacks(block: BlockData): Record<string, unknown> {
         return {
             blockData: block,
@@ -225,6 +334,11 @@ export class CellList extends BaseComponent {
         };
     }
 
+    /**
+     * Применяет real-time событие от WebSocket (block_added/updated/deleted,
+     * comment_added/deleted). Игнорирует null/undefined event и неизвестные типы.
+     * @param event - WS-событие или null (тогда noop)
+     */
     public applyRemoteEvent(
         event: {
             type: string;
@@ -266,6 +380,12 @@ export class CellList extends BaseComponent {
         }
     }
 
+    /**
+     * Обновляет содержимое блока. Если фокус сейчас внутри этой ячейки — игнорирует
+     * (не затирает правки пользователя). Если блок не найден локально — fallback'ит
+     * на applyBlockAdded (например событие пришло раньше первой загрузки).
+     * @param block - обновлённые данные блока
+     */
     #applyBlockUpdated(block: BlockData): void {
         const idx = this.#blocks.findIndex((b) => b.id === block.id);
         if (idx < 0) {
@@ -289,6 +409,12 @@ export class CellList extends BaseComponent {
         }
     }
 
+    /**
+     * Добавляет блок на правильную позицию (или в конец если position не задан/
+     * вне диапазона). Дедупликация по id — повторное событие игнорируется.
+     * Перед вставкой синхронизирует текстовые ячейки чтобы не потерять их состояние.
+     * @param block - данные нового блока
+     */
     #applyBlockAdded(block: BlockData): void {
         if (this.#blocks.some((b) => b.id === block.id)) return;
         const insertAt =
@@ -320,6 +446,11 @@ export class CellList extends BaseComponent {
         if (this.#onRerender) this.#onRerender();
     }
 
+    /**
+     * Удаляет блок из локального состояния и DOM. Если блок не найден — noop.
+     * После удаления показывает empty-state если блоков не осталось.
+     * @param blockId - ID удаляемого блока
+     */
     #applyBlockDeleted(blockId: string | number): void {
         const idx = this.#blocks.findIndex((b) => b.id === blockId);
         if (idx < 0) return;
@@ -342,11 +473,22 @@ export class CellList extends BaseComponent {
         if (this.#onRerender) this.#onRerender();
     }
 
+    /**
+     * Локально добавляет блок в конец и пересоздаёт все строки. Используется
+     * для оптимистичного добавления через UI (родитель уже знает id с сервера).
+     * @param blockData - данные нового блока
+     */
     public addBlock(blockData: BlockData): void {
         this.#blocks.push(blockData);
         this.updateBlocks(this.#blocks);
     }
 
+    /**
+     * Копирует текущее содержимое всех TextCell обратно в #blocks. Нужно перед
+     * любой операцией перестановки (move/add) — TextCell держит актуальное
+     * состояние в contenteditable DOM, а не в #blocks (синхронизация идёт по
+     * blur через onSaveContent).
+     */
     #syncTextCellsToBlocks(): void {
         for (const row of this.#cells) {
             const cell = row.getCell();
@@ -357,6 +499,13 @@ export class CellList extends BaseComponent {
         }
     }
 
+    /**
+     * Перемещает блок вверх (-1) или вниз (+1). Синхронизирует текстовые ячейки,
+     * меняет местами в #blocks, перерисовывает, уведомляет onReorder с новым
+     * порядком id для синхронизации на сервере.
+     * @param id - ID перемещаемого блока
+     * @param direction - +1 (вниз) или -1 (вверх)
+     */
     #moveBlock(id: string, direction: number): void {
         const index = this.#blocks.findIndex((b) => b.id === id);
         if (index < 0) return;
@@ -377,6 +526,11 @@ export class CellList extends BaseComponent {
         }
     }
 
+    /**
+     * Копирует содержимое ячейки в системный буфер обмена через
+     * navigator.clipboard. Ошибки игнорирует (например при отсутствии разрешений).
+     * @param id - ID блока для копирования
+     */
     #copyBlock(id: string): void {
         const block = this.#blocks.find((b) => b.id === id);
         if (!block) return;
@@ -390,6 +544,9 @@ export class CellList extends BaseComponent {
         });
     }
 
+    /**
+     * Размонтирует все строки и очищает массив #cells. Не трогает #blocks.
+     */
     #clearCells(): void {
         this.#cells.forEach((row) => {
             row.unmount();
@@ -397,31 +554,64 @@ export class CellList extends BaseComponent {
         this.#cells = [];
     }
 
+    /**
+     * Ищет ячейку по ID блока (для прямых операций родителя — например подсветить
+     * результат поиска).
+     * @param id - ID блока
+     * @returns Code- или Text-cell, либо null если не найдена
+     */
     public getCellByBlockId(id: string | number): CodeCell | TextCell | null {
         const row = this.#cells.find((r) => r.getCell().getBlockId() === id);
         return row ? row.getCell() : null;
     }
 
+    /**
+     * Возвращает все ячейки в порядке отображения. Используется FindEngine
+     * для поиска по всему notebook'у.
+     * @returns массив всех Code/Text-cell
+     */
     public getAllCells(): (CodeCell | TextCell)[] {
         return this.#cells.map((r) => r.getCell());
     }
 
+    /**
+     * Возвращает только code-ячейки в порядке отображения. Используется для
+     * Run All / Run From Here.
+     * @returns массив CodeCell
+     */
     public getCodeCellsInOrder(): CodeCell[] {
         return this.#cells
             .map((r) => r.getCell())
             .filter((c): c is CodeCell => c instanceof CodeCell);
     }
 
+    /**
+     * Возвращает индекс блока в текущем массиве (полезно для RunnerApi.executeBlock
+     * который требует position, а не id).
+     * @param id - ID блока
+     * @returns индекс блока (-1 если не найден)
+     */
     public getBlockPositionById(id: string | number): number {
         return this.#blocks.findIndex((b) => b.id === id);
     }
 
+    /**
+     * Проверяет находится ли currently focused element внутри какой-либо
+     * ячейки. Используется чтобы не дёргать save в момент когда пользователь
+     * печатает (родитель решает делать save или нет).
+     * @returns true если фокус внутри одной из ячеек
+     */
     public containsActiveElement(): boolean {
         const active = document.activeElement;
         if (!active) return false;
         return this.#cells.some((r) => r.getRowElement().contains(active));
     }
 
+    /**
+     * Переключает видимость comment-thread'ов (через CSS-класс на корневом
+     * элементе). Используется toolbar'ом для глобального переключения.
+     * @param visible - true для показа, false для скрытия
+     */
     public toggleComments(visible: boolean): void {
         this._element.classList.toggle('cell-list--hide-comments', !visible);
     }

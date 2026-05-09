@@ -3,25 +3,56 @@ import { Router } from '../../shared/router/Router.js';
 import { NotebookHeaderTemplate } from './NotebookHeader.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Конфиг шапки notebook'а. Все callback'и опциональны — кнопки/пункты меню
+ * без обработчиков просто не реагируют. isOwner=true разрешает rename/share.
+ */
 interface NotebookHeaderConfig {
+    /** Имя файла notebook'а */
     filename?: string;
+    /** Данные пользователя для user-pill */
     user?: {
+        /** URL аватара */
         avatarUrl?: string;
+        /** Инициалы для default-аватара */
         initials: string;
+        /** Логин */
         username: string;
     } | null;
+    /** true если владелец — показывает edit/share кнопки (default true) */
     isOwner?: boolean;
+    /** Callback переименования; возвращает Promise — UI ждёт перед resolve */
     onRename?: ((newTitle: string) => Promise<void>) | null;
+    /** Callback клика по кнопке share */
     onShare?: (() => void) | null;
+    /** Callback "Профиль" в user-dropdown */
     onProfile?: (() => void) | null;
+    /** Callback "Выйти" в user-dropdown */
     onLogout?: (() => void) | null;
+    /** Callback "Обратная связь" в user-dropdown */
     onFeedback?: (() => void) | null;
+    /** Callback "Админ-панель" — показывается только если задан */
     onAdmin?: (() => void) | null;
+    /** Callback "Сохранить" в File-меню */
     onSave?: (() => void) | null;
+    /** Callback "Сохранить как" в File-меню */
     onSaveAs?: (() => void) | null;
+    /** Callback "Открыть" в File-меню */
     onOpen?: (() => void) | null;
 }
 
+/**
+ * Шапка страницы notebook'а: логотип (клик → /files), имя файла с inline-rename
+ * (для владельца), action-кнопки (избранное/облако/share), user-pill с dropdown'ом,
+ * File-меню (Открыть/Сохранить/Сохранить как).
+ *
+ * Особенности rename: Enter — commit (через blur → #finishEditing), Escape —
+ * cancel (через AbortController отменяющий blur-обработчик чтобы он не сработал
+ * после Escape).
+ *
+ * При навигации по логотипу (клик) сначала ждёт #finishEditing — чтобы пользователь
+ * не потерял изменения имени.
+ */
 export class NotebookHeader extends BaseComponent {
     #config: NotebookHeaderConfig;
     #onRename: ((newTitle: string) => Promise<void>) | null;
@@ -31,6 +62,11 @@ export class NotebookHeader extends BaseComponent {
     #isDropdownOpen = false;
     #isMenuOpen = false;
 
+    /**
+     * Создаёт шапку с заданным конфигом.
+     * @param parent - родительский элемент
+     * @param config - параметры шапки (см. NotebookHeaderConfig)
+     */
     public constructor(parent: HTMLElement, config: NotebookHeaderConfig = {}) {
         super(null, parent);
         this.#config = config;
@@ -39,6 +75,9 @@ export class NotebookHeader extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон с подготовленными данными (default'ы для filename/user/isOwner).
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = NotebookHeaderTemplate({
@@ -50,23 +89,39 @@ export class NotebookHeader extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит шапку и навешивает все обработчики.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
 
+    /**
+     * Программно меняет отображаемое имя файла. Игнорируется во время inline-rename
+     * чтобы не затереть редактируемое значение пользователя.
+     * @param filename - новое имя
+     */
     public setFilename(filename: string): void {
         if (this.#isEditing) return;
         const span = this._element.querySelector('.notebook-header__filename');
         if (span) span.textContent = filename;
     }
 
+    /**
+     * Навешивает большой набор обработчиков: клик по логотипу (с финализацией
+     * редактирования перед навигацией), edit/share кнопки, File-меню, user-dropdown,
+     * клики по action-пунктам с делегированием по data-action.
+     */
     #attachEvents(): void {
         const logoLink = nn(this._element.querySelector('.notebook-header__logo-link'));
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -147,6 +202,10 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
+    /**
+     * Показывает анимацию сохранения на иконке "Облако" на 1.5 секунды.
+     * Вызывается родителем после успешного автосохранения.
+     */
     public showSaveIndicator(): void {
         const cloudBtn = this._element.querySelector('[title="Облако"]');
         if (!cloudBtn) return;
@@ -156,6 +215,12 @@ export class NotebookHeader extends BaseComponent {
         }, 1500);
     }
 
+    /**
+     * Финализирует inline-rename: убирает contenteditable, читает новое значение.
+     * Если пусто — восстанавливает оригинал; если изменилось и есть onRename —
+     * вызывает callback и ждёт его завершения. Безопасно вызывать когда
+     * редактирование не активно — лишний noop.
+     */
     async #finishEditing(): Promise<void> {
         if (!this.#isEditing) return;
 
@@ -174,6 +239,9 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
+    /**
+     * Переключает состояние File-меню.
+     */
     #toggleMenu(): void {
         if (this.#isMenuOpen) {
             this.#closeMenu();
@@ -182,6 +250,9 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
+    /**
+     * Открывает File-меню (CSS-класс на dropdown'е и активная подсветка триггера).
+     */
     #openMenu(): void {
         this.#isMenuOpen = true;
         nn(this._element.querySelector('.notebook-header__dropdown')).classList.add(
@@ -192,6 +263,9 @@ export class NotebookHeader extends BaseComponent {
         );
     }
 
+    /**
+     * Закрывает File-меню.
+     */
     #closeMenu(): void {
         this.#isMenuOpen = false;
         nn(this._element.querySelector('.notebook-header__dropdown')).classList.remove(
@@ -202,6 +276,9 @@ export class NotebookHeader extends BaseComponent {
         );
     }
 
+    /**
+     * Переключает состояние user-dropdown'а.
+     */
     #toggleDropdown(): void {
         if (this.#isDropdownOpen) {
             this.#closeDropdown();
@@ -210,6 +287,9 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
+    /**
+     * Открывает user-dropdown.
+     */
     #openDropdown(): void {
         this.#isDropdownOpen = true;
         nn(this._element.querySelector('.notebook-header__user-dropdown')).classList.add(
@@ -217,6 +297,9 @@ export class NotebookHeader extends BaseComponent {
         );
     }
 
+    /**
+     * Закрывает user-dropdown.
+     */
     #closeDropdown(): void {
         this.#isDropdownOpen = false;
         nn(this._element.querySelector('.notebook-header__user-dropdown')).classList.remove(
@@ -224,6 +307,15 @@ export class NotebookHeader extends BaseComponent {
         );
     }
 
+    /**
+     * Запускает inline-rename: делает span contenteditable, выделяет текст,
+     * подписывается на keydown (Enter — commit через blur, Escape — cancel
+     * через AbortController) и blur (commit через #finishEditing).
+     *
+     * AbortController нужен потому что Escape должен ОТМЕНИТЬ редактирование
+     * без вызова finishEditing — abort сигнализирует обоим listener'ам что
+     * их работа больше не нужна.
+     */
     #startRename(): void {
         const filenameSpan = nn(
             this._element.querySelector<HTMLElement>('.notebook-header__filename')

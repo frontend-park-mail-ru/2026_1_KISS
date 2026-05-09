@@ -4,12 +4,32 @@ import { ShareModalTemplate } from './ShareModal.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 import type { ApiEnvelope, PermissionDTO, PermissionListResponse } from '../../shared/api/types.js';
 
+/**
+ * Локальное представление коллаборатора в UI модалки. id — это user_id из
+ * PermissionDTO; label — обычно email но fallback'ом "Пользователь #N".
+ */
 interface Collaborator {
+    /** ID пользователя */
     id: number;
+    /** Видимая подпись (email или fallback) */
     label: string;
+    /** Уровень доступа: 'readonly' / 'editor' */
     permission_level: string;
 }
 
+/**
+ * Модалка управления доступом к notebook'у. Поддерживает: добавление по email
+ * (с валидацией формата и проверкой дублей), смену уровня (readonly/editor)
+ * через select, удаление коллаборатора, переключение публичного доступа,
+ * копирование ссылки на notebook в буфер.
+ *
+ * Singleton-подход: один экземпляр маунтится по требованию через open(), при
+ * close() размонтируется. Загружает permissions при каждом open() (no-cache
+ * чтобы видеть актуальное состояние).
+ *
+ * Optimistic updates с rollback: смена уровня и публичный тогл сразу обновляют
+ * UI; при ошибке API — откатывают значения.
+ */
 export class ShareModal extends BaseComponent {
     #notebookId: string | number | null = null;
     #notebookTitle = '';
@@ -17,11 +37,21 @@ export class ShareModal extends BaseComponent {
     #isPublic = false;
     #collaborators: Collaborator[] = [];
 
+    /**
+     * Создаёт модалку с привязкой к body. Element создаётся в open(), не сразу.
+     */
     public constructor() {
         super(null, document.body);
         this.#http = HttpClient.getInstance();
     }
 
+    /**
+     * Открывает модалку для конкретного notebook'а: загружает текущие permissions,
+     * рендерит UI, маунтит, блокирует скролл body, фокусирует email-input.
+     * @param notebookId - ID notebook'а
+     * @param notebookTitle - текущий title (нужен чтобы не сбросить при PUT для public-toggle)
+     * @param isPublic - текущее состояние публичности
+     */
     public async open(
         notebookId: string | number,
         notebookTitle: string,
@@ -39,20 +69,34 @@ export class ShareModal extends BaseComponent {
         this._element.querySelector<HTMLInputElement>('.share-modal__input')?.focus();
     }
 
+    /**
+     * Закрывает модалку: размонтирует UI и разблокирует скролл body.
+     */
     public close(): void {
         if (!this._isMounted) return;
         super.unmount();
         document.body.style.overflow = '';
     }
 
+    /**
+     * Переопределение базового mount: noop. Реальный маунт делается из open()
+     * после загрузки данных. Сделано так чтобы родитель не вызывал mount() напрямую.
+     */
     public mount(): void {
         /* noop */
     }
 
+    /**
+     * Переопределение базового unmount: делегирует в close().
+     */
     public unmount(): void {
         this.close();
     }
 
+    /**
+     * Загружает текущий список permissions с сервера (no-cache) и преобразует
+     * в массив Collaborator. Ошибки молча игнорирует — UI просто будет пустым.
+     */
     async #fetchPermissions(): Promise<void> {
         try {
             const res = await this.#http.get(`/notebooks/${String(this.#notebookId)}/permissions`, {
@@ -72,6 +116,10 @@ export class ShareModal extends BaseComponent {
         }
     }
 
+    /**
+     * Создаёт DOM-элемент модалки из шаблона с текущими данными и
+     * сразу навешивает обработчики.
+     */
     #buildElement(): void {
         const tmp = document.createElement('div');
         tmp.innerHTML = ShareModalTemplate({
@@ -82,6 +130,12 @@ export class ShareModal extends BaseComponent {
         this.#attachEvents();
     }
 
+    /**
+     * Навешивает обработчики: клик по overlay/Escape/close-btn (закрытие),
+     * Enter в email-input + click на add-btn (добавление коллаборатора),
+     * клик/change по списку коллабораторов (удаление/смена уровня),
+     * change на public-toggle, клик на copy-btn (копирование URL).
+     */
     #attachEvents(): void {
         this._addListener(
             this._element.querySelector('.share-modal__overlay'),
@@ -136,6 +190,13 @@ export class ShareModal extends BaseComponent {
         });
     }
 
+    /**
+     * Обрабатывает добавление коллаборатора: валидация email формата + проверка
+     * дублей по email, POST /notebooks/:id/permissions/invite. При успехе —
+     * добавляет в #collaborators и перерисовывает список; при ошибке — показывает
+     * текст ошибки (404 → "не найден", иначе серверная ошибка или fallback).
+     * @param input - email-input (используется для чтения и очистки)
+     */
     async #handleAdd(input: HTMLInputElement): Promise<void> {
         const email = input.value.trim();
         if (!email) return;
@@ -191,6 +252,11 @@ export class ShareModal extends BaseComponent {
         }
     }
 
+    /**
+     * Удаляет коллаборатора через DELETE /notebooks/:id/permissions/:user.
+     * При успехе — убирает из #collaborators и перерисовывает; ошибки игнорирует.
+     * @param userId - ID удаляемого пользователя
+     */
     async #handleRemove(userId: string): Promise<void> {
         try {
             const res = await this.#http.delete(
@@ -205,6 +271,12 @@ export class ShareModal extends BaseComponent {
         }
     }
 
+    /**
+     * Меняет уровень доступа коллаборатора (optimistic update: сразу обновляет
+     * локально, при ошибке API — откатывает и перерисовывает).
+     * @param userId - ID пользователя
+     * @param level - новый уровень ('readonly' / 'editor')
+     */
     async #handleLevelChange(userId: string, level: string): Promise<void> {
         const collaborator = this.#collaborators.find((c) => String(c.id) === userId);
         if (!collaborator) return;
@@ -227,6 +299,13 @@ export class ShareModal extends BaseComponent {
         }
     }
 
+    /**
+     * Переключает публичный доступ к notebook'у через PUT /notebooks/:id
+     * (с сохранением title чтобы не сбросить). Optimistic update — при ошибке
+     * откатывает чекбокс. title обязательно посылается потому что endpoint
+     * принимает полный объект, не PATCH.
+     * @param checked - новое состояние тогла
+     */
     async #handlePublicToggle(checked: boolean): Promise<void> {
         const prev = this.#isPublic;
         this.#isPublic = checked;
@@ -252,6 +331,12 @@ export class ShareModal extends BaseComponent {
         }
     }
 
+    /**
+     * Перерисовывает только секцию списка коллабораторов и навешивает
+     * обработчики на новые элементы (старые слушатели останутся в реестре, но
+     * на удалённых элементах будут no-op'ами — это допустимая утечка для
+     * редко открываемой модалки). Если список пуст — показывает empty-state.
+     */
     #rerenderList(): void {
         const section = this._element.querySelector('.share-modal__section--list');
         if (!section) return;
@@ -298,6 +383,10 @@ export class ShareModal extends BaseComponent {
         }
     }
 
+    /**
+     * Показывает текст ошибки в .share-modal__error.
+     * @param msg - текст для отображения
+     */
     #showError(msg: string): void {
         const el = this._element.querySelector<HTMLElement>('.share-modal__error');
         if (!el) return;
@@ -305,11 +394,18 @@ export class ShareModal extends BaseComponent {
         el.hidden = false;
     }
 
+    /**
+     * Скрывает блок ошибки.
+     */
     #clearError(): void {
         const el = this._element.querySelector<HTMLElement>('.share-modal__error');
         if (el) el.hidden = true;
     }
 
+    /**
+     * Показывает кратковременное подтверждение копирования ("Скопировано!" +
+     * success-класс) на 2 секунды, потом восстанавливает оригинальное содержимое.
+     */
     #showCopyFeedback(): void {
         const btn = this._element.querySelector('.share-modal__copy-btn');
         if (!btn) return;
@@ -322,10 +418,22 @@ export class ShareModal extends BaseComponent {
         }, 2000);
     }
 
+    /**
+     * Проверяет email на минимальный формат через простую регулярку.
+     * @param email - проверяемая строка
+     * @returns true если похоже на email
+     */
     #isValidEmail(email: string): boolean {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
+    /**
+     * Экранирует HTML-спецсимволы для безопасной вставки в innerHTML
+     * (используется для label'ов коллабораторов в #rerenderList).
+     * Локальная копия escapeHtml без зависимости.
+     * @param str - строка для эскейпа
+     * @returns HTML-безопасная строка
+     */
     #escape(str: string): string {
         return str
             .replace(/&/g, '&amp;')
