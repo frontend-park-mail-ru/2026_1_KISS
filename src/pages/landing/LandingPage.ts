@@ -2,6 +2,7 @@ import { LandingPageTemplate } from './LandingPage.template.js';
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 export class LandingPage {
     #root: HTMLElement;
@@ -17,7 +18,7 @@ export class LandingPage {
         try {
             const response = await HttpClient.getInstance().get('/auth/me');
             if (response.ok) {
-                Router.getInstance()!.navigate('/files');
+                nn(Router.getInstance()).navigate('/files');
                 return;
             }
         } catch (_e) {
@@ -29,17 +30,17 @@ export class LandingPage {
 
         this.#header.registerBtn?.addEventListener('click', (e: Event) => {
             e.preventDefault();
-            Router.getInstance()!.navigate('/sign?mode=register');
+            nn(Router.getInstance()).navigate('/sign?mode=register');
         });
 
         this.#header.loginBtn?.addEventListener('click', (e: Event) => {
             e.preventDefault();
-            Router.getInstance()!.navigate('/sign?mode=login');
+            nn(Router.getInstance()).navigate('/sign?mode=login');
         });
 
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = LandingPageTemplate();
-        this.#root.appendChild(tempContainer.firstElementChild!);
+        this.#root.appendChild(nn(tempContainer.firstElementChild));
         this.#attachEvents();
     }
 
@@ -48,7 +49,7 @@ export class LandingPage {
         if (!el) return;
 
         el.querySelector('[data-action="create-notebook"]')?.addEventListener('click', () => {
-            Router.getInstance()!.navigate('/sign?mode=login');
+            nn(Router.getInstance()).navigate('/sign?mode=login');
         });
     }
 

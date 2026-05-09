@@ -1,6 +1,7 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { InputTemplate } from './Input.template.js';
 import type { InputConfig, InputState } from '../../types.js';
+import { nn } from '../../utils/notNull.js';
 
 export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     PASSWORD: {
@@ -74,18 +75,19 @@ export class Input extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
 
-        this.#input = this._element.querySelector('.input-field')!;
+        this.#input = nn(this._element.querySelector('.input-field'));
         this.#attachEvents();
 
         const toggleBtn = this._element.querySelector('.toggle-password-btn');
         if (toggleBtn) {
             this.#input.classList.add('input-field_has-toggle');
             this._addListener(toggleBtn, 'click', () => {
-                const isPassword = this.#input!.type === 'password';
+                const isPassword = nn(this.#input).type === 'password';
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 this.#input!.type = isPassword ? 'text' : 'password';
 
-                const openIcon = toggleBtn.querySelector('.eye-icon_open')!;
-                const closedIcon = toggleBtn.querySelector('.eye-icon_closed')!;
+                const openIcon = nn(toggleBtn.querySelector('.eye-icon_open'));
+                const closedIcon = nn(toggleBtn.querySelector('.eye-icon_closed'));
                 openIcon.classList.toggle('eye-icon_hidden');
                 closedIcon.classList.toggle('eye-icon_hidden');
             });
@@ -113,7 +115,7 @@ export class Input extends BaseComponent {
             this.#state.value = (e as InputEvent & { target: HTMLInputElement }).target.value;
             this.#calmDown();
         });
-        this.#input!.addEventListener('blur', () => {
+        nn(this.#input).addEventListener('blur', () => {
             this.validate();
         });
     }
@@ -200,6 +202,7 @@ export class Input extends BaseComponent {
             isValid: true,
             value: ''
         };
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.#input!.value = '';
     }
 }

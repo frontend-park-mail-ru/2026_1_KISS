@@ -1,5 +1,6 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { EditorSettingsTemplate } from './EditorSettings.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 const STORAGE_KEY = 'kisscolab_editor';
 
@@ -24,14 +25,14 @@ export class EditorSettings extends BaseComponent {
 
     #loadSettings(): void {
         try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+            const saved = JSON.parse(nn(localStorage.getItem(STORAGE_KEY)));
             if (!saved) return;
 
             const selects = this._element.querySelectorAll<HTMLSelectElement>(
                 '.editor-settings__select'
             );
             selects.forEach((select) => {
-                const key = select.dataset.setting!;
+                const key = nn(select.dataset.setting);
                 if (saved[key]) {
                     select.value = saved[key];
                 }
@@ -45,7 +46,7 @@ export class EditorSettings extends BaseComponent {
         const selects = this._element.querySelectorAll<HTMLSelectElement>(
             '.editor-settings__select'
         );
-        const msgEl = this._element.querySelector('.editor-settings__saved-msg')!;
+        const msgEl = nn(this._element.querySelector('.editor-settings__saved-msg'));
 
         selects.forEach((select) => {
             this._addListener(select, 'change', () => {
@@ -64,6 +65,7 @@ export class EditorSettings extends BaseComponent {
         );
         const settings: Record<string, string> = {};
         selects.forEach((select) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             settings[select.dataset.setting!] = select.value;
         });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));

@@ -13,6 +13,7 @@ import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
 import { NotebookApi } from '../../shared/api/NotebookApi.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 export class BlocksPage {
     #root: HTMLElement;
@@ -58,7 +59,7 @@ export class BlocksPage {
         try {
             const response = await this.#httpClient.get('/auth/me');
             if (!response.ok) {
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
                 return;
             }
             const { data: user } = await response.json();
@@ -67,24 +68,24 @@ export class BlocksPage {
             this.#avatarUrl = user.avatar_url ?? '';
             this.#isAdmin = user.is_admin ?? false;
         } catch (_e) {
-            Router.getInstance()!.navigate('/sign');
+            nn(Router.getInstance()).navigate('/sign');
             return;
         }
 
         try {
             const response = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
             if (!response.ok) {
-                Router.getInstance()!.navigate('/files');
+                nn(Router.getInstance()).navigate('/files');
                 return;
             }
             const { data: notebook } = await response.json();
             this.#notebook = notebook;
         } catch (_e) {
-            Router.getInstance()!.navigate('/files');
+            nn(Router.getInstance()).navigate('/files');
             return;
         }
 
-        this.#isOwner = this.#notebook!.owner_id === this.#userId;
+        this.#isOwner = nn(this.#notebook).owner_id === this.#userId;
         this.#canComment = this.#isOwner;
         if (!this.#canComment && this.#userId) {
             try {
@@ -116,17 +117,17 @@ export class BlocksPage {
         page.appendChild(headerArea);
 
         const initials = this.#username.substring(0, 2).toUpperCase();
-        const isOwner = this.#notebook!.owner_id === this.#userId;
+        const isOwner = nn(this.#notebook).owner_id === this.#userId;
         this.#header = new NotebookHeader(headerArea, {
-            filename: (this.#notebook!.title as string) || 'Untitled',
+            filename: (nn(this.#notebook).title as string) || 'Untitled',
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             isOwner,
             onRename: isOwner ? (newTitle: string) => this.#renameNotebook(newTitle) : null,
             onSave: () => this.#saveAll(),
             onSaveAs: () => this.#exportAsIpynb(),
             onOpen: () => { this.#importNotebook(); },
-            onProfile: () => { Router.getInstance()!.navigate('/profile'); },
-            onAdmin: this.#isAdmin ? () => { Router.getInstance()!.navigate('/admin'); } : null,
+            onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
+            onAdmin: this.#isAdmin ? () => { nn(Router.getInstance()).navigate('/admin'); } : null,
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -137,7 +138,7 @@ export class BlocksPage {
                 } catch (_e) {
                     /* ignore */
                 }
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
             },
             onShare: isOwner ? () => { this.#openShareModal(); } : null
         });
@@ -186,7 +187,7 @@ export class BlocksPage {
 
         this.#cellList = new CellList(main, {
             notebookId: this.#notebookId,
-            currentUserId: this.#userId!,
+            currentUserId: nn(this.#userId),
             isOwner: this.#isOwner,
             canComment: this.#canComment,
             onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
@@ -202,7 +203,7 @@ export class BlocksPage {
 
         this.#root.appendChild(page);
 
-        const blocks = (this.#notebook!.blocks as BlockData[]) || [];
+        const blocks = (nn(this.#notebook).blocks as BlockData[]) || [];
         this.#loadSavedOutputs(blocks as unknown as Record<string, unknown>[]);
         this.#cellList.updateBlocks(blocks);
         this.#cellList.toggleComments(commentsVisible);
@@ -260,7 +261,7 @@ export class BlocksPage {
             case 'block_deleted':
             case 'comment_added':
             case 'comment_deleted':
-                this.#cellList!.applyRemoteEvent(
+                nn(this.#cellList).applyRemoteEvent(
                     event as { type: string; block?: BlockData; block_id?: string | number }
                 );
                 break;
@@ -329,11 +330,11 @@ export class BlocksPage {
                 this.#header.setFilename(newTitle);
             }
             this.#notebook = notebook;
-            if (!this.#cellList!.containsActiveElement()) {
+            if (!nn(this.#cellList).containsActiveElement()) {
                 this.#loadSavedOutputs(
                     ((notebook.blocks as BlockData[]) || []) as unknown as Record<string, unknown>[]
                 );
-                this.#cellList!.updateBlocks((notebook.blocks as BlockData[]) || []);
+                nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[]) || []);
             }
         } catch {
             /* tolerate */
@@ -361,14 +362,14 @@ export class BlocksPage {
     }
 
     async #saveAll(): Promise<void> {
-        this.#header!.showSaveIndicator();
-        const cells = this.#cellList!.getAllCells();
+        nn(this.#header).showSaveIndicator();
+        const cells = nn(this.#cellList).getAllCells();
         const promises = cells.map((cell) => this.#maybeSaveCellContent(cell.getBlockId(), cell));
         await Promise.all(promises);
     }
 
     async #saveAllTextCells(): Promise<void> {
-        const allCells = this.#cellList!.getAllCells();
+        const allCells = nn(this.#cellList).getAllCells();
         for (const cell of allCells) {
             if (!(cell instanceof CodeCell)) {
                 await this.#maybeSaveCellContent(cell.getBlockId(), cell);
@@ -395,7 +396,7 @@ export class BlocksPage {
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;
-            this.#cellList!.updateBlocks((notebook.blocks as BlockData[]) || []);
+            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[]) || []);
         } catch (e: unknown) {
             console.error('Failed to create block:', e);
         }
@@ -414,7 +415,7 @@ export class BlocksPage {
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;
-            this.#cellList!.updateBlocks((notebook.blocks as BlockData[]) || []);
+            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[]) || []);
             this.#execNumbers.delete(blockId);
             this.#lastOutputs.delete(blockId);
         } catch (e: unknown) {
@@ -439,9 +440,9 @@ export class BlocksPage {
     }
 
     async #runSingleBlock(blockId: number | string): Promise<void> {
-        const cell = this.#cellList!.getCellByBlockId(blockId);
+        const cell = nn(this.#cellList).getCellByBlockId(blockId);
         if (!cell || !(cell instanceof CodeCell)) return;
-        const position = this.#cellList!.getBlockPositionById(blockId);
+        const position = nn(this.#cellList).getBlockPositionById(blockId);
         if (position < 0) return;
 
         await this.#maybeSaveCellContent(blockId, cell);
@@ -484,7 +485,7 @@ export class BlocksPage {
     }
 
     async #runAllBlocks(): Promise<void> {
-        const codeCells = this.#cellList!.getCodeCellsInOrder();
+        const codeCells = nn(this.#cellList).getCodeCellsInOrder();
         if (codeCells.length === 0) return;
 
         for (const c of codeCells) {
@@ -495,7 +496,7 @@ export class BlocksPage {
         codeCells.forEach((c) => {
             const blockId = c.getBlockId();
             if (this.#lastOutputs.has(blockId)) {
-                savedOutputs.set(blockId, this.#lastOutputs.get(blockId)!);
+                savedOutputs.set(blockId, nn(this.#lastOutputs.get(blockId)));
             }
         });
 
@@ -558,11 +559,11 @@ export class BlocksPage {
 
     #reapplyCellState(): void {
         this.#execNumbers.forEach((n, id) => {
-            const cell = this.#cellList!.getCellByBlockId(id);
+            const cell = nn(this.#cellList).getCellByBlockId(id);
             if (cell && cell instanceof CodeCell) cell.setExecutionNumber(n);
         });
         this.#lastOutputs.forEach((out, id) => {
-            const cell = this.#cellList!.getCellByBlockId(id);
+            const cell = nn(this.#cellList).getCellByBlockId(id);
             if (cell && cell instanceof CodeCell) cell.setOutput(out);
         });
     }
@@ -604,7 +605,7 @@ export class BlocksPage {
 
     async #exportAsIpynb(): Promise<void> {
         await this.#saveAll();
-        const cells = this.#cellList!.getAllCells();
+        const cells = nn(this.#cellList).getAllCells();
         const ipynbCells = cells.map((cell) => {
             const blockId = cell.getBlockId();
             const content = cell.getContent();
@@ -754,7 +755,7 @@ export class BlocksPage {
                     const { data: notebook } = (await resp.json()) as {
                         data: Record<string, unknown>;
                     };
-                    Router.getInstance()!.navigate(`/notebooks/${notebook.id}`);
+                    nn(Router.getInstance()).navigate(`/notebooks/${notebook.id}`);
                 }
             } catch (err: unknown) {
                 console.error('Failed to import notebook:', err);
@@ -791,7 +792,7 @@ export class BlocksPage {
             });
             if (response.ok) {
                 const { data: notebook } = await response.json();
-                Object.assign(this.#notebook!, notebook);
+                Object.assign(nn(this.#notebook), notebook);
             }
         } catch (e: unknown) {
             console.error('Failed to rename notebook:', e);
@@ -799,7 +800,7 @@ export class BlocksPage {
     }
 
     #collectSearchableCells(): { id: number | string; kind: 'code' | 'text'; content: string }[] {
-        return this.#cellList!.getAllCells().map((c) => ({
+        return nn(this.#cellList).getAllCells().map((c) => ({
             id: c.getBlockId(),
             kind: (c instanceof CodeCell ? 'code' : 'text'),
             content: c.getContent()
@@ -809,7 +810,7 @@ export class BlocksPage {
     #handleFind({ query, caseSensitive }: { query: string; caseSensitive: boolean }): void {
         const cells = this.#collectSearchableCells();
         const total = this.#findEngine.search(cells, query, caseSensitive);
-        this.#sidebar!.setMatchCount(this.#findEngine.index(), total);
+        nn(this.#sidebar).setMatchCount(this.#findEngine.index(), total);
         if (total > 0) this.#focusCurrentMatch();
     }
 
@@ -823,19 +824,19 @@ export class BlocksPage {
         }
         const m = direction === 'next' ? this.#findEngine.next() : this.#findEngine.prev();
         if (m) {
-            this.#sidebar!.setMatchCount(this.#findEngine.index(), this.#findEngine.total());
+            nn(this.#sidebar).setMatchCount(this.#findEngine.index(), this.#findEngine.total());
             this.#focusCurrentMatch();
         }
     }
 
     #focusCurrentMatch(): void {
-        this.#cellList!.getAllCells()
+        nn(this.#cellList).getAllCells()
             .filter((c): c is TextCell => c instanceof TextCell)
             .forEach((c) => { c.clearHighlights(); });
 
         const m = this.#findEngine.current();
         if (!m) return;
-        const cell = this.#cellList!.getCellByBlockId(m.blockId);
+        const cell = nn(this.#cellList).getCellByBlockId(m.blockId);
         if (!cell) return;
 
         if (m.kind === 'code' && cell instanceof CodeCell) {
@@ -860,7 +861,7 @@ export class BlocksPage {
         }
         const m = this.#findEngine.current();
         if (!m) return;
-        const cell = this.#cellList!.getCellByBlockId(m.blockId);
+        const cell = nn(this.#cellList).getCellByBlockId(m.blockId);
         if (!cell || typeof cell.setContent !== 'function') return;
 
         const content = cell.getContent();
@@ -882,13 +883,13 @@ export class BlocksPage {
         if (!query) return;
         const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const re = new RegExp(escaped, caseSensitive ? 'g' : 'gi');
-        for (const cell of this.#cellList!.getAllCells()) {
+        for (const cell of nn(this.#cellList).getAllCells()) {
             const original = cell.getContent();
             const updated = original.replace(re, replacement);
             if (updated !== original) cell.setContent(updated);
         }
         this.#findEngine.reset();
-        this.#sidebar!.setMatchCount(-1, 0);
+        nn(this.#sidebar).setMatchCount(-1, 0);
     }
 
     public destroy(): void {

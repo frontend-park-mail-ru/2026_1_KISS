@@ -7,8 +7,9 @@ import { AdminPage } from '../pages/admin/AdminPage.js';
 import { Router } from '../shared/router/Router.js';
 import { HttpClient } from '../shared/http_client/HttpClient.js';
 import { Heartbeat } from '../shared/heartbeat/Heartbeat.js';
+import { nn } from '../shared/utils/notNull.js';
 
-const rootElement = document.getElementById('root')!;
+const rootElement = nn(document.getElementById('root'));
 const httpClient = new HttpClient();
 
 const router = new Router(rootElement);

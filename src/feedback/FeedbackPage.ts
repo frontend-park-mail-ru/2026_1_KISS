@@ -1,4 +1,5 @@
 import { IssueApi } from '../shared/api/IssueApi.js';
+import { nn } from '../shared/utils/notNull.js';
 
 const CATEGORIES = [
     {
@@ -125,11 +126,11 @@ export class FeedbackPage {
     }
 
     #attachFormEvents(modal: HTMLElement): void {
-        modal
-            .querySelector('.feedback-modal__close-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__close-btn'))
             .addEventListener('click', () => { this.#close(); });
 
-        const categoriesContainer = modal.querySelector('.feedback-modal__categories')!;
+        const categoriesContainer = nn(modal.querySelector('.feedback-modal__categories'));
         categoriesContainer.addEventListener('click', (e: Event) => {
             const card = (e.target as HTMLElement).closest('[data-category]');
             if (!card) return;
@@ -137,27 +138,27 @@ export class FeedbackPage {
                 .querySelectorAll('.feedback-modal__category-card')
                 .forEach((c) => { c.classList.remove('feedback-modal__category-card--selected'); });
             card.classList.add('feedback-modal__category-card--selected');
-            this.#selectedCategory = card.dataset.category!;
+            this.#selectedCategory = nn(card.dataset.category);
         });
 
-        const textarea = modal.querySelector('.feedback-modal__textarea')!;
-        const charCount = modal.querySelector('.feedback-modal__char-count')!;
+        const textarea = nn(modal.querySelector('.feedback-modal__textarea'));
+        const charCount = nn(modal.querySelector('.feedback-modal__char-count'));
         textarea.addEventListener('input', () => {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
         });
 
-        modal
-            .querySelector('.feedback-modal__history-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__history-btn'))
             .addEventListener('click', () => this.#renderList());
-        modal
-            .querySelector('.feedback-modal__submit-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__submit-btn'))
             .addEventListener('click', () => this.#handleSubmit(modal));
     }
 
     async #handleSubmit(modal: HTMLElement): Promise<void> {
-        const errorEl = modal.querySelector('.feedback-modal__error')!;
-        const submitBtn = modal.querySelector('.feedback-modal__submit-btn')!;
-        const textarea = modal.querySelector('.feedback-modal__textarea')!;
+        const errorEl = nn(modal.querySelector('.feedback-modal__error'));
+        const submitBtn = nn(modal.querySelector('.feedback-modal__submit-btn'));
+        const textarea = nn(modal.querySelector('.feedback-modal__textarea'));
         errorEl.hidden = true;
 
         if (!this.#selectedCategory) {
@@ -215,11 +216,11 @@ export class FeedbackPage {
             </div>`;
 
         this.#root.appendChild(modal);
-        modal
-            .querySelector('.feedback-modal__close-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__close-btn'))
             .addEventListener('click', () => { this.#close(); });
-        modal
-            .querySelector('.feedback-modal__history-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__history-btn'))
             .addEventListener('click', () => this.#renderList());
     }
 
@@ -247,15 +248,15 @@ export class FeedbackPage {
             </div>`;
 
         this.#root.appendChild(modal);
-        modal
-            .querySelector('.feedback-modal__close-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__close-btn'))
             .addEventListener('click', () => { this.#close(); });
-        modal.querySelector('.feedback-modal__new-btn')!.addEventListener('click', () => {
+        nn(modal.querySelector('.feedback-modal__new-btn')).addEventListener('click', () => {
             this.#selectedCategory = null;
             this.#renderForm();
         });
 
-        const listContent = modal.querySelector('.feedback-modal__list-content')!;
+        const listContent = nn(modal.querySelector('.feedback-modal__list-content'));
 
         try {
             const data = await this.#issueApi.getIssues();
@@ -289,9 +290,9 @@ export class FeedbackPage {
                     </div>
                     <div class="feedback-modal__issue-preview">${this.#esc(preview)}</div>`;
 
-                const deleteBtn = card.querySelector(
+                const deleteBtn = nn(card.querySelector(
                     '.feedback-modal__issue-delete-btn'
-                )!;
+                ));
                 deleteBtn.addEventListener('click', async (e: Event) => {
                     e.stopPropagation();
                     await this.#handleIssueDelete(
@@ -360,11 +361,11 @@ export class FeedbackPage {
             </div>`;
 
         this.#root.appendChild(modal);
-        modal
-            .querySelector('.feedback-modal__close-btn')!
+        nn(modal
+            .querySelector('.feedback-modal__close-btn'))
             .addEventListener('click', () => { this.#close(); });
 
-        const body = modal.querySelector('.feedback-modal__detail-body')!;
+        const body = nn(modal.querySelector('.feedback-modal__detail-body'));
 
         try {
             const issue = (await this.#issueApi.getIssue(issueId)) as Record<string, unknown>;
@@ -417,16 +418,16 @@ export class FeedbackPage {
                     <div class="feedback-modal__reply-error" hidden></div>
                 </div>`;
 
-            body.querySelector('.feedback-modal__back-btn')!.addEventListener('click', () =>
+            nn(body.querySelector('.feedback-modal__back-btn')).addEventListener('click', () =>
                 this.#renderList()
             );
 
-            const replyTextarea = body.querySelector(
+            const replyTextarea = nn(body.querySelector(
                 '.feedback-modal__reply-textarea'
-            )!;
-            const replyCount = body.querySelector('.feedback-modal__reply-count')!;
-            const replyBtn = body.querySelector('.feedback-modal__reply-btn')!;
-            const replyError = body.querySelector('.feedback-modal__reply-error')!;
+            ));
+            const replyCount = nn(body.querySelector('.feedback-modal__reply-count'));
+            const replyBtn = nn(body.querySelector('.feedback-modal__reply-btn'));
+            const replyError = nn(body.querySelector('.feedback-modal__reply-error'));
 
             replyTextarea.addEventListener('input', () => {
                 replyCount.textContent = `${replyTextarea.value.length} / 2000`;

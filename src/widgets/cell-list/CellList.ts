@@ -5,6 +5,7 @@ import { TextCell, type TextCellOptions } from '../../shared/components/text-cel
 import { CommentThread } from '../../shared/components/comment-thread/CommentThread.js';
 import { NotebookApi } from '../../shared/api/NotebookApi.js';
 import type { Comment } from '../../shared/types.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface CellListCallbacks {
     onRunCell?: (id: string) => void;
@@ -126,8 +127,8 @@ export class CellList extends BaseComponent {
         this.#clearCells();
         this.#blocks = [...blocks];
 
-        const container = this._element.querySelector('.cell-list__cells')!;
-        const emptyState = this._element.querySelector('.cell-list__empty-state')!;
+        const container = nn(this._element.querySelector('.cell-list__cells'));
+        const emptyState = nn(this._element.querySelector('.cell-list__empty-state'));
 
         if (blocks.length === 0) {
             container.style.display = 'none';
@@ -175,7 +176,7 @@ export class CellList extends BaseComponent {
             currentUserId: this.#currentUserId,
             isOwner: this.#isOwner,
             canComment: this.#canComment,
-            api: this.#api!
+            api: nn(this.#api)
         });
 
         return new CellRow(rowElement, cell, commentThread);
@@ -239,7 +240,7 @@ export class CellList extends BaseComponent {
             case 'comment_added':
                 if (event.comment) {
                     const row = this.#cells.find(
-                        (r) => r.getCell().getBlockId() === String(event.comment!.block_id)
+                        (r) => r.getCell().getBlockId() === String(nn(event.comment).block_id)
                     );
                     row?.getCommentThread().appendComment(event.comment);
                 }
@@ -291,8 +292,8 @@ export class CellList extends BaseComponent {
         this.#syncTextCellsToBlocks();
         this.#blocks.splice(insertAt, 0, block);
 
-        const container = this._element.querySelector('.cell-list__cells')!;
-        const emptyState = this._element.querySelector('.cell-list__empty-state')!;
+        const container = nn(this._element.querySelector('.cell-list__cells'));
+        const emptyState = nn(this._element.querySelector('.cell-list__empty-state'));
         container.style.display = '';
         emptyState.style.display = 'none';
 
@@ -322,10 +323,10 @@ export class CellList extends BaseComponent {
         }
 
         if (this.#blocks.length === 0) {
-            const container = this._element.querySelector('.cell-list__cells')!;
-            const emptyState = this._element.querySelector(
+            const container = nn(this._element.querySelector('.cell-list__cells'));
+            const emptyState = nn(this._element.querySelector(
                 '.cell-list__empty-state'
-            )!;
+            ));
             container.style.display = 'none';
             emptyState.style.display = '';
         }

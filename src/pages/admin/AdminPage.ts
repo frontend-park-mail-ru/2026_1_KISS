@@ -5,6 +5,7 @@ import { Router } from '../../shared/router/Router.js';
 import { ContextMenu } from '../../shared/components/context-menu/ContextMenu.js';
 import { Modal } from '../../shared/components/modal/Modal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 function AdminPageTemplate(): string {
     return `<main class="admin-page">
@@ -90,17 +91,17 @@ export class AdminPage {
         try {
             const response = await this.#httpClient.get('/auth/me');
             if (!response.ok) {
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
                 return;
             }
             const { data: user } = (await response.json()) as { data: Record<string, unknown> };
             if (!user.is_admin) {
-                Router.getInstance()!.navigate('/files');
+                nn(Router.getInstance()).navigate('/files');
                 return;
             }
             this.#user = user;
         } catch (_e) {
-            Router.getInstance()!.navigate('/sign');
+            nn(Router.getInstance()).navigate('/sign');
             return;
         }
 
@@ -111,7 +112,7 @@ export class AdminPage {
                 initials,
                 avatarUrl: (this.#user.avatar_url as string) || ''
             },
-            onProfile: () => { Router.getInstance()!.navigate('/profile'); },
+            onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
             onAdmin: () => {},
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
@@ -119,17 +120,17 @@ export class AdminPage {
             },
             onLogout: async () => {
                 await this.#httpClient.post('/auth/logout').catch(() => {});
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
             }
         });
         header.render();
 
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = AdminPageTemplate();
-        const main = tempContainer.firstElementChild!;
+        const main = nn(tempContainer.firstElementChild);
         this.#root.appendChild(main);
 
-        this.#contentArea = main.querySelector('.admin-page__content')!;
+        this.#contentArea = nn(main.querySelector('.admin-page__content'));
         this.#contextMenu = new ContextMenu();
         this.#modal = new Modal();
         this.#attachSidebarEvents(main as HTMLElement);
@@ -152,6 +153,7 @@ export class AdminPage {
 
     #showSection(key: string): void {
         this.#activeKey = key;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.#contentArea!.innerHTML = '';
         switch (key) {
             case 'stats':
@@ -173,7 +175,7 @@ export class AdminPage {
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
         title.textContent = 'Статистика платформы';
-        this.#contentArea!.appendChild(title);
+        nn(this.#contentArea).appendChild(title);
 
         try {
             const stats = (await this.#adminApi.getStats()) as Record<string, unknown>;
@@ -208,7 +210,7 @@ export class AdminPage {
                 card.innerHTML = `<div class="admin-stat-card__value">${value}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
                 grid.appendChild(card);
             });
-            this.#contentArea!.appendChild(grid);
+            nn(this.#contentArea).appendChild(grid);
 
             const activityData = (await this.#adminApi.getActivityStats(30, 12)) as Record<
                 string,
@@ -234,7 +236,7 @@ export class AdminPage {
                 issueTitle.className = 'admin-page__section-title';
                 issueTitle.style.marginTop = '32px';
                 issueTitle.textContent = 'Обращения';
-                this.#contentArea!.appendChild(issueTitle);
+                nn(this.#contentArea).appendChild(issueTitle);
 
                 const issueCards = [
                     {
@@ -267,7 +269,7 @@ export class AdminPage {
                     card.innerHTML = `<div class="admin-stat-card__value">${value}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
                     issueGrid.appendChild(card);
                 });
-                this.#contentArea!.appendChild(issueGrid);
+                nn(this.#contentArea).appendChild(issueGrid);
 
                 const cat = (issueStats.by_category as Record<string, number>) || {};
                 const categoryData = [
@@ -284,6 +286,7 @@ export class AdminPage {
                 );
             }
         } catch (e: unknown) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             this.#contentArea!.innerHTML += `<div class="admin-empty">Ошибка загрузки: ${this.#esc((e as Error).message)}</div>`;
         }
     }
@@ -341,7 +344,7 @@ export class AdminPage {
 
         svg += '</svg>';
         chart.innerHTML += svg;
-        this.#contentArea!.appendChild(chart);
+        nn(this.#contentArea).appendChild(chart);
     }
 
     #formatChartLabel(raw: string, keyField: string): string {
@@ -416,7 +419,7 @@ export class AdminPage {
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
         title.textContent = 'Пользователи';
-        this.#contentArea!.appendChild(title);
+        nn(this.#contentArea).appendChild(title);
 
         const header = document.createElement('div');
         header.className = 'admin-table-header';
@@ -426,7 +429,7 @@ export class AdminPage {
         searchInput.type = 'text';
         searchInput.placeholder = 'Поиск по имени или email...';
         searchInput.addEventListener('input', () => {
-            clearTimeout(this.#searchTimeout!);
+            clearTimeout(nn(this.#searchTimeout));
             this.#searchTimeout = setTimeout(() => {
                 this.#currentUserSearch = searchInput.value;
                 this.#currentUserPage = 1;
@@ -439,18 +442,18 @@ export class AdminPage {
         countEl.className = 'admin-count';
         countEl.dataset.role = 'user-count';
         header.appendChild(countEl);
-        this.#contentArea!.appendChild(header);
+        nn(this.#contentArea).appendChild(header);
 
         const tableContainer = document.createElement('div');
         tableContainer.className = 'admin-table-container';
-        this.#contentArea!.appendChild(tableContainer);
+        nn(this.#contentArea).appendChild(tableContainer);
 
         this.#refreshUsersTable();
     }
 
     async #refreshUsersTable(): Promise<void> {
-        const tableContainer = this.#contentArea!.querySelector('.admin-table-container');
-        const countEl = this.#contentArea!.querySelector('[data-role="user-count"]');
+        const tableContainer = nn(this.#contentArea).querySelector('.admin-table-container');
+        const countEl = nn(this.#contentArea).querySelector('[data-role="user-count"]');
         if (!tableContainer) return;
         tableContainer.innerHTML = '';
 
@@ -558,18 +561,18 @@ export class AdminPage {
             label: 'Отправить email',
             handler: () => this.#sendEmailToUser(user)
         });
-        if (user.id !== this.#user!.id && user.plan === 'freeze' && user.status !== 'banned') {
+        if (user.id !== nn(this.#user).id && user.plan === 'freeze' && user.status !== 'banned') {
             actions.push({
                 label: 'Забанить',
                 danger: true,
                 handler: () => this.#banUser(user)
             });
         }
-        this.#contextMenu!.show(e.clientX, e.clientY, actions);
+        nn(this.#contextMenu).show(e.clientX, e.clientY, actions);
     }
 
     async #editUsername(user: Record<string, unknown>): Promise<void> {
-        const result = await this.#modal!.open('Изменить имя', [
+        const result = await nn(this.#modal).open('Изменить имя', [
             {
                 name: 'username',
                 label: 'Имя пользователя',
@@ -590,7 +593,7 @@ export class AdminPage {
     }
 
     async #editEmail(user: Record<string, unknown>): Promise<void> {
-        const result = await this.#modal!.open('Изменить email', [
+        const result = await nn(this.#modal).open('Изменить email', [
             { name: 'email', label: 'Email', type: 'text', value: user.email as string }
         ]);
         if (!result || result.email === user.email) return;
@@ -606,7 +609,7 @@ export class AdminPage {
     }
 
     async #changePassword(user: Record<string, unknown>): Promise<void> {
-        const result = await this.#modal!.open('Сменить пароль', [
+        const result = await nn(this.#modal).open('Сменить пароль', [
             { name: 'password', label: 'Новый пароль (минимум 8 символов)', type: 'password' }
         ]);
         if (!result?.password) return;
@@ -619,7 +622,7 @@ export class AdminPage {
     }
 
     async #changePlan(user: Record<string, unknown>): Promise<void> {
-        const result = await this.#modal!.open('Изменить тариф', [
+        const result = await nn(this.#modal).open('Изменить тариф', [
             {
                 name: 'plan',
                 label: 'Тариф',
@@ -638,7 +641,7 @@ export class AdminPage {
     }
 
     async #sendEmailToUser(user: Record<string, unknown>): Promise<void> {
-        const result = await this.#modal!.open('Отправить email', [
+        const result = await nn(this.#modal).open('Отправить email', [
             { name: 'subject', label: 'Тема', type: 'text' },
             { name: 'body', label: 'Сообщение', type: 'textarea' }
         ]);
@@ -668,7 +671,7 @@ export class AdminPage {
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
         title.textContent = 'Блокноты';
-        this.#contentArea!.appendChild(title);
+        nn(this.#contentArea).appendChild(title);
 
         const header = document.createElement('div');
         header.className = 'admin-table-header';
@@ -678,7 +681,7 @@ export class AdminPage {
         searchInput.type = 'text';
         searchInput.placeholder = 'Поиск по названию...';
         searchInput.addEventListener('input', () => {
-            clearTimeout(this.#searchTimeout!);
+            clearTimeout(nn(this.#searchTimeout));
             this.#searchTimeout = setTimeout(() => {
                 this.#currentNbSearch = searchInput.value;
                 this.#currentNbPage = 1;
@@ -691,18 +694,18 @@ export class AdminPage {
         countEl.className = 'admin-count';
         countEl.dataset.role = 'nb-count';
         header.appendChild(countEl);
-        this.#contentArea!.appendChild(header);
+        nn(this.#contentArea).appendChild(header);
 
         const tableContainer = document.createElement('div');
         tableContainer.className = 'admin-table-container';
-        this.#contentArea!.appendChild(tableContainer);
+        nn(this.#contentArea).appendChild(tableContainer);
 
         this.#refreshNotebooksTable();
     }
 
     async #refreshNotebooksTable(): Promise<void> {
-        const tableContainer = this.#contentArea!.querySelector('.admin-table-container');
-        const countEl = this.#contentArea!.querySelector('[data-role="nb-count"]');
+        const tableContainer = nn(this.#contentArea).querySelector('.admin-table-container');
+        const countEl = nn(this.#contentArea).querySelector('[data-role="nb-count"]');
         if (!tableContainer) return;
         tableContainer.innerHTML = '';
 
@@ -753,7 +756,7 @@ export class AdminPage {
                 tr.addEventListener('contextmenu', (e: MouseEvent) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    this.#contextMenu!.show(e.clientX, e.clientY, [
+                    nn(this.#contextMenu).show(e.clientX, e.clientY, [
                         {
                             label: 'Удалить',
                             danger: true,
@@ -882,7 +885,7 @@ export class AdminPage {
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
         title.textContent = 'Обращения';
-        this.#contentArea!.appendChild(title);
+        nn(this.#contentArea).appendChild(title);
 
         const header = document.createElement('div');
         header.className = 'admin-table-header';
@@ -892,7 +895,7 @@ export class AdminPage {
         searchInput.type = 'text';
         searchInput.placeholder = 'Поиск по содержанию...';
         searchInput.addEventListener('input', () => {
-            clearTimeout(this.#searchTimeout!);
+            clearTimeout(nn(this.#searchTimeout));
             this.#searchTimeout = setTimeout(() => {
                 this.#currentIssueSearch = searchInput.value;
                 this.#currentIssuePage = 1;
@@ -905,18 +908,18 @@ export class AdminPage {
         countEl.className = 'admin-count';
         countEl.dataset.role = 'issue-count';
         header.appendChild(countEl);
-        this.#contentArea!.appendChild(header);
+        nn(this.#contentArea).appendChild(header);
 
         const tableContainer = document.createElement('div');
         tableContainer.className = 'admin-table-container';
-        this.#contentArea!.appendChild(tableContainer);
+        nn(this.#contentArea).appendChild(tableContainer);
 
         this.#refreshIssuesTable();
     }
 
     async #refreshIssuesTable(): Promise<void> {
-        const tableContainer = this.#contentArea!.querySelector('.admin-table-container');
-        const countEl = this.#contentArea!.querySelector('[data-role="issue-count"]');
+        const tableContainer = nn(this.#contentArea).querySelector('.admin-table-container');
+        const countEl = nn(this.#contentArea).querySelector('[data-role="issue-count"]');
         if (!tableContainer) return;
         tableContainer.innerHTML = '';
 
@@ -992,18 +995,19 @@ export class AdminPage {
     }
 
     async #showIssueDetail(issueId: number): Promise<void> {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.#contentArea!.innerHTML = '';
 
         const backBtn = document.createElement('button');
         backBtn.className = 'admin-issue-detail__back-btn';
         backBtn.innerHTML = '&larr; Назад к обращениям';
         backBtn.addEventListener('click', () => { this.#showSection('issues'); });
-        this.#contentArea!.appendChild(backBtn);
+        nn(this.#contentArea).appendChild(backBtn);
 
         const container = document.createElement('div');
         container.className = 'admin-issue-detail';
         container.innerHTML = '<div class="admin-empty">Загрузка...</div>';
-        this.#contentArea!.appendChild(container);
+        nn(this.#contentArea).appendChild(container);
 
         try {
             const issue = (await this.#adminApi.getIssue(issueId)) as Record<string, unknown>;
@@ -1096,12 +1100,12 @@ export class AdminPage {
                     </div>
                 </div>`;
 
-            const statusSelect = container.querySelector(
+            const statusSelect = nn(container.querySelector(
                 '[data-role="status-select"]'
-            )!;
-            const updateBtn = container.querySelector(
+            ));
+            const updateBtn = nn(container.querySelector(
                 '[data-role="update-status"]'
-            )!;
+            ));
             updateBtn.addEventListener('click', async () => {
                 try {
                     await this.#adminApi.updateIssueStatus(issueId, statusSelect.value);
@@ -1111,12 +1115,12 @@ export class AdminPage {
                 }
             });
 
-            const responseTextarea = container.querySelector(
+            const responseTextarea = nn(container.querySelector(
                 '.admin-issue-detail__textarea'
-            )!;
-            const sendBtn = container.querySelector(
+            ));
+            const sendBtn = nn(container.querySelector(
                 '[data-role="send-response"]'
-            )!;
+            ));
             sendBtn.addEventListener('click', async () => {
                 const text = responseTextarea.value.trim();
                 if (!text) return;

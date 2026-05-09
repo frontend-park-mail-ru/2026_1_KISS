@@ -2,6 +2,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { StatsApi, type UserStats } from '../../shared/api/StatsApi.js';
 import { renderBarChart, fillDays } from '../../shared/utils/chart.js';
 import { StatsSectionTemplate } from './StatsSection.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 export class StatsSection extends BaseComponent {
     #api: StatsApi;
@@ -37,9 +38,9 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateQuota(stats: UserStats): void {
-        const badge = this._element.querySelector('.stats-section__plan-badge')!;
-        const text = this._element.querySelector('.stats-section__quota-text')!;
-        const fill = this._element.querySelector('.stats-section__progress-fill')!;
+        const badge = nn(this._element.querySelector('.stats-section__plan-badge'));
+        const text = nn(this._element.querySelector('.stats-section__quota-text'));
+        const fill = nn(this._element.querySelector('.stats-section__progress-fill'));
 
         const planNames: Record<string, string> = {
             free: 'Free',
@@ -63,7 +64,7 @@ export class StatsSection extends BaseComponent {
             text.textContent = `${this.#formatTime(stats.quota.total_time_seconds)} — безлимитный план`;
             fill.style.width = '0%';
             (
-                this._element.querySelector('.stats-section__progress-bar')!
+                nn(this._element.querySelector('.stats-section__progress-bar'))
             ).style.display = 'none';
         }
     }
@@ -101,17 +102,17 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateChart(stats: UserStats): void {
-        const container = this._element.querySelector(
+        const container = nn(this._element.querySelector(
             '.stats-section__chart-container'
-        )!;
+        ));
         const filled = fillDays(stats.resources.daily_executions || [], 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 
     #populateStorage(stats: UserStats): void {
-        const container = this._element.querySelector(
+        const container = nn(this._element.querySelector(
             '.stats-section__storage-cards'
-        )!;
+        ));
         const categories = Object.keys(stats.storage.files_by_category || {});
 
         if (categories.length === 0) {

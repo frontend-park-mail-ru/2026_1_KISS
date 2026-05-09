@@ -1,6 +1,7 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { KebabMenuTemplate } from './KebabMenu.template.js';
 import type { KebabAction } from '../../types.js';
+import { nn } from '../../utils/notNull.js';
 
 export class KebabMenu extends BaseComponent {
     #actions: KebabAction[];
@@ -63,15 +64,15 @@ export class KebabMenu extends BaseComponent {
 
     #open(): void {
         this.#isOpen = true;
-        this._element
-            .querySelector('.kebab-menu__dropdown')!
+        nn(this._element
+            .querySelector('.kebab-menu__dropdown'))
             .classList.add('kebab-menu__dropdown_visible');
     }
 
     #close(): void {
         this.#isOpen = false;
-        this._element
-            .querySelector('.kebab-menu__dropdown')!
+        nn(this._element
+            .querySelector('.kebab-menu__dropdown'))
             .classList.remove('kebab-menu__dropdown_visible');
     }
 }

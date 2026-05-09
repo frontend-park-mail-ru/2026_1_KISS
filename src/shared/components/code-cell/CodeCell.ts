@@ -2,6 +2,7 @@ import { BaseComponent } from '../base-component/BaseComponent.js';
 import { CodeCellTemplate } from './CodeCell.template.js';
 import { ansiToHtml, stripTracebackDashes, handleCarriageReturns } from '../../utils/ansiToHtml.js';
 import type { BlockData } from '../../types.js';
+import { nn } from '../../utils/notNull.js';
 
 interface CodeCellOutput {
     stdout?: string[];
@@ -88,7 +89,7 @@ export class CodeCell extends BaseComponent {
         if (this.#contentChangeTimer) clearTimeout(this.#contentChangeTimer);
         this.#contentChangeTimer = setTimeout(() => {
             this.#contentChangeTimer = null;
-            this.#onContentChange!(this.#blockData.id, this.getContent());
+            nn(this.#onContentChange)(this.#blockData.id, this.getContent());
         }, CodeCell.#CONTENT_DEBOUNCE_MS);
     }
 
@@ -99,7 +100,7 @@ export class CodeCell extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const textarea = this._element.querySelector('.code-cell__textarea')!;
+        const textarea = nn(this._element.querySelector('.code-cell__textarea'));
 
         this._addListener(textarea, 'input', () => {
             this.#updateLineNumbers();
@@ -137,33 +138,33 @@ export class CodeCell extends BaseComponent {
     }
 
     #updateLineNumbers(): void {
-        const textarea = this._element.querySelector('.code-cell__textarea')!;
-        const lineNumbers = this._element.querySelector('.code-cell__line-numbers')!;
+        const textarea = nn(this._element.querySelector('.code-cell__textarea'));
+        const lineNumbers = nn(this._element.querySelector('.code-cell__line-numbers'));
         const lines = textarea.value.split('\n');
         lineNumbers.innerHTML = lines.map((_, i) => `<div>${i + 1}</div>`).join('');
     }
 
     #autoResize(): void {
-        const textarea = this._element.querySelector('.code-cell__textarea')!;
+        const textarea = nn(this._element.querySelector('.code-cell__textarea'));
         textarea.style.height = 'auto';
         const scrollH = textarea.scrollHeight;
-        const editorH = this._element.querySelector('.code-cell__editor')!.clientHeight;
+        const editorH = nn(this._element.querySelector('.code-cell__editor')).clientHeight;
         textarea.style.height = `${Math.max(scrollH, editorH)  }px`;
     }
 
     public getContent(): string {
-        return (this._element.querySelector('.code-cell__textarea')!).value;
+        return (nn(this._element.querySelector('.code-cell__textarea'))).value;
     }
 
     public setContent(text: string): void {
-        const textarea = this._element.querySelector('.code-cell__textarea')!;
+        const textarea = nn(this._element.querySelector('.code-cell__textarea'));
         textarea.value = text;
         this.#updateLineNumbers();
         this.#autoResize();
     }
 
     public highlightRange(start: number, end: number): void {
-        const textarea = this._element.querySelector('.code-cell__textarea')!;
+        const textarea = nn(this._element.querySelector('.code-cell__textarea'));
         textarea.focus({ preventScroll: true });
         textarea.setSelectionRange(start, end);
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -185,11 +186,11 @@ export class CodeCell extends BaseComponent {
     }
 
     public setOutput(out: CodeCellOutput = {}): void {
-        const el = this._element.querySelector('.code-cell__output')!;
-        const stdoutEl = el.querySelector('.code-cell__output-stdout')!;
-        const stderrEl = el.querySelector('.code-cell__output-stderr')!;
-        const resultEl = el.querySelector('.code-cell__output-result')!;
-        const imagesEl = el.querySelector('.code-cell__output-images')!;
+        const el = nn(this._element.querySelector('.code-cell__output'));
+        const stdoutEl = nn(el.querySelector('.code-cell__output-stdout'));
+        const stderrEl = nn(el.querySelector('.code-cell__output-stderr'));
+        const resultEl = nn(el.querySelector('.code-cell__output-result'));
+        const imagesEl = nn(el.querySelector('.code-cell__output-images'));
 
         const imageOutputs = (out.outputs ?? []).filter(
             (o) => o.mime_type === 'image/png' || o.mime_type === 'image/jpeg'
@@ -231,9 +232,13 @@ export class CodeCell extends BaseComponent {
         const el = this._element.querySelector('.code-cell__output');
         if (!el) return;
         (el as HTMLElement).hidden = true;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         el.querySelector('.code-cell__output-stdout')!.innerHTML = '';
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         el.querySelector('.code-cell__output-stderr')!.innerHTML = '';
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         el.querySelector('.code-cell__output-result')!.textContent = '';
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         el.querySelector('.code-cell__output-images')!.innerHTML = '';
         this._element.classList.remove('code-cell--error');
     }

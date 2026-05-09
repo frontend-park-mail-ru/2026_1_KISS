@@ -1,6 +1,7 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { Router } from '../../shared/router/Router.js';
 import { NotebookHeaderTemplate } from './NotebookHeader.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface NotebookHeaderConfig {
     filename?: string;
@@ -67,14 +68,14 @@ export class NotebookHeader extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const logoLink = this._element.querySelector('.notebook-header__logo-link')!;
+        const logoLink = nn(this._element.querySelector('.notebook-header__logo-link'));
         this._addListener(logoLink, 'click', async (e: Event) => {
             e.preventDefault();
             await this.#finishEditing();
-            Router.getInstance()!.navigate('/files');
+            nn(Router.getInstance()).navigate('/files');
         });
 
-        const editBtn = this._element.querySelector('.notebook-header__edit-btn')!;
+        const editBtn = nn(this._element.querySelector('.notebook-header__edit-btn'));
         this._addListener(editBtn, 'click', () => {
             this.#startRename();
         });
@@ -82,7 +83,7 @@ export class NotebookHeader extends BaseComponent {
         const shareBtn = this._element.querySelector('.notebook-header__share-btn');
         if (shareBtn && this.#onShare) {
             this._addListener(shareBtn, 'click', () => {
-                this.#onShare!();
+                nn(this.#onShare)();
             });
         }
 
@@ -159,9 +160,9 @@ export class NotebookHeader extends BaseComponent {
     async #finishEditing(): Promise<void> {
         if (!this.#isEditing) return;
 
-        const filenameSpan = this._element.querySelector(
+        const filenameSpan = nn(this._element.querySelector(
             '.notebook-header__filename'
-        )!;
+        ));
         this.#isEditing = false;
         filenameSpan.contentEditable = 'false';
         filenameSpan.classList.remove('notebook-header__filename--editing');
@@ -184,21 +185,21 @@ export class NotebookHeader extends BaseComponent {
 
     #openMenu(): void {
         this.#isMenuOpen = true;
-        this._element
-            .querySelector('.notebook-header__dropdown')!
+        nn(this._element
+            .querySelector('.notebook-header__dropdown'))
             .classList.add('notebook-header__dropdown--open');
-        this._element
-            .querySelector('[data-menu="file"]')!
+        nn(this._element
+            .querySelector('[data-menu="file"]'))
             .classList.add('notebook-header__menu-item--active');
     }
 
     #closeMenu(): void {
         this.#isMenuOpen = false;
-        this._element
-            .querySelector('.notebook-header__dropdown')!
+        nn(this._element
+            .querySelector('.notebook-header__dropdown'))
             .classList.remove('notebook-header__dropdown--open');
-        this._element
-            .querySelector('[data-menu="file"]')!
+        nn(this._element
+            .querySelector('[data-menu="file"]'))
             .classList.remove('notebook-header__menu-item--active');
     }
 
@@ -212,22 +213,22 @@ export class NotebookHeader extends BaseComponent {
 
     #openDropdown(): void {
         this.#isDropdownOpen = true;
-        this._element
-            .querySelector('.notebook-header__user-dropdown')!
+        nn(this._element
+            .querySelector('.notebook-header__user-dropdown'))
             .classList.add('header-user-dropdown_visible');
     }
 
     #closeDropdown(): void {
         this.#isDropdownOpen = false;
-        this._element
-            .querySelector('.notebook-header__user-dropdown')!
+        nn(this._element
+            .querySelector('.notebook-header__user-dropdown'))
             .classList.remove('header-user-dropdown_visible');
     }
 
     #startRename(): void {
-        const filenameSpan = this._element.querySelector(
+        const filenameSpan = nn(this._element.querySelector(
             '.notebook-header__filename'
-        )!;
+        ));
         this.#originalText = filenameSpan.textContent || '';
         this.#isEditing = true;
 
@@ -237,7 +238,7 @@ export class NotebookHeader extends BaseComponent {
 
         const range = document.createRange();
         range.selectNodeContents(filenameSpan);
-        const sel = window.getSelection()!;
+        const sel = nn(window.getSelection());
         sel.removeAllRanges();
         sel.addRange(range);
 

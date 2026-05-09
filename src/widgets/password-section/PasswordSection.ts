@@ -3,6 +3,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { Input, TYPE_INPUT_CONFIG } from '../../shared/components/input/Input.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 export class PasswordSection extends BaseComponent {
     #httpClient: HttpClient;
@@ -27,7 +28,7 @@ export class PasswordSection extends BaseComponent {
         super.mount();
 
         this.#currentInput = new Input(
-            this._element.querySelector('.password-section__current-wrap')!,
+            nn(this._element.querySelector('.password-section__current-wrap')),
             {
                 ...TYPE_INPUT_CONFIG.PASSWORD,
                 id: `pwd-current-${Date.now()}`,
@@ -35,7 +36,7 @@ export class PasswordSection extends BaseComponent {
             }
         );
         this.#newInput = new Input(
-            this._element.querySelector('.password-section__new-wrap')!,
+            nn(this._element.querySelector('.password-section__new-wrap')),
             {
                 ...TYPE_INPUT_CONFIG.PASSWORD,
                 id: `pwd-new-${Date.now()}`,
@@ -43,7 +44,7 @@ export class PasswordSection extends BaseComponent {
             }
         );
         this.#confirmInput = new Input(
-            this._element.querySelector('.password-section__confirm-wrap')!,
+            nn(this._element.querySelector('.password-section__confirm-wrap')),
             {
                 ...TYPE_INPUT_CONFIG.REPEAT_PASSWORD,
                 id: `pwd-confirm-${Date.now()}`,
@@ -67,8 +68,8 @@ export class PasswordSection extends BaseComponent {
     }
 
     #attachSubmit(): void {
-        const btn = this._element.querySelector('.password-section__submit-btn')!;
-        const msgEl = this._element.querySelector('.password-section__msg')!;
+        const btn = nn(this._element.querySelector('.password-section__submit-btn'));
+        const msgEl = nn(this._element.querySelector('.password-section__msg'));
 
         this._addListener(btn, 'click', async () => {
             const currentValid = this.#currentInput.validate();

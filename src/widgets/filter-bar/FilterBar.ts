@@ -1,5 +1,6 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { FilterBarTemplate } from './FilterBar.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface FilterChange {
     owner?: string | null;
@@ -49,7 +50,7 @@ export class FilterBar extends BaseComponent {
     }
 
     public setOwners(owners: string[]): void {
-        const dropdown = this._element.querySelector('.filter-bar__owner-dropdown')!;
+        const dropdown = nn(this._element.querySelector('.filter-bar__owner-dropdown'));
         dropdown.innerHTML = '';
         owners.forEach((name) => {
             const btn = document.createElement('button');
@@ -61,31 +62,31 @@ export class FilterBar extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const createBtn = this._element.querySelector('.filter-bar__create-btn')!;
+        const createBtn = nn(this._element.querySelector('.filter-bar__create-btn'));
         this._addListener(createBtn, 'click', () => {
             this.#onCreate();
         });
 
-        const searchInput = this._element.querySelector(
+        const searchInput = nn(this._element.querySelector(
             '.filter-bar__search-input'
-        )!;
+        ));
         this._addListener(searchInput, 'input', (e: Event) => {
-            clearTimeout(this.#searchDebounce!);
+            clearTimeout(nn(this.#searchDebounce));
             const value = (e.target as HTMLInputElement).value;
             this.#searchDebounce = setTimeout(() => {
                 this.#onFilterChange({ search: value });
             }, 200);
         });
 
-        const dateBtn = this._element.querySelector('.filter-bar__date-btn')!;
+        const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
         this._addListener(dateBtn, 'click', (e: Event) => {
             e.stopPropagation();
             this.#closeOwnerDropdown();
             this.#toggleDateDropdown();
         });
 
-        const dateFrom = this._element.querySelector('.filter-bar__date-from')!;
-        const dateTo = this._element.querySelector('.filter-bar__date-to')!;
+        const dateFrom = nn(this._element.querySelector('.filter-bar__date-from'));
+        const dateTo = nn(this._element.querySelector('.filter-bar__date-to'));
         this._addListener(dateFrom, 'change', () => {
             this.#onDateChange();
         });
@@ -93,23 +94,23 @@ export class FilterBar extends BaseComponent {
             this.#onDateChange();
         });
 
-        const dateDropdown = this._element.querySelector(
+        const dateDropdown = nn(this._element.querySelector(
             '.filter-bar__date-dropdown'
-        )!;
+        ));
         this._addListener(dateDropdown, 'click', (e: Event) => {
             e.stopPropagation();
         });
 
-        const ownerBtn = this._element.querySelector('.filter-bar__owner-btn')!;
+        const ownerBtn = nn(this._element.querySelector('.filter-bar__owner-btn'));
         this._addListener(ownerBtn, 'click', (e: Event) => {
             e.stopPropagation();
             this.#closeDateDropdown();
             this.#toggleOwnerDropdown();
         });
 
-        const ownerDropdown = this._element.querySelector(
+        const ownerDropdown = nn(this._element.querySelector(
             '.filter-bar__owner-dropdown'
-        )!;
+        ));
         this._addListener(ownerDropdown, 'click', (e: Event) => {
             e.stopPropagation();
             const item = (e.target as HTMLElement).closest('[data-owner]');
@@ -118,7 +119,7 @@ export class FilterBar extends BaseComponent {
             this.#closeOwnerDropdown();
         });
 
-        const clearBtn = this._element.querySelector('.filter-bar__clear-btn')!;
+        const clearBtn = nn(this._element.querySelector('.filter-bar__clear-btn'));
         this._addListener(clearBtn, 'click', () => {
             this.#clearFilters();
         });
@@ -139,15 +140,15 @@ export class FilterBar extends BaseComponent {
 
     #openDateDropdown(): void {
         this.#dateOpen = true;
-        this._element
-            .querySelector('.filter-bar__date-dropdown')!
+        nn(this._element
+            .querySelector('.filter-bar__date-dropdown'))
             .classList.add('filter-bar__date-dropdown_visible');
     }
 
     #closeDateDropdown(): void {
         this.#dateOpen = false;
-        this._element
-            .querySelector('.filter-bar__date-dropdown')!
+        nn(this._element
+            .querySelector('.filter-bar__date-dropdown'))
             .classList.remove('filter-bar__date-dropdown_visible');
     }
 
@@ -161,20 +162,20 @@ export class FilterBar extends BaseComponent {
 
     #openOwnerDropdown(): void {
         this.#ownerOpen = true;
-        this._element
-            .querySelector('.filter-bar__owner-dropdown')!
+        nn(this._element
+            .querySelector('.filter-bar__owner-dropdown'))
             .classList.add('filter-bar__owner-dropdown_visible');
     }
 
     #closeOwnerDropdown(): void {
         this.#ownerOpen = false;
-        this._element
-            .querySelector('.filter-bar__owner-dropdown')!
+        nn(this._element
+            .querySelector('.filter-bar__owner-dropdown'))
             .classList.remove('filter-bar__owner-dropdown_visible');
     }
 
     #selectOwner(owner: string): void {
-        const btn = this._element.querySelector('.filter-bar__owner-btn')!;
+        const btn = nn(this._element.querySelector('.filter-bar__owner-btn'));
         btn.textContent = `${owner} - Владелец`;
         btn.classList.add('filter-bar__dropdown-btn_active');
         this.#onFilterChange({ owner });
@@ -182,11 +183,11 @@ export class FilterBar extends BaseComponent {
 
     #onDateChange(): void {
         const dateFrom =
-            (this._element.querySelector('.filter-bar__date-from')!).value ??
+            (nn(this._element.querySelector('.filter-bar__date-from'))).value ??
             null;
         const dateTo =
-            (this._element.querySelector('.filter-bar__date-to')!).value ?? null;
-        const dateBtn = this._element.querySelector('.filter-bar__date-btn')!;
+            (nn(this._element.querySelector('.filter-bar__date-to'))).value ?? null;
+        const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
 
         if (dateFrom || dateTo) {
             dateBtn.classList.add('filter-bar__dropdown-btn_active');
@@ -208,19 +209,19 @@ export class FilterBar extends BaseComponent {
     }
 
     #clearFilters(): void {
-        const ownerBtn = this._element.querySelector('.filter-bar__owner-btn')!;
+        const ownerBtn = nn(this._element.querySelector('.filter-bar__owner-btn'));
         ownerBtn.textContent = 'Владелец';
         ownerBtn.classList.remove('filter-bar__dropdown-btn_active');
 
-        const dateBtn = this._element.querySelector('.filter-bar__date-btn')!;
+        const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
         dateBtn.classList.remove('filter-bar__dropdown-btn_active');
         dateBtn.textContent = 'Изменено';
 
-        (this._element.querySelector('.filter-bar__date-from')!).value = '';
-        (this._element.querySelector('.filter-bar__date-to')!).value = '';
-        (this._element.querySelector('.filter-bar__search-input')!).value = '';
+        (nn(this._element.querySelector('.filter-bar__date-from'))).value = '';
+        (nn(this._element.querySelector('.filter-bar__date-to'))).value = '';
+        (nn(this._element.querySelector('.filter-bar__search-input'))).value = '';
 
-        clearTimeout(this.#searchDebounce!);
+        clearTimeout(nn(this.#searchDebounce));
         this.#onFilterChange({ owner: null, dateFrom: null, dateTo: null, search: '' });
     }
 }

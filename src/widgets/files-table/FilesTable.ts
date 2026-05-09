@@ -2,6 +2,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { FilesTableTemplate } from './FilesTable.template.js';
 import { KebabMenu } from '../../shared/components/kebab-menu/KebabMenu.js';
 import type { Notebook } from '../../shared/types.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface FilesTableNotebook extends Notebook {
     _isShared?: boolean;
@@ -60,8 +61,8 @@ export class FilesTable extends BaseComponent {
         this.#notebooks = [...notebooks];
         this.#ownerName = ownerName;
 
-        const table = this._element.querySelector('.files-table__table')!;
-        const emptyState = this._element.querySelector('.files-table__empty-state')!;
+        const table = nn(this._element.querySelector('.files-table__table'));
+        const emptyState = nn(this._element.querySelector('.files-table__empty-state'));
 
         if (notebooks.length === 0) {
             table.style.display = 'none';
@@ -99,7 +100,7 @@ export class FilesTable extends BaseComponent {
             minute: '2-digit'
         });
 
-        const tbody = this._element.querySelector('.files-table__body')!;
+        const tbody = nn(this._element.querySelector('.files-table__body'));
         tbody.innerHTML = '';
 
         sorted.forEach((nb) => {
@@ -139,7 +140,7 @@ export class FilesTable extends BaseComponent {
                 tr.addEventListener('click', (e) => {
                     if ((e.target as HTMLElement).closest('.files-table__kebab-cell')) return;
                     if ((e.target as HTMLElement).closest('.files-table__rename-active')) return;
-                    this.#onOpen!(nb.id);
+                    nn(this.#onOpen)(nb.id);
                 });
             }
 
@@ -176,13 +177,13 @@ export class FilesTable extends BaseComponent {
 
         const range = document.createRange();
         range.selectNodeContents(nameSpan);
-        const sel = window.getSelection()!;
+        const sel = nn(window.getSelection());
         sel.removeAllRanges();
         sel.addRange(range);
 
         nameSpan.addEventListener('paste', (e: ClipboardEvent) => {
             e.preventDefault();
-            const text = e.clipboardData!.getData('text/plain');
+            const text = nn(e.clipboardData).getData('text/plain');
             document.execCommand('insertText', false, text);
         });
 
@@ -233,7 +234,7 @@ export class FilesTable extends BaseComponent {
             if (this.#sortOpen) this.#closeSortDropdown();
         });
 
-        const dropdown = this._element.querySelector('.files-table__sort-dropdown')!;
+        const dropdown = nn(this._element.querySelector('.files-table__sort-dropdown'));
         this._addListener(dropdown, 'click', (e: Event) => {
             e.stopPropagation();
             const arrow = (e.target as HTMLElement).closest(
@@ -241,9 +242,9 @@ export class FilesTable extends BaseComponent {
             );
             if (!arrow) return;
 
-            const option = arrow.closest('.files-table__sort-option')!;
-            const field = option.dataset.sort!;
-            const dir = arrow.dataset.dir!;
+            const option = nn(arrow.closest('.files-table__sort-option'));
+            const field = nn(option.dataset.sort);
+            const dir = nn(arrow.dataset.dir);
 
             this.#sortField = field;
             this.#sortDir = dir;
@@ -263,15 +264,15 @@ export class FilesTable extends BaseComponent {
 
     #openSortDropdown(): void {
         this.#sortOpen = true;
-        this._element
-            .querySelector('.files-table__sort-dropdown')!
+        nn(this._element
+            .querySelector('.files-table__sort-dropdown'))
             .classList.add('files-table__sort-dropdown_visible');
     }
 
     #closeSortDropdown(): void {
         this.#sortOpen = false;
-        this._element
-            .querySelector('.files-table__sort-dropdown')!
+        nn(this._element
+            .querySelector('.files-table__sort-dropdown'))
             .classList.remove('files-table__sort-dropdown_visible');
     }
 

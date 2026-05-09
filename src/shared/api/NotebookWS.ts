@@ -1,3 +1,4 @@
+import { nn } from '../utils/notNull.js';
 export class NotebookWS {
     #notebookId: number | string;
     #socket: WebSocket | null = null;
@@ -122,7 +123,7 @@ export class NotebookWS {
     #send(payload: Record<string, unknown>): boolean {
         if (!this.isOpen()) return false;
         try {
-            this.#socket!.send(JSON.stringify(payload));
+            nn(this.#socket).send(JSON.stringify(payload));
             return true;
         } catch {
             return false;

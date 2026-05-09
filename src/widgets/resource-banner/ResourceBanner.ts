@@ -1,6 +1,7 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { StatsApi, type UserStats } from '../../shared/api/StatsApi.js';
 import { ResourceBannerTemplate } from './ResourceBanner.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 export class ResourceBanner extends BaseComponent {
     #api: StatsApi;
@@ -40,12 +41,12 @@ export class ResourceBanner extends BaseComponent {
             admin: 'Admin'
         };
 
-        const badge = this._element.querySelector('[data-field="plan"]')!;
+        const badge = nn(this._element.querySelector('[data-field="plan"]'));
         badge.textContent = planNames[stats.quota.plan] || stats.quota.plan;
         badge.className = `resource-banner__badge resource-banner__badge--${stats.quota.plan}`;
 
-        const quotaEl = this._element.querySelector('[data-field="quota"]')!;
-        const fill = this._element.querySelector('.resource-banner__progress-fill')!;
+        const quotaEl = nn(this._element.querySelector('[data-field="quota"]'));
+        const fill = nn(this._element.querySelector('.resource-banner__progress-fill'));
 
         if (stats.quota.time_limit_seconds > 0) {
             const h = Math.floor(stats.quota.total_time_seconds / 3600);
@@ -61,10 +62,10 @@ export class ResourceBanner extends BaseComponent {
             fill.style.width = '0%';
         }
 
-        const storageEl = this._element.querySelector('[data-field="storage"]')!;
+        const storageEl = nn(this._element.querySelector('[data-field="storage"]'));
         storageEl.textContent = this.#formatBytes(stats.storage.total_size_bytes);
 
-        const nbEl = this._element.querySelector('[data-field="notebooks"]')!;
+        const nbEl = nn(this._element.querySelector('[data-field="notebooks"]'));
         nbEl.textContent = String(stats.resources.notebook_count);
     }
 

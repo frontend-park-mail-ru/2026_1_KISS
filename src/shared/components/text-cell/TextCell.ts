@@ -1,6 +1,7 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { TextCellTemplate } from './TextCell.template.js';
 import type { BlockData } from '../../types.js';
+import { nn } from '../../utils/notNull.js';
 
 export interface TextCellOptions {
     blockData: BlockData;
@@ -65,7 +66,7 @@ export class TextCell extends BaseComponent {
             });
         });
 
-        const contentEl = this._element.querySelector('.text-cell__content')!;
+        const contentEl = nn(this._element.querySelector('.text-cell__content'));
         this._addListener(contentEl, 'blur', () => {
             if (this.#onContentChange) {
                 this.#onContentChange(this.#blockData.id, contentEl.textContent);
@@ -74,15 +75,16 @@ export class TextCell extends BaseComponent {
     }
 
     public getContent(): string {
-        return this._element.querySelector('.text-cell__content')!.textContent;
+        return nn(this._element.querySelector('.text-cell__content')).textContent;
     }
 
     public setContent(text: string): void {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._element.querySelector('.text-cell__content')!.textContent = text;
     }
 
     public highlightMatch(_matchIndex: number, start: number, end: number): void {
-        const el = this._element.querySelector('.text-cell__content')!;
+        const el = nn(this._element.querySelector('.text-cell__content'));
         const raw = el.textContent;
         const before = raw.substring(0, start);
         const matchText = raw.substring(start, end);
@@ -98,7 +100,7 @@ export class TextCell extends BaseComponent {
     }
 
     public clearHighlights(): void {
-        const el = this._element.querySelector('.text-cell__content')!;
+        const el = nn(this._element.querySelector('.text-cell__content'));
         el.querySelectorAll('mark.find-match').forEach((m) => {
             m.replaceWith(document.createTextNode(m.textContent));
         });
