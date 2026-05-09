@@ -171,7 +171,7 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     async #pollContainer(): Promise<void> {
-        if (!this.#notebookId) return;
+        if (this.#notebookId === undefined) return;
         const panel = this._element.querySelector('.container-stats--sidebar');
         if (!panel) return;
 

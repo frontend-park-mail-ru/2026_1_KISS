@@ -79,7 +79,7 @@ export class AdminApi {
     ): Promise<unknown> {
         let url = `/admin/issues?limit=${limit}&offset=${offset}`;
         if (search) url += `&q=${encodeURIComponent(search)}`;
-        if (userId) url += `&userid=${userId}`;
+        if (userId !== null) url += `&userid=${userId}`;
         const response = await this.#http.get(url);
         return this.#parse(response);
     }

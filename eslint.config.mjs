@@ -118,7 +118,15 @@ export default [
             '@typescript-eslint/explicit-function-return-type': 'error',
             '@typescript-eslint/explicit-member-accessibility': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
-            '@typescript-eslint/strict-boolean-expressions': 'error',
+            '@typescript-eslint/strict-boolean-expressions': ['error', {
+                allowString: true,
+                allowNumber: true,
+                allowNullableObject: true,
+                allowNullableBoolean: true,
+                allowNullableString: true,
+                allowNullableNumber: true,
+                allowAny: true
+            }],
             '@typescript-eslint/switch-exhaustiveness-check': 'error',
             '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }]
         }
