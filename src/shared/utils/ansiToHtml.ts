@@ -19,6 +19,12 @@ const ANSI_COLORS: Record<number, string> = {
     97: '#F7F7F1'
 };
 
+/**
+ * Преобразует числовой ANSI-код в CSS-стиль для span-обёртки.
+ * Поддерживает bold (1), italic (3), underline (4) и стандартные foreground-цвета.
+ * @param code - ANSI escape-код
+ * @returns CSS-объявление или null если код неподдерживаемый
+ */
 function codeToStyle(code: number): string | null {
     if (code === 1) return 'font-weight:bold';
     if (code === 3) return 'font-style:italic';
@@ -30,6 +36,14 @@ function codeToStyle(code: number): string | null {
 // eslint-disable-next-line no-control-regex -- ANSI escape sequences are control characters by definition
 const ANSI_REGEX = /\x1b\[([0-9;]*)m/g;
 
+/**
+ * Конвертирует текст с ANSI escape-последовательностями (вывод Python/SSH/REPL)
+ * в безопасный HTML с цветами и стилями. Все непосредственные символы экранируются
+ * через escapeHtml; ANSI-коды превращаются в `<span style="...">` обёртки.
+ * Корректно балансирует открытые span при ANSI reset (\\x1b[0m).
+ * @param text - сырой текст с ANSI-кодами
+ * @returns HTML-строка готовая для innerHTML
+ */
 export function ansiToHtml(text: string): string {
     ANSI_REGEX.lastIndex = 0;
     let result = '';
@@ -68,10 +82,23 @@ export function ansiToHtml(text: string): string {
     return result;
 }
 
+/**
+ * Удаляет декоративные разделители из python traceback (длинные подчёркивания)
+ * и схлопывает множественные пустые строки до двух. Косметика для вывода ошибок.
+ * @param text - текст traceback
+ * @returns очищенный текст
+ */
 export function stripTracebackDashes(text: string): string {
     return text.replace(/^-{10,}\s*$/gm, '').replace(/\n{3,}/g, '\n\n');
 }
 
+/**
+ * Эмулирует поведение терминала с символами возврата каретки (\\r):
+ * для каждой строки оставляет только содержимое после последнего \\r.
+ * Нужно для корректного отображения прогресс-баров (tqdm и подобных).
+ * @param text - текст возможно содержащий \\r
+ * @returns текст без \\r, с правильно обрезанными строками
+ */
 export function handleCarriageReturns(text: string): string {
     return text
         .split('\n')

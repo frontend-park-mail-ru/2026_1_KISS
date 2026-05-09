@@ -15,6 +15,13 @@ const ERROR_MAP: Record<string, string> = {
     'invalid input: email is the same as current': 'Вы уже используете этот email'
 };
 
+/**
+ * Преобразует серверный код ошибки (английский, как возвращает Go-бэкенд)
+ * в человекочитаемое сообщение на русском для показа пользователю.
+ * Для незарегистрированных кодов возвращает универсальный fallback.
+ * @param error - строка ошибки от сервера
+ * @returns локализованное сообщение для UI
+ */
 export function translateError(error: string): string {
     return ERROR_MAP[error] ?? 'Произошла ошибка, попробуйте позже';
 }

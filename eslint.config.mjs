@@ -5,7 +5,8 @@ import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
 
 const jsdocRequiredFiles = [
-    'src/sw.ts'
+    'src/sw.ts',
+    'src/shared/utils/**/*.ts'
 ];
 
 const jsdocRules = {
