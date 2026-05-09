@@ -56,7 +56,7 @@ const pragmaticDisables = {
 };
 
 const strictOverrides = {
-    'no-console': 'error',
+    'no-console': ['error', { allow: ['error', 'warn'] }],
     'no-alert': 'error',
     eqeqeq: 'error',
     curly: ['error', 'all'],
