@@ -1,5 +1,12 @@
 import { escapeHtml } from '../../utils/escapeHtml.js';
 
+/**
+ * Рендерит HTML-разметку code-ячейки: gutter с execution-number и Run-кнопкой,
+ * редактор (line-numbers + textarea), скрытую output-секцию и колонку action-кнопок
+ * (move-up/move-down/copy/delete).
+ * @param ctx - id блока и его текущее содержимое
+ * @returns HTML-разметка для innerHTML
+ */
 export function CodeCellTemplate(ctx: { id: string; content: string }): string {
     return `<div class="code-cell" data-block-id="${escapeHtml(ctx.id)}">
     <div class="code-cell__gutter">

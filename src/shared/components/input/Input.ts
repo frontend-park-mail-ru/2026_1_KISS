@@ -3,6 +3,11 @@ import { InputTemplate } from './Input.template.js';
 import type { InputConfig, InputState } from '../../types.js';
 import { nn } from '../../utils/notNull.js';
 
+/**
+ * Преднастроенные конфигурации для типовых полей формы (логин/email/пароль).
+ * Каждый ключ задаёт type, placeholder, валидационный pattern и сообщение
+ * об ошибке — компоненты используют их через spread: `new Input(parent, {...TYPE_INPUT_CONFIG.EMAIL})`.
+ */
 export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     PASSWORD: {
         type: 'password',
@@ -46,11 +51,23 @@ export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     }
 };
 
+/**
+ * Поле ввода с inline-валидацией и показом ошибок. Поддерживает text/email/password,
+ * pattern/required/minlength/maxlength. Для type='password' добавляет кнопку-глаз
+ * для показа/скрытия пароля. Состояние (value, isValid) хранится в #state и
+ * сбрасывается при clear/unmount.
+ */
 export class Input extends BaseComponent {
     #input!: HTMLInputElement | null;
     #config: InputConfig;
     #state: InputState;
 
+    /**
+     * Создаёт компонент с заданной конфигурацией. Сразу рендерит шаблон в
+     * detached-элемент; в DOM попадает только при mount().
+     * @param parent - родительский элемент для монтирования
+     * @param config - параметры поля (type, placeholder, валидация и т.п.)
+     */
     public constructor(parent: HTMLElement, config: InputConfig) {
         super(null, parent);
         this.#config = config;
@@ -61,6 +78,9 @@ export class Input extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер и сохраняет первый элемент как this._element.
+     */
     #render(): void {
         const templateData = {
             ...this.#config,
@@ -71,6 +91,10 @@ export class Input extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Вмонтирует поле в DOM, навешивает обработчики ввода/blur и (для пароля)
+     * кнопку показа. Идемпотентен — повторный вызов игнорируется.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -94,6 +118,9 @@ export class Input extends BaseComponent {
         }
     }
 
+    /**
+     * Снимает поле с DOM, очищает ссылку на input и сбрасывает состояние.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
@@ -104,12 +131,20 @@ export class Input extends BaseComponent {
         };
     }
 
+    /**
+     * Принудительно сбрасывает значение и состояние ошибки. Вызывается
+     * родителями (например формами) при reset или после успешной отправки.
+     */
     public update(): void {
         if (!this._isMounted) return;
         this.#state.value = '';
         this.#calmDown();
     }
 
+    /**
+     * Навешивает обработчик 'input' для синхронизации #state.value и
+     * 'blur' для запуска валидации при потере фокуса.
+     */
     #attachEvents(): void {
         this._addListener(this.#input, 'input', (e: unknown) => {
             this.#state.value = (e as InputEvent & { target: HTMLInputElement }).target.value;
@@ -120,6 +155,11 @@ export class Input extends BaseComponent {
         });
     }
 
+    /**
+     * Сбрасывает визуальное состояние ошибки (убирает класс и текст сообщения).
+     * Вызывается при каждом keystroke чтобы пользователь не видел старую ошибку
+     * пока продолжает печатать.
+     */
     #calmDown(): void {
         this.#state.isValid = true;
         const errorElement = this._element.querySelector('.input-error-message');
@@ -129,6 +169,11 @@ export class Input extends BaseComponent {
         }
     }
 
+    /**
+     * Валидирует текущее значение по правилам конфига (required/pattern/min/max)
+     * и обновляет UI. Вызывается на blur и перед отправкой формы родителем.
+     * @returns true если поле валидно
+     */
     public validate(): boolean {
         if (this.#input) {
             this.#state.value = this.#input.value;
@@ -173,6 +218,11 @@ export class Input extends BaseComponent {
         return this.#state.isValid;
     }
 
+    /**
+     * Обновляет CSS-классы и текст сообщения об ошибке в зависимости от
+     * текущего состояния валидности.
+     * @param errorMessage - текст ошибки для показа (если поле невалидно)
+     */
     #updateUI(errorMessage: string): void {
         const errorElement = this._element.querySelector('.input-error-message');
         if (!this.#state.isValid) {
@@ -188,15 +238,28 @@ export class Input extends BaseComponent {
         }
     }
 
+    /**
+     * Принудительно показывает ошибку с заданным текстом — без локальной валидации.
+     * Используется когда ошибка приходит от сервера (например "email уже занят").
+     * @param errorMessage - текст серверной ошибки
+     */
     public showError(errorMessage: string): void {
         this.#state.isValid = false;
         this.#updateUI(errorMessage);
     }
 
+    /**
+     * Возвращает текущее значение поля из внутреннего состояния.
+     * @returns строка значения (может быть пустой)
+     */
     public getValue(): string {
         return this.#state.value;
     }
 
+    /**
+     * Очищает значение в DOM и в состоянии без размонтирования компонента.
+     * Используется после успешной отправки формы для подготовки к следующему вводу.
+     */
     public clear(): void {
         this.#state = {
             isValid: true,

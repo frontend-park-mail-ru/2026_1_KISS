@@ -1,5 +1,11 @@
 import { escapeHtml } from '../../utils/escapeHtml.js';
 
+/**
+ * Рендерит HTML-разметку текстовой ячейки: contenteditable-блок и action-кнопки.
+ * Содержимое экранируется через escapeHtml для защиты от XSS при первичной отрисовке.
+ * @param ctx - id блока и его начальное содержимое
+ * @returns HTML-разметка для innerHTML
+ */
 export function TextCellTemplate(ctx: { id: string; content: string }): string {
     return `<div class="text-cell" data-block-id="${escapeHtml(ctx.id)}">
     <div class="text-cell__content" contenteditable="true" data-placeholder="Введите текст...">${escapeHtml(ctx.content)}</div>

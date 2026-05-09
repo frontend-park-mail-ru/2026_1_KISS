@@ -3,15 +3,29 @@ import { TextCellTemplate } from './TextCell.template.js';
 import type { BlockData } from '../../types.js';
 import { nn } from '../../utils/notNull.js';
 
+/**
+ * Опции конструктора TextCell: данные блока + callback'и на действия пользователя.
+ */
 export interface TextCellOptions {
+    /** Серверные данные блока (id, content) */
     blockData: BlockData;
+    /** Вызывается при клике на "Переместить вверх" */
     onMoveUp?: (id: string) => void;
+    /** Вызывается при клике на "Переместить вниз" */
     onMoveDown?: (id: string) => void;
+    /** Вызывается при клике на "Копировать" */
     onCopy?: (id: string) => void;
+    /** Вызывается при клике на "Удалить" */
     onDelete?: (id: string) => void;
+    /** Вызывается на blur с обновлённым содержимым */
     onContentChange?: (id: string, content: string) => void;
 }
 
+/**
+ * Текстовая ячейка notebook'а — contenteditable-блок без подсветки синтаксиса.
+ * В отличие от CodeCell, не имеет Run-кнопки и output-секции; уведомляет о
+ * изменениях по blur (без debounce). Поддерживает поиск с подсветкой совпадений.
+ */
 export class TextCell extends BaseComponent {
     #blockData: BlockData;
     #onMoveUp?: (id: string) => void;
@@ -20,6 +34,11 @@ export class TextCell extends BaseComponent {
     #onDelete?: (id: string) => void;
     #onContentChange?: (id: string, content: string) => void;
 
+    /**
+     * Создаёт текстовую ячейку с заданными данными и callback'ами.
+     * @param parent - родительский элемент
+     * @param options - данные блока и обработчики (см. TextCellOptions)
+     */
     public constructor(
         parent: HTMLElement,
         { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onContentChange }: TextCellOptions
@@ -34,6 +53,9 @@ export class TextCell extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер; в DOM попадает при mount().
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = TextCellTemplate({
@@ -43,17 +65,27 @@ export class TextCell extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит ячейку в DOM и навешивает обработчики action-кнопок и blur'а.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
+    /**
+     * Снимает ячейку с DOM. Все слушатели снимаются автоматически через base.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
 
+    /**
+     * Навешивает обработчики кнопок move/copy/delete и обработчик blur
+     * который уведомляет родителя об изменении содержимого.
+     */
     #attachEvents(): void {
         this._element.querySelectorAll('.text-cell__action-btn').forEach((btn) => {
             const action = (btn as HTMLElement).dataset.action;
@@ -74,15 +106,31 @@ export class TextCell extends BaseComponent {
         });
     }
 
+    /**
+     * Возвращает текущий текст ячейки (textContent contenteditable-элемента).
+     * @returns plain-text без HTML-тегов
+     */
     public getContent(): string {
         return nn(this._element.querySelector('.text-cell__content')).textContent;
     }
 
+    /**
+     * Заменяет текст ячейки. Используется при undo/синхронизации.
+     * @param text - новый текст
+     */
     public setContent(text: string): void {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this._element.querySelector('.text-cell__content')!.textContent = text;
     }
 
+    /**
+     * Подсвечивает совпадение поиска через <mark>, скроллит к ячейке.
+     * Параметр matchIndex зарезервирован для будущих расширений (например
+     * различной подсветки текущего vs остальных совпадений), сейчас не используется.
+     * @param _matchIndex - индекс совпадения (зарезервирован)
+     * @param start - начальная позиция совпадения
+     * @param end - конечная позиция совпадения
+     */
     public highlightMatch(_matchIndex: number, start: number, end: number): void {
         const el = nn(this._element.querySelector('.text-cell__content'));
         const raw = el.textContent;
@@ -99,6 +147,9 @@ export class TextCell extends BaseComponent {
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
+    /**
+     * Снимает все <mark>-подсветки поиска и нормализует текстовые узлы.
+     */
     public clearHighlights(): void {
         const el = nn(this._element.querySelector('.text-cell__content'));
         el.querySelectorAll('mark.find-match').forEach((m) => {
@@ -107,6 +158,10 @@ export class TextCell extends BaseComponent {
         el.normalize();
     }
 
+    /**
+     * Возвращает идентификатор связанного с ячейкой блока.
+     * @returns ID блока
+     */
     public getBlockId(): string {
         return this.#blockData.id;
     }

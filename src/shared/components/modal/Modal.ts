@@ -1,21 +1,46 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 
+/**
+ * Описание одного варианта в select-поле модалки.
+ */
 interface ModalFieldOption {
+    /** Значение, которое попадёт в результат */
     value: string;
+    /** Текст, видимый пользователю */
     label: string;
 }
 
+/**
+ * Описание одного поля формы внутри модалки.
+ */
 interface ModalField {
+    /** Имя поля — ключ в результирующем объекте */
     name: string;
+    /** Подпись над полем */
     label: string;
+    /** Тип поля: 'text' (по умолчанию), 'select', 'textarea', 'email', ... */
     type?: string;
+    /** Начальное значение */
     value?: string;
+    /** Опции для select-поля */
     options?: ModalFieldOption[];
 }
 
+/**
+ * Универсальная модалка с произвольным набором полей и Promise-based API.
+ * Открывается через open(title, fields) и резолвится либо данными формы,
+ * либо null (если пользователь отменил/нажал Esc/кликнул по overlay).
+ *
+ * Один экземпляр Modal можно переиспользовать для нескольких диалогов подряд.
+ * Сама модалка маунтится в document.body при создании и держится там постоянно.
+ */
 export class Modal extends BaseComponent {
     #resolve: ((value: Record<string, string> | null) => void) | null = null;
 
+    /**
+     * Создаёт overlay-элемент, маунтит его в body и навешивает обработчики
+     * закрытия по клику на overlay и нажатию Escape.
+     */
     public constructor() {
         const el = document.createElement('div');
         el.className = 'modal-overlay';
@@ -30,6 +55,13 @@ export class Modal extends BaseComponent {
         });
     }
 
+    /**
+     * Открывает модалку с заданным заголовком и набором полей. Возвращает Promise,
+     * который резолвится {fieldName: value, ...} при отправке формы или null при отмене.
+     * @param title - заголовок диалога
+     * @param fields - описание полей формы
+     * @returns промис со значениями формы или null
+     */
     public open(title: string, fields: ModalField[]): Promise<Record<string, string> | null> {
         return new Promise((resolve) => {
             this.#resolve = resolve;
@@ -123,6 +155,12 @@ export class Modal extends BaseComponent {
         });
     }
 
+    /**
+     * Закрывает модалку, скрывая overlay, и резолвит ожидающий Promise
+     * либо данными формы, либо null при отмене. Безопасно вызывать когда
+     * модалка не открыта — лишний noop.
+     * @param result - данные формы или null если отмена
+     */
     public close(result: Record<string, string> | null): void {
         this._element.classList.remove('modal-overlay--visible');
         if (this.#resolve) {

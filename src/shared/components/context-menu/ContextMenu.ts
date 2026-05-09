@@ -1,14 +1,32 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 
+/**
+ * Описание одного действия в контекстном меню.
+ */
 interface ContextMenuAction {
+    /** Текст пункта меню */
     label: string;
+    /** Вызывается при клике на пункт */
     handler: () => void;
+    /** true если пункт деструктивный (показывается красным) */
     danger?: boolean;
 }
 
+/**
+ * Универсальное контекстное меню — открывается в произвольной точке (x, y),
+ * автоматически перепозиционируется чтобы не вылезти за границы окна,
+ * закрывается по Escape или клику вне меню.
+ *
+ * Один экземпляр ContextMenu можно переиспользовать для разных контекстов:
+ * каждый show() полностью перерендерит пункты.
+ */
 export class ContextMenu extends BaseComponent {
     #isVisible = false;
 
+    /**
+     * Создаёт скрытое меню в document.body и навешивает глобальные обработчики
+     * закрытия (click и Escape).
+     */
     public constructor() {
         const el = document.createElement('div');
         el.className = 'context-menu';
@@ -23,6 +41,13 @@ export class ContextMenu extends BaseComponent {
         });
     }
 
+    /**
+     * Открывает меню в точке (x, y) с заданным набором действий. Если меню
+     * выходит за правую/нижнюю границу viewport — сдвигается на свою ширину/высоту.
+     * @param x - координата X клика (clientX)
+     * @param y - координата Y клика (clientY)
+     * @param actions - список пунктов меню
+     */
     public show(x: number, y: number, actions: ContextMenuAction[]): void {
         this._element.innerHTML = '';
         actions.forEach(({ label, handler, danger }) => {
@@ -54,6 +79,10 @@ export class ContextMenu extends BaseComponent {
         });
     }
 
+    /**
+     * Скрывает меню (CSS-класс) и сбрасывает флаг видимости. Безопасно вызывать
+     * когда меню уже скрыто — лишний noop.
+     */
     public hide(): void {
         this._element.classList.remove('context-menu--visible');
         this.#isVisible = false;
