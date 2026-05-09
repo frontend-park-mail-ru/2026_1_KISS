@@ -173,6 +173,19 @@ function buildBundle(entry, outJs, htmlSrc, outHtml) {
     }
 }
 
+function copyDirSync(src, dest) {
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+            fs.mkdirSync(destPath, { recursive: true });
+            copyDirSync(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
 function build() {
     fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -200,19 +213,6 @@ function build() {
     if (fs.existsSync(publicDir)) {
         copyDirSync(publicDir, OUT_DIR);
         console.log(`[bundler] -> public/ assets copied`);
-    }
-}
-
-function copyDirSync(src, dest) {
-    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-        const srcPath = path.join(src, entry.name);
-        const destPath = path.join(dest, entry.name);
-        if (entry.isDirectory()) {
-            fs.mkdirSync(destPath, { recursive: true });
-            copyDirSync(srcPath, destPath);
-        } else {
-            fs.copyFileSync(srcPath, destPath);
-        }
     }
 }
 

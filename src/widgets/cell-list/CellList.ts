@@ -251,6 +251,8 @@ export class CellList extends BaseComponent {
                     row?.getCommentThread().removeComment(Number(event.comment_id));
                 }
                 break;
+            default:
+                break;
         }
     }
 

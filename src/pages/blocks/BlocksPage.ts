@@ -12,7 +12,6 @@ import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
-import { NotebookApi } from '../../shared/api/NotebookApi.js';
 import { nn } from '../../shared/utils/notNull.js';
 
 export class BlocksPage {
@@ -31,7 +30,6 @@ export class BlocksPage {
     #canComment = false;
     #httpClient: HttpClient;
     #runnerApi: RunnerApi;
-    #notebookApi: NotebookApi;
 
     #executionCounter = 0;
     #execNumbers = new Map<number | string, number>();
@@ -50,7 +48,6 @@ export class BlocksPage {
         this.#notebookId = params.id;
         this.#httpClient = HttpClient.getInstance();
         this.#runnerApi = new RunnerApi();
-        this.#notebookApi = new NotebookApi();
     }
 
     public async render(): Promise<void> {

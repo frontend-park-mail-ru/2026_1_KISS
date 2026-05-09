@@ -169,6 +169,8 @@ export class AdminPage {
             case 'issues':
                 this.#initIssuesSection();
                 break;
+            default:
+                break;
         }
     }
 

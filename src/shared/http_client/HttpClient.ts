@@ -1,4 +1,3 @@
-import { nn } from '../utils/notNull.js';
 export class HttpClient {
     static #instance: HttpClient | null = null;
 
@@ -19,10 +18,8 @@ export class HttpClient {
     }
 
     public static getInstance(): HttpClient {
-        if (!HttpClient.#instance) {
-            new HttpClient();
-        }
-        return nn(HttpClient.#instance);
+        HttpClient.#instance ??= new HttpClient();
+        return HttpClient.#instance;
     }
 
     public get(url: string, options?: { noCache?: boolean }): Promise<Response> {

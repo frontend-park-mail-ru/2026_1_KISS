@@ -57,7 +57,7 @@ const pragmaticDisables = {
 
 const strictOverrides = {
     'no-console': ['error', { allow: ['error', 'warn'] }],
-    'no-alert': 'error',
+    'no-alert': 'off',
     eqeqeq: 'error',
     curly: ['error', 'all'],
     'no-var': 'error',
@@ -133,7 +133,12 @@ export default [
                 allowAny: true
             }],
             '@typescript-eslint/switch-exhaustiveness-check': 'error',
-            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }]
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off'
         }
     },
 

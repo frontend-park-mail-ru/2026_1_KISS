@@ -104,26 +104,31 @@ const server = http.createServer((req, res) => {
     const pathname = url.pathname;
 
     if (pathname.startsWith('/api') || pathname.startsWith('/uploads')) {
-        return proxy(req, res);
+        proxy(req, res);
+        return;
     }
 
     if (pathname === '/feedback') {
-        return serveFile(res, path.join(SRC_ROOT, 'feedback', 'feedback.html'));
+        serveFile(res, path.join(SRC_ROOT, 'feedback', 'feedback.html'));
+        return;
     }
 
     const publicPath = path.join(PUBLIC_ROOT, pathname);
     if (fs.existsSync(publicPath) && fs.statSync(publicPath).isFile()) {
-        return serveFile(res, publicPath);
+        serveFile(res, publicPath);
+        return;
     }
 
     const tsOutPath = path.join(TS_OUT_ROOT, pathname);
     if (fs.existsSync(tsOutPath) && fs.statSync(tsOutPath).isFile()) {
-        return serveFile(res, tsOutPath);
+        serveFile(res, tsOutPath);
+        return;
     }
 
     const srcPath = path.join(SRC_ROOT, pathname);
     if (fs.existsSync(srcPath) && fs.statSync(srcPath).isFile()) {
-        return serveFile(res, srcPath);
+        serveFile(res, srcPath);
+        return;
     }
 
     const fallback = path.join(SRC_ROOT, 'app', 'index.html');

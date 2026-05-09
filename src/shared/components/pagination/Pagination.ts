@@ -177,7 +177,7 @@ export class Pagination extends BaseComponent {
             } else if (pageAttr === 'next') {
                 targetPage = this.#currentPage + 1;
             } else {
-                targetPage = parseInt(pageAttr);
+                targetPage = parseInt(pageAttr, 10);
             }
 
             if (
