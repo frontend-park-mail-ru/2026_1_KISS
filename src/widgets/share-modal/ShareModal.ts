@@ -163,6 +163,7 @@ export class ShareModal extends BaseComponent {
                     label: email,
                     permission_level: data.permission_level
                 });
+                // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
                 input.value = '';
                 this.#rerenderList();
             } else if (res.status === 404) {

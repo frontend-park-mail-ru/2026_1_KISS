@@ -335,7 +335,9 @@ export class FeedbackPage {
                     '<div class="feedback-modal__empty">У вас пока нет обращений</div>';
             }
         } catch (e: unknown) {
+            // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
             btn.disabled = false;
+            // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
             btn.textContent = initialText;
             window.alert((e as Error).message || 'Не удалось удалить обращение');
         }
