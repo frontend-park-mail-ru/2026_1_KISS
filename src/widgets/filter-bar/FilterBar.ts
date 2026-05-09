@@ -180,8 +180,7 @@ export class FilterBar extends BaseComponent {
             nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-from')).value ||
             null;
         const dateTo =
-            nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-to')).value ||
-            null;
+            nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-to')).value || null;
         const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
 
         if (dateFrom !== null || dateTo !== null) {

@@ -172,7 +172,7 @@ export class ProfileSection extends BaseComponent {
                 }
 
                 const updated = result.data;
-                    if (!updated) return;
+                if (!updated) return;
                 this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
                     this.#config.onUserUpdate(updated as unknown as ProfileUser);
@@ -258,7 +258,7 @@ export class ProfileSection extends BaseComponent {
                 }
 
                 const updated = result.data;
-                    if (!updated) return;
+                if (!updated) return;
                 this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
                     this.#config.onUserUpdate(updated as unknown as ProfileUser);

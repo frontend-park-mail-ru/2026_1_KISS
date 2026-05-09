@@ -25,9 +25,10 @@ export class EditorSettings extends BaseComponent {
 
     #loadSettings(): void {
         try {
-            const saved = JSON.parse(
-                nn(localStorage.getItem(STORAGE_KEY))
-            ) as Record<string, string> | null;
+            const saved = JSON.parse(nn(localStorage.getItem(STORAGE_KEY))) as Record<
+                string,
+                string
+            > | null;
             if (!saved) return;
 
             const selects = this._element.querySelectorAll<HTMLSelectElement>(

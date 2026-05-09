@@ -100,9 +100,7 @@ export class RegisterPage {
         if (savedState !== null) {
             try {
                 const parsed = JSON.parse(savedState) as { activeView?: string };
-                return parsed.activeView === LOGIN_STATE
-                    ? nn(this.#login)
-                    : nn(this.#register);
+                return parsed.activeView === LOGIN_STATE ? nn(this.#login) : nn(this.#register);
             } catch (_e) {
                 return nn(this.#register);
             }

@@ -100,7 +100,9 @@ export class CodeCell extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const textarea = nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea'));
+        const textarea = nn(
+            this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
+        );
 
         this._addListener(textarea, 'input', () => {
             this.#updateLineNumbers();
@@ -144,14 +146,20 @@ export class CodeCell extends BaseComponent {
         );
         const lineNumbers = nn(this._element.querySelector('.code-cell__line-numbers'));
         const lines = textarea.value.split('\n');
-        lineNumbers.innerHTML = lines.map((_: string, i: number) => `<div>${String(i + 1)}</div>`).join('');
+        lineNumbers.innerHTML = lines
+            .map((_: string, i: number) => `<div>${String(i + 1)}</div>`)
+            .join('');
     }
 
     #autoResize(): void {
-        const textarea = nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea'));
+        const textarea = nn(
+            this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
+        );
         textarea.style.height = 'auto';
         const scrollH = textarea.scrollHeight;
-        const editorH = nn(this._element.querySelector<HTMLElement>('.code-cell__editor')).clientHeight;
+        const editorH = nn(
+            this._element.querySelector<HTMLElement>('.code-cell__editor')
+        ).clientHeight;
         textarea.style.height = `${String(Math.max(scrollH, editorH))}px`;
     }
 
@@ -160,14 +168,18 @@ export class CodeCell extends BaseComponent {
     }
 
     public setContent(text: string): void {
-        const textarea = nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea'));
+        const textarea = nn(
+            this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
+        );
         textarea.value = text;
         this.#updateLineNumbers();
         this.#autoResize();
     }
 
     public highlightRange(start: number, end: number): void {
-        const textarea = nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea'));
+        const textarea = nn(
+            this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
+        );
         textarea.focus({ preventScroll: true });
         textarea.setSelectionRange(start, end);
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });

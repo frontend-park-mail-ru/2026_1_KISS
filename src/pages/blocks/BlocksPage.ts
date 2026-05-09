@@ -125,7 +125,9 @@ export class BlocksPage {
             filename: (nn(this.#notebook).title as string) || 'Untitled',
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             isOwner,
-            onRename: isOwner ? (newTitle: string): Promise<void> => this.#renameNotebook(newTitle) : null,
+            onRename: isOwner
+                ? (newTitle: string): Promise<void> => this.#renameNotebook(newTitle)
+                : null,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSave: (): Promise<void> => this.#saveAll(),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -201,10 +203,18 @@ export class BlocksPage {
             onPrev: (q: { query: string; caseSensitive: boolean }): void => {
                 this.#handleFindNav(q, 'prev');
             },
-            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }): void => {
+            onReplace: (q: {
+                query: string;
+                replacement: string;
+                caseSensitive: boolean;
+            }): void => {
                 this.#handleReplace(q);
             },
-            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }): void => {
+            onReplaceAll: (q: {
+                query: string;
+                replacement: string;
+                caseSensitive: boolean;
+            }): void => {
                 this.#handleReplaceAll(q);
             },
             notebookId: this.#notebookId
@@ -230,7 +240,8 @@ export class BlocksPage {
             onCodeContentChange: (blockId: number | string, content: string): Promise<void> =>
                 this.#saveCodeCellContent(blockId, content),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onReorder: (blockIds: (number | string)[]): Promise<void> => this.#reorderBlocks(blockIds)
+            onReorder: (blockIds: (number | string)[]): Promise<void> =>
+                this.#reorderBlocks(blockIds)
         });
         this.#cellList.mount();
 
