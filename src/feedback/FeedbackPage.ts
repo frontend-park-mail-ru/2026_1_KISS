@@ -322,6 +322,7 @@ export class FeedbackPage {
         listContent: HTMLElement,
         btn: HTMLButtonElement
     ): Promise<void> {
+        // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
         if (!window.confirm('Удалить это обращение?')) {
             return;
         }
@@ -343,6 +344,7 @@ export class FeedbackPage {
             btn.disabled = false;
             // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
             btn.textContent = initialText;
+            // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
             window.alert((e as Error).message || 'Не удалось удалить обращение');
         }
     }
