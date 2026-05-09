@@ -3,26 +3,48 @@ import { StatsApi, type UserStats } from '../../shared/api/StatsApi.js';
 import { ResourceBannerTemplate } from './ResourceBanner.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Баннер с информацией о квоте/ресурсах текущего пользователя в шапке файлов.
+ * Подгружает StatsApi.getMyStats при mount и заполняет бейдж плана, прогресс-бар
+ * квоты времени, размер хранилища и количество ноутбуков.
+ *
+ * Прогресс-бар получает класс --warning при использовании >= 80% квоты.
+ * Безлимитный план показывает "Безлимит" вместо прогресс-бара.
+ */
 export class ResourceBanner extends BaseComponent {
     #api: StatsApi;
 
+    /**
+     * Создаёт и рендерит баннер. Загрузка статистики откладывается до mount.
+     * @param parent - родительский элемент
+     */
     public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#api = new StatsApi();
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tmp = document.createElement('div');
         tmp.innerHTML = ResourceBannerTemplate();
         this._element = tmp.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит и асинхронно подгружает статистику.
+     */
     public mount(): void {
         super.mount();
         void this.#loadStats();
     }
 
+    /**
+     * Загружает статистику с сервера и заполняет UI; ошибки молча игнорирует
+     * (баннер просто остаётся с прочерками).
+     */
     async #loadStats(): Promise<void> {
         try {
             const stats = await this.#api.getMyStats();
@@ -32,6 +54,12 @@ export class ResourceBanner extends BaseComponent {
         }
     }
 
+    /**
+     * Заполняет все значения баннера данными UserStats. Маппит machine-имя плана
+     * (free/freeze/pro/max/admin) в человекочитаемое; форматирует время как
+     * "Xч Yмин / Zч"; для безлимита — "Безлимит".
+     * @param stats - статистика пользователя от StatsApi
+     */
     #populate(stats: UserStats): void {
         const planNames: Record<string, string> = {
             free: 'Free',
@@ -71,6 +99,11 @@ export class ResourceBanner extends BaseComponent {
         nbEl.textContent = String(stats.resources.notebook_count);
     }
 
+    /**
+     * Форматирует число байт в человекочитаемую строку: B / KB / MB.
+     * @param bytes - размер в байтах
+     * @returns отформатированная строка с единицей
+     */
     #formatBytes(bytes: number): string {
         if (bytes < 1024) return `${String(bytes)} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
