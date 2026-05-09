@@ -58,7 +58,7 @@ export class ProfilePage {
                 initials,
                 avatarUrl: (nn(this.#user).avatar_url as string) || ''
             },
-            onProfile: () => {},
+            onProfile: () => { /* noop */ },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();

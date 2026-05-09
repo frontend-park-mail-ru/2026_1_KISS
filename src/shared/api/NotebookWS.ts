@@ -23,7 +23,7 @@ export class NotebookWS {
         } = {}
     ) {
         this.#notebookId = notebookId;
-        this.#onEvent = onEvent ?? (() => {});
+        this.#onEvent = onEvent ?? (() => { /* noop */ });
         this.#onConnect = onConnect ?? null;
         this.#onClose = onClose ?? null;
     }
@@ -107,7 +107,7 @@ export class NotebookWS {
             this.#scheduleReconnect();
         });
 
-        socket.addEventListener('error', () => {});
+        socket.addEventListener('error', () => { /* noop */ });
     }
 
     #scheduleReconnect(): void {

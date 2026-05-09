@@ -113,13 +113,13 @@ export class AdminPage {
                 avatarUrl: (this.#user.avatar_url as string) || ''
             },
             onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
-            onAdmin: () => {},
+            onAdmin: () => { /* noop */ },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
             },
             onLogout: async () => {
-                await this.#httpClient.post('/auth/logout').catch(() => {});
+                await this.#httpClient.post('/auth/logout').catch(() => { /* noop */ });
                 nn(Router.getInstance()).navigate('/sign');
             }
         });
