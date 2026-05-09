@@ -97,7 +97,7 @@ export class ProfilePage {
         items.forEach((item) => {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
-                if (section && section !== this.#activeKey) {
+                if (Boolean(section) && section !== this.#activeKey) {
                     items.forEach((i) => {
                         i.classList.remove('profile-page__sidebar-item--active');
                     });

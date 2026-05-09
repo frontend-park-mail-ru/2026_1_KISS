@@ -107,7 +107,7 @@ export class ProfileSection extends BaseComponent {
                         return;
                     }
 
-                    const updated = result.data as UserDTO;
+                    const updated = result.data!;
                     this.#config.user = updated as unknown as ProfileUser;
                     if (this.#config.onUserUpdate) {
                         this.#config.onUserUpdate(updated as unknown as ProfileUser);
@@ -170,7 +170,7 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                const updated = result.data as UserDTO;
+                const updated = result.data!;
                 this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
                     this.#config.onUserUpdate(updated as unknown as ProfileUser);
@@ -255,7 +255,7 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                const updated = result.data as UserDTO;
+                const updated = result.data!;
                 this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
                     this.#config.onUserUpdate(updated as unknown as ProfileUser);

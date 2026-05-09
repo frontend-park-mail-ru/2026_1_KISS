@@ -111,7 +111,7 @@ export class CodeCell extends BaseComponent {
         this._addListener(textarea, 'keydown', (e: unknown) => {
             if ((e as KeyboardEvent).key === 'Tab') {
                 (e as KeyboardEvent).preventDefault();
-                const ta = textarea as HTMLTextAreaElement;
+                const ta = textarea;
                 const start = ta.selectionStart;
                 const end = ta.selectionEnd;
                 ta.value = `${ta.value.substring(0, start)}    ${ta.value.substring(end)}`;

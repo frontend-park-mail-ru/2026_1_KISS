@@ -184,7 +184,7 @@ export class FilterBar extends BaseComponent {
             null;
         const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
 
-        if (dateFrom || dateTo) {
+        if (Boolean(dateFrom) || Boolean(dateTo)) {
             dateBtn.classList.add('filter-bar__dropdown-btn_active');
             const parts: string[] = [];
             if (dateFrom) parts.push(`с ${this.#formatDate(dateFrom)}`);

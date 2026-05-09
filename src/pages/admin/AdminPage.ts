@@ -149,7 +149,7 @@ export class AdminPage {
         items.forEach((item) => {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
-                if (section && section !== this.#activeKey) {
+                if (Boolean(section) && section !== this.#activeKey) {
                     items.forEach((i) => {
                         i.classList.remove('admin-page__sidebar-item--active');
                     });

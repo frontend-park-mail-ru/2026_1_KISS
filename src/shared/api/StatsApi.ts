@@ -40,6 +40,6 @@ export class StatsApi {
         if (!response.ok) {
             throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
-        return body.data as UserStats;
+        return body.data!;
     }
 }

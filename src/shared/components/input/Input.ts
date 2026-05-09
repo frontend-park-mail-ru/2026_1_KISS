@@ -142,7 +142,7 @@ export class Input extends BaseComponent {
             errorMessage = 'Это поле обязательно';
         }
 
-        if (isValid && this.#config.pattern) {
+        if (isValid && Boolean(this.#config.pattern)) {
             const regex = new RegExp(this.#config.pattern);
             if (!regex.test(this.#state.value)) {
                 isValid = false;
@@ -152,7 +152,7 @@ export class Input extends BaseComponent {
 
         if (
             isValid &&
-            this.#config.minlength &&
+            Boolean(this.#config.minlength) &&
             this.#state.value.length < this.#config.minlength
         ) {
             isValid = false;
@@ -161,7 +161,7 @@ export class Input extends BaseComponent {
 
         if (
             isValid &&
-            this.#config.maxlength &&
+            Boolean(this.#config.maxlength) &&
             this.#state.value.length > this.#config.maxlength
         ) {
             isValid = false;

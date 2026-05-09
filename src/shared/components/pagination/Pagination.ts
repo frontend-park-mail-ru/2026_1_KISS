@@ -59,7 +59,7 @@ export class Pagination extends BaseComponent {
                 } else if (page === lastPage && hasEllipsisEnd) {
                     buttonText = `n=${String(lastPage)}`;
                 } else {
-                    buttonText = `${String(page)}`;
+                    buttonText = String(page);
                 }
 
                 html += `<button class="pagination__btn ${isActive ? 'pagination__btn_active' : ''}" data-page="${String(page)}">${buttonText}</button>`;
