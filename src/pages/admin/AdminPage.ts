@@ -7,6 +7,13 @@ import { Modal } from '../../shared/components/modal/Modal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Возвращает HTML-каркас админ-страницы: sidebar с четырьмя пунктами
+ * (Статистика / Пользователи / Блокноты / Обращения) и пустую область
+ * `.admin-page__content`, которую заполняет AdminPage в зависимости от
+ * выбранной секции.
+ * @returns HTML-строка корневого `<main>` элемента
+ */
 function AdminPageTemplate(): string {
     return `<main class="admin-page">
     <div class="admin-page__container">
@@ -61,6 +68,16 @@ const ISSUE_STATUS_OPTIONS = [
     { value: 'closed', label: 'Закрыто' }
 ];
 
+/**
+ * Админ-панель платформы (`/admin`, доступна только пользователям с is_admin=true).
+ * Содержит 4 секции: Статистика (DAU/MAU/MAU графики, обращения по категориям),
+ * Пользователи (CRUD, смена тарифа, отправка email, бан), Блокноты (просмотр+удаление),
+ * Обращения (issue-tracker с категориями bug/idea/problem/feedback и статусами
+ * open/in_progress/resolved/closed, ответы на обращения).
+ *
+ * Перед рендером проверяет права через /auth/me; не-админ → редирект на /files.
+ * Использует кастомный ContextMenu для action'ов и Modal для форм-диалогов.
+ */
 export class AdminPage {
     #root: HTMLElement;
     #httpClient: HttpClient;
@@ -79,12 +96,23 @@ export class AdminPage {
     #currentIssueSearch = '';
     #feedbackModal: FeedbackModal | null = null;
 
+    /**
+     * Сохраняет root, инициализирует HttpClient (singleton) и новый
+     * экземпляр AdminApi для всех админ-вызовов.
+     * @param root - корневой элемент SPA
+     */
     public constructor(root: HTMLElement) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
         this.#adminApi = new AdminApi();
     }
 
+    /**
+     * Загружает данные пользователя через /auth/me, проверяет is_admin,
+     * рендерит шапку GreenHeader, sidebar-каркас (через AdminPageTemplate)
+     * и показывает дефолтную секцию 'stats'. При не-админе → редирект на /files,
+     * при неавторизации → /sign.
+     */
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
@@ -144,6 +172,12 @@ export class AdminPage {
         this.#showSection('stats');
     }
 
+    /**
+     * Навешивает обработчики кликов по пунктам sidebar'а: переключает
+     * active-класс и вызывает #showSection. Игнорирует клик по уже
+     * активной секции.
+     * @param main - корневой элемент содержимого admin-страницы
+     */
     #attachSidebarEvents(main: HTMLElement): void {
         const items = main.querySelectorAll('.admin-page__sidebar-item');
         items.forEach((item) => {
@@ -160,6 +194,13 @@ export class AdminPage {
         });
     }
 
+    /**
+     * Очищает контент-область и инициализирует выбранную секцию.
+     * Switch по ключу: stats / users / notebooks / issues. Каждый init-метод
+     * сбрасывает свою пагинацию и поиск, рендерит таблицу и навешивает
+     * search-debounce.
+     * @param key - идентификатор секции из sidebar'а
+     */
     #showSection(key: string): void {
         this.#activeKey = key;
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -182,6 +223,13 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Рендерит секцию "Статистика": 4 карточки KPI (users/notebooks/DAU/MAU),
+     * два timeseries-графика (DAU за 30 дней, MAU за 12 месяцев) и блок по
+     * обращениям (4 карточки + категориальная диаграмма). Каждая карточка
+     * имеет hover-tooltip с расшифровкой метрики. При ошибке загрузки
+     * показывает inline-сообщение.
+     */
     async #renderStats(): Promise<void> {
         const title = document.createElement('h2');
         title.className = 'admin-page__section-title';
@@ -290,6 +338,17 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Рендерит SVG столбчатую диаграмму с подписями по оси X и сеткой по Y.
+     * Сам строит SVG-разметку без внешних библиотек: подбирает ширину столбцов
+     * под количество точек, считает Y-tick'и через #calcYTicks, поворачивает
+     * подписи на -45° и форматирует их через #formatChartLabel (даты/месяцы).
+     * Прячет каждый второй-третий label если данных много (labelStep).
+     * @param titleText - заголовок диаграммы
+     * @param data - массив точек данных
+     * @param keyField - имя поля с ключом X (date/month/label)
+     * @param valueField - имя поля с числовым значением Y
+     */
     #renderTimeSeriesChart(
         titleText: string,
         data: Record<string, unknown>[],
@@ -346,6 +405,15 @@ export class AdminPage {
         nn(this.#contentArea).appendChild(chart);
     }
 
+    /**
+     * Форматирует подпись точки оси X в зависимости от типа keyField:
+     * - 'date' (YYYY-MM-DD) → "DD.MM.YY(день_недели)"
+     * - 'month' (YYYY-MM) → "MM.YY"
+     * - всё остальное → как есть
+     * @param raw - сырая строка ключа из данных
+     * @param keyField - тип ключа: 'date', 'month' или иное
+     * @returns отформатированная подпись для отображения
+     */
     #formatChartLabel(raw: string, keyField: string): string {
         const DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
         if (keyField === 'date') {
@@ -362,6 +430,12 @@ export class AdminPage {
         return raw;
     }
 
+    /**
+     * Считает «красивые» tick'и для оси Y. Для maxVal ≤ 5 — целые шаги по 1,
+     * иначе 5 шагов с шагом ceil(maxVal/4) с обрезкой на maxVal.
+     * @param maxVal - максимальное значение по данным
+     * @returns массив tick'ов с числовым value и строковым label
+     */
     #calcYTicks(maxVal: number): { value: number; label: string }[] {
         if (maxVal <= 0) return [{ value: 0, label: '0' }];
         if (maxVal <= 5) {
@@ -378,6 +452,14 @@ export class AdminPage {
         return ticks;
     }
 
+    /**
+     * Дозаполняет timeseries по дням за последние `count` дней нулями для
+     * тех дат, которых нет в `entries`. Нужно чтобы график был непрерывным
+     * (без пропусков) и всегда показывал ровно `count` столбцов.
+     * @param entries - данные с сервера (только активные дни)
+     * @param count - сколько последних дней нужно заполнить
+     * @returns непрерывный массив длиной `count`, отсортированный по дате
+     */
     #fillDays(
         entries: { date: string; count: number }[],
         count: number
@@ -395,6 +477,13 @@ export class AdminPage {
         return result;
     }
 
+    /**
+     * Аналог #fillDays для месяцев: дозаполняет timeseries за последние
+     * `count` месяцев нулями. Ключ месяца формата `YYYY-MM`.
+     * @param entries - данные с сервера (только активные месяцы)
+     * @param count - сколько последних месяцев заполнить
+     * @returns непрерывный массив длиной `count`, отсортированный по месяцу
+     */
     #fillMonths(
         entries: { month: string; count: number }[],
         count: number
@@ -411,6 +500,11 @@ export class AdminPage {
         return result;
     }
 
+    /**
+     * Инициализирует секцию "Пользователи": сбрасывает пагинацию и поиск,
+     * рендерит заголовок + поисковую строку (с debounce 300ms) +
+     * счётчик найденных + таблицу. Запускает первый refresh таблицы.
+     */
     #initUsersSection(): void {
         this.#currentUserPage = 1;
         this.#currentUserSearch = '';
@@ -450,6 +544,13 @@ export class AdminPage {
         void this.#refreshUsersTable();
     }
 
+    /**
+     * Перезагружает таблицу пользователей с учётом текущей страницы и поиска.
+     * Показывает badge тарифа, статус (banned/не подтверждён), относительное
+     * время последней активности, общее время использования и дату регистрации.
+     * Контекстное меню (правый клик) — через #showUserContextMenu.
+     * При >1 страницы добавляет пагинатор.
+     */
     async #refreshUsersTable(): Promise<void> {
         const tableContainer = nn(this.#contentArea).querySelector('.admin-table-container');
         const countEl = nn(this.#contentArea).querySelector('[data-role="user-count"]');
@@ -533,6 +634,14 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Открывает контекстное меню для строки пользователя в координатах клика.
+     * Базовые действия: изменить имя/email/пароль/тариф, отправить email.
+     * "Забанить" добавляется только если: это не сам админ, plan=freeze
+     * и пользователь ещё не забанен (защита от случайного бана активных).
+     * @param e - событие contextmenu (для координат)
+     * @param user - объект пользователя из таблицы
+     */
     #showUserContextMenu(e: MouseEvent, user: Record<string, unknown>): void {
         const actions: { label: string; danger?: boolean; handler: () => void }[] = [];
         actions.push({
@@ -571,6 +680,12 @@ export class AdminPage {
         nn(this.#contextMenu).show(e.clientX, e.clientY, actions);
     }
 
+    /**
+     * Открывает Modal с одним полем username, предзаполненным текущим
+     * значением. При сохранении вызывает PUT /admin/users/:id и обновляет
+     * таблицу. Если значение не изменилось — no-op.
+     * @param user - редактируемый пользователь
+     */
     async #editUsername(user: Record<string, unknown>): Promise<void> {
         const result = await nn(this.#modal).open('Изменить имя', [
             {
@@ -593,6 +708,12 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Открывает Modal с одним полем email и при сохранении вызывает PUT
+     * /admin/users/:id. Backend проверяет валидность и уникальность email;
+     * при ошибке показывает alert.
+     * @param user - редактируемый пользователь
+     */
     async #editEmail(user: Record<string, unknown>): Promise<void> {
         const result = await nn(this.#modal).open('Изменить email', [
             { name: 'email', label: 'Email', type: 'text', value: user.email as string }
@@ -610,6 +731,12 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Открывает Modal для ввода нового пароля и вызывает админский
+     * resetPassword endpoint (без подтверждения старого). Минимум 8 символов
+     * проверяется на бэке. По успеху — alert("Пароль изменён").
+     * @param user - пользователь, которому меняем пароль
+     */
     async #changePassword(user: Record<string, unknown>): Promise<void> {
         const result = await nn(this.#modal).open('Сменить пароль', [
             { name: 'password', label: 'Новый пароль (минимум 8 символов)', type: 'password' }
@@ -625,6 +752,11 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Открывает Modal с select из PLAN_OPTIONS (free/pro/max/admin) и
+     * вызывает PUT /admin/users/:id/plan. Если тариф не изменился — no-op.
+     * @param user - пользователь, которому меняем тариф
+     */
     async #changePlan(user: Record<string, unknown>): Promise<void> {
         const result = await nn(this.#modal).open('Изменить тариф', [
             {
@@ -645,6 +777,12 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Открывает Modal с двумя полями (subject + textarea body) и отправляет
+     * письмо пользователю через POST /admin/email. Используется для ручных
+     * уведомлений. По успеху — alert("Письмо отправлено").
+     * @param user - получатель письма
+     */
     async #sendEmailToUser(user: Record<string, unknown>): Promise<void> {
         const result = await nn(this.#modal).open('Отправить email', [
             { name: 'subject', label: 'Тема', type: 'text' },
@@ -661,6 +799,11 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Банит пользователя после native confirm-диалога. По успеху бэк
+     * автоматически делает все его публичные блокноты приватными.
+     * @param user - блокируемый пользователь
+     */
     async #banUser(user: Record<string, unknown>): Promise<void> {
         // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
         if (!confirm(`Забанить "${String(user.username)}"? Публичные блокноты станут приватными.`))
@@ -674,6 +817,11 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Инициализирует секцию "Блокноты": сбрасывает пагинацию/поиск,
+     * рендерит заголовок + поиск (debounce 300ms) + счётчик + таблицу.
+     * Запускает первый refresh таблицы.
+     */
     #initNotebooksSection(): void {
         this.#currentNbPage = 1;
         this.#currentNbSearch = '';
@@ -713,6 +861,11 @@ export class AdminPage {
         void this.#refreshNotebooksTable();
     }
 
+    /**
+     * Перезагружает таблицу блокнотов: ID, название, owner_id, badge доступа
+     * (public/private), дата создания. Контекстное меню — только удаление
+     * (с native confirm). При >1 страницы добавляет пагинатор.
+     */
     async #refreshNotebooksTable(): Promise<void> {
         const tableContainer = nn(this.#contentArea).querySelector('.admin-table-container');
         const countEl = nn(this.#contentArea).querySelector('[data-role="nb-count"]');
@@ -806,6 +959,15 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Рендерит компактный пагинатор: кнопка "<", до 5 страниц вокруг текущей
+     * (current ± 2), кнопка ">". Активная страница выделена CSS-модификатором.
+     * Используется для всех трёх таблиц admin'а (users/notebooks/issues).
+     * @param container - DOM-элемент, в который добавлять пагинатор
+     * @param current - текущая страница (1-based)
+     * @param total - общее количество страниц
+     * @param onPage - колбэк при клике на номер страницы
+     */
     #renderPagination(
         container: HTMLElement,
         current: number,
@@ -850,11 +1012,24 @@ export class AdminPage {
         container.appendChild(nav);
     }
 
+    /**
+     * Возвращает HTML-разметку бейджа тарифа из PLAN_BADGES. Неизвестный
+     * тариф fallback'ит на 'free'.
+     * @param plan - идентификатор тарифа (free/freeze/pro/max/admin)
+     * @returns HTML-строка span'а с классом и текстом бейджа
+     */
     #planBadge(plan: string): string {
         const b = (PLAN_BADGES[plan] as typeof PLAN_BADGES.free | undefined) ?? PLAN_BADGES.free;
         return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 
+    /**
+     * Форматирует дату в относительный человекочитаемый вид:
+     * "Только что" (<1 мин), "N мин. назад", "N ч. назад", "N дн. назад"
+     * (для <30 дней), иначе абсолютная дата ru-RU. Пустая строка → "—".
+     * @param dateStr - ISO-строка даты или пустая строка
+     * @returns строка для отображения в UI
+     */
     #formatRelativeTime(dateStr: string): string {
         if (!dateStr) return '—';
         const date = new Date(dateStr);
@@ -870,6 +1045,12 @@ export class AdminPage {
         return date.toLocaleDateString('ru-RU');
     }
 
+    /**
+     * Форматирует общее время в секундах в "N ч. M мин." (или просто
+     * "M мин." если меньше часа). Нулевое/отрицательное → "0 мин.".
+     * @param seconds - длительность в секундах
+     * @returns человекочитаемая строка длительности
+     */
     #formatDuration(seconds: number): string {
         if (!seconds || seconds <= 0) return '0 мин.';
         const hrs = Math.floor(seconds / 3600);
@@ -878,12 +1059,29 @@ export class AdminPage {
         return `${String(mins)} мин.`;
     }
 
+    /**
+     * Локальный HTML-эскейпер: создаёт временный div и читает его innerHTML
+     * после установки textContent. Используется для безопасной интерполяции
+     * пользовательских данных в шаблонные строки. (Аналог shared/utils/escapeHtml.)
+     * @param value - значение для эскейпа (строка или число)
+     * @returns HTML-безопасная строка
+     */
     #esc(value: string | number): string {
         const div = document.createElement('div');
         div.textContent = String(value);
         return div.innerHTML;
     }
 
+    /**
+     * Возвращает корректную форму существительного для русского
+     * множественного числа (1 пользователь, 2 пользователя, 5 пользователей).
+     * Учитывает исключения 11-19 → many. Используется в счётчиках таблиц.
+     * @param n - число
+     * @param one - форма для 1 (например "пользователь")
+     * @param few - форма для 2-4 (например "пользователя")
+     * @param many - форма для 0/5+/11-19 (например "пользователей")
+     * @returns правильная форма для числа n
+     */
     #plural(n: number, one: string, few: string, many: string): string {
         const mod10 = n % 10;
         const mod100 = n % 100;
@@ -893,6 +1091,11 @@ export class AdminPage {
         return many;
     }
 
+    /**
+     * Инициализирует секцию "Обращения" (от пользователей через FeedbackModal):
+     * сбрасывает пагинацию/поиск, рендерит заголовок + поиск (debounce 300ms)
+     * + счётчик + таблицу. Запускает первый refresh таблицы.
+     */
     #initIssuesSection(): void {
         this.#currentIssuePage = 1;
         this.#currentIssueSearch = '';
@@ -932,6 +1135,12 @@ export class AdminPage {
         void this.#refreshIssuesTable();
     }
 
+    /**
+     * Перезагружает таблицу обращений: ID, badge категории
+     * (bug/idea/problem/feedback), preview содержимого (60 символов),
+     * user_id, badge статуса, дата. Клик по строке открывает детальный
+     * вид через #showIssueDetail.
+     */
     async #refreshIssuesTable(): Promise<void> {
         const tableContainer = nn(this.#contentArea).querySelector('.admin-table-container');
         const countEl = nn(this.#contentArea).querySelector('[data-role="issue-count"]');
@@ -1005,6 +1214,14 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Открывает детальный вид обращения: заголовок с категорией/статусом,
+     * автор и дата, тело обращения, список вложений (если есть), цепочка
+     * сообщений (диалог user ↔ admin), форма смены статуса и форма ответа.
+     * Клик "Назад" возвращает в таблицу обращений через #showSection.
+     * После успешного действия (смена статуса/ответ) — перезагружает деталь.
+     * @param issueId - идентификатор обращения
+     */
     async #showIssueDetail(issueId: number): Promise<void> {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.#contentArea!.innerHTML = '';
@@ -1158,6 +1375,14 @@ export class AdminPage {
         }
     }
 
+    /**
+     * Универсальный рендерер бейджа из словаря (ISSUE_STATUS_BADGES или
+     * ISSUE_CATEGORY_BADGES). Неизвестный ключ показывается как есть, без
+     * CSS-класса.
+     * @param badges - словарь {ключ: {cls, label}}
+     * @param key - ключ для поиска в словаре
+     * @returns HTML-строка span'а с классом и текстом бейджа
+     */
     #issueBadge(badges: Record<string, { cls: string; label: string }>, key: string): string {
         const b = (badges[key] as { cls: string; label: string } | undefined) ?? {
             cls: '',
@@ -1166,6 +1391,10 @@ export class AdminPage {
         return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 
+    /**
+     * Очищает root. Виджеты ContextMenu/Modal/FeedbackModal — singleton'ы
+     * с собственным lifecycle, их явно демонтировать не требуется.
+     */
     public destroy(): void {
         this.#root.innerHTML = '';
     }

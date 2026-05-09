@@ -751,10 +751,7 @@ export class BlocksPage {
      * @param blockId - идентификатор блока
      * @param cell - источник содержимого с методом getContent()
      */
-    async #maybeSaveCellContent(
-        blockId: number | string,
-        cell: CellContentSource
-    ): Promise<void> {
+    async #maybeSaveCellContent(blockId: number | string, cell: CellContentSource): Promise<void> {
         try {
             await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
                 content: cell.getContent()
