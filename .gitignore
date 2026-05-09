@@ -59,7 +59,4 @@ docs/package.json
 /.ts-out/
 .Identifier
 *all-templates.precompiled.js
-.playwright-mcp/
-/test-results/
-/playwright-report/
 
