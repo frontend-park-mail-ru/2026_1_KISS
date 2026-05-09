@@ -149,7 +149,7 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     #closePanel(): void {
-        if (!this.#activePanel) return;
+        if (!Boolean(this.#activePanel)) return;
         if (this.#activePanel === 'resources') this.#stopContainerPolling();
         const btn = this._element.querySelector(`[data-panel="${this.#activePanel}"]`);
         if (btn) btn.classList.remove('notebook-sidebar__icon-btn--active');
@@ -164,7 +164,7 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     #stopContainerPolling(): void {
-        if (this.#containerPollTimer) {
+        if (Boolean(this.#containerPollTimer)) {
             clearInterval(this.#containerPollTimer);
             this.#containerPollTimer = null;
         }

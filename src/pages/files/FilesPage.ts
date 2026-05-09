@@ -204,27 +204,27 @@ export class FilesPage {
     #applyFilters(): void {
         let filtered = [...this.#allNotebooks];
 
-        if (this.#filters.owner) {
+        if (Boolean(this.#filters.owner)) {
             filtered = filtered.filter(() => this.#state.username === this.#filters.owner);
         }
 
-        if (this.#filters.dateFrom) {
+        if (Boolean(this.#filters.dateFrom)) {
             const from = new Date(this.#filters.dateFrom);
             filtered = filtered.filter((n) => new Date(n.updated_at) >= from);
         }
 
-        if (this.#filters.dateTo) {
+        if (Boolean(this.#filters.dateTo)) {
             const to = new Date(this.#filters.dateTo);
             to.setHours(23, 59, 59, 999);
             filtered = filtered.filter((n) => new Date(n.updated_at) <= to);
         }
 
         let sharedFiltered = [...this.#sharedNotebooks];
-        if (this.#filters.dateFrom) {
+        if (Boolean(this.#filters.dateFrom)) {
             const from = new Date(this.#filters.dateFrom);
             sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) >= from);
         }
-        if (this.#filters.dateTo) {
+        if (Boolean(this.#filters.dateTo)) {
             const to = new Date(this.#filters.dateTo);
             to.setHours(23, 59, 59, 999);
             sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) <= to);

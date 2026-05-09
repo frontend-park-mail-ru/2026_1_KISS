@@ -28,7 +28,7 @@ export class ContextMenu extends BaseComponent {
         actions.forEach(({ label, handler, danger }) => {
             const item = document.createElement('button');
             item.className = 'context-menu__item';
-            if (danger) item.classList.add('context-menu__item--danger');
+            if (Boolean(danger)) item.classList.add('context-menu__item--danger');
             item.textContent = label;
             item.addEventListener('click', (e) => {
                 e.stopPropagation();

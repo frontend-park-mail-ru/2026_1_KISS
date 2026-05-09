@@ -89,7 +89,7 @@ export class ProfileSection extends BaseComponent {
         this._addListener(fileInput, 'change', () => {
             const files = nn(fileInput.files);
             const file = files[0];
-            if (!file) return;
+            if (!Boolean(file)) return;
 
             errorEl.textContent = '';
             const objectUrl = URL.createObjectURL(file);
