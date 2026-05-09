@@ -8,6 +8,12 @@ import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import type { Notebook } from '../../shared/types.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
+import type {
+    ApiEnvelope,
+    NotebookDTO,
+    NotebookListResponse,
+    UserDTO
+} from '../../shared/api/types.js';
 
 interface FilesNotebook extends Notebook {
     _isShared?: boolean;
@@ -59,10 +65,11 @@ export class FilesPage {
                 nn(Router.getInstance()).navigate('/sign');
                 return;
             }
-            const { data: user } = await response.json();
+            const body = (await response.json()) as ApiEnvelope<UserDTO>;
+            const user = body.data;
             this.#state.username = user.username;
-            this.#state.avatarUrl = user.avatar_url ?? '';
-            this.#state.isAdmin = user.is_admin ?? false;
+            this.#state.avatarUrl = user.avatar_url;
+            this.#state.isAdmin = user.is_admin;
         } catch (_e) {
             nn(Router.getInstance()).navigate('/sign');
             return;
@@ -155,9 +162,9 @@ export class FilesPage {
 
             if (!response.ok) return;
 
-            const { data } = (await response.json()) as { data: Record<string, unknown> };
-            const notebooks = data.notebooks as FilesNotebook[];
-            const total = data.total as number;
+            const body = (await response.json()) as ApiEnvelope<NotebookListResponse>;
+            const notebooks = body.data.notebooks as unknown as FilesNotebook[];
+            const total = body.data.total;
             const totalPages = Math.ceil(total / this.#state.limit);
 
             if (total > 0) {
@@ -230,11 +237,13 @@ export class FilesPage {
         try {
             const response = await this.#httpClient.get('/notebooks/shared?limit=100&offset=0');
             if (!response.ok) return;
-            const { data } = (await response.json()) as { data: Record<string, unknown> };
-            this.#sharedNotebooks = ((data.notebooks ?? []) as FilesNotebook[]).map((n) => ({
-                ...n,
-                _isShared: true as const
-            }));
+            const body = (await response.json()) as ApiEnvelope<NotebookListResponse>;
+            this.#sharedNotebooks = (body.data.notebooks as unknown as FilesNotebook[]).map(
+                (n) => ({
+                    ...n,
+                    _isShared: true as const
+                })
+            );
         } catch {
             this.#sharedNotebooks = [];
         }
@@ -246,10 +255,8 @@ export class FilesPage {
                 title: 'Untitled'
             });
             if (response.ok) {
-                const { data: notebook } = (await response.json()) as {
-                    data: Record<string, unknown>;
-                };
-                nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
+                const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
+                nn(Router.getInstance()).navigate(`/notebooks/${body.data.id}`);
             }
         } catch (e: unknown) {
             logError('Failed to create notebook:', e);
