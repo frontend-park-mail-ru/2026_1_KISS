@@ -1,3 +1,8 @@
+/**
+ * Рендерит каркас панели статистики контейнера (RAM/CPU и progress-bar).
+ * Реальные значения подгружаются из RunnerApi.getContainerStats полингом.
+ * @returns HTML-разметка для innerHTML
+ */
 export function ContainerStatsTemplate(): string {
     return `<div class="container-stats container-stats--inactive">
     <div class="container-stats__item">

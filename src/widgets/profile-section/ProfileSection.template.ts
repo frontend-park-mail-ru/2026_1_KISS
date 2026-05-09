@@ -1,16 +1,34 @@
 import { escapeHtml } from '../../shared/utils/escapeHtml.js';
 
+/**
+ * Контекст шаблона секции профиля.
+ */
 interface ProfileSectionTemplateCtx {
+    /** Данные пользователя из UserDTO (с дефолтами для отсутствующих полей) */
     user: {
+        /** URL аватара (или пусто для default-аватара с инициалами) */
         avatar_url?: string;
+        /** Статус-строка */
         status: string;
+        /** Описание профиля */
         description: string;
+        /** Email */
         email: string;
     };
+    /** Отформатированная дата регистрации */
     createdAt: string;
+    /** Инициалы пользователя (две буквы для default-аватара) */
     initials: string;
 }
 
+/**
+ * Рендерит секцию профиля: аватар + кнопка загрузки, поля username/status/description
+ * с кнопкой сохранения, секцию смены email с подтверждением паролем,
+ * дату регистрации, секцию удаления аккаунта (disabled).
+ * Поле username и password монтируются отдельным компонентом Input в свои wrap'ы.
+ * @param ctx - данные пользователя и форматированные строки
+ * @returns HTML-разметка для innerHTML
+ */
 export function ProfileSectionTemplate(ctx: ProfileSectionTemplateCtx): string {
     return `<div class="profile-section">
     <h2 class="profile-section__title">Профиль</h2>

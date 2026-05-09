@@ -1,11 +1,25 @@
 import { escapeHtml } from '../../shared/utils/escapeHtml.js';
 
+/**
+ * Запись об одном коллабораторе (пользователе с доступом к notebook'у).
+ */
 interface Collaborator {
+    /** ID пользователя */
     id: number;
+    /** Отображаемая подпись (обычно email) */
     label: string;
+    /** Уровень доступа: 'readonly' / 'editor' */
     permission_level: string;
 }
 
+/**
+ * Рендерит select для выбора уровня доступа коллаборатора. Селектится текущий
+ * level (readonly или editor); вынесено в отдельную функцию ради читаемости
+ * основного шаблона.
+ * @param userId - ID коллаборатора (попадёт в data-user-id)
+ * @param currentLevel - текущий уровень доступа
+ * @returns HTML-разметка одного select'а
+ */
 function levelSelect(userId: string, currentLevel: string): string {
     const readonlySelected = currentLevel === 'readonly' ? 'selected' : '';
     const editorSelected = currentLevel === 'editor' ? 'selected' : '';
@@ -15,6 +29,13 @@ function levelSelect(userId: string, currentLevel: string): string {
         </select>`;
 }
 
+/**
+ * Рендерит модалку настроек доступа к notebook'у: поле для добавления по email,
+ * список текущих коллабораторов с select'ом уровня и кнопкой удаления, тогл
+ * публичного доступа (по ссылке), кнопку копирования ссылки.
+ * @param options - флаг публичности и список коллабораторов
+ * @returns HTML-разметка для innerHTML
+ */
 export function ShareModalTemplate({
     isPublic = false,
     collaborators = []

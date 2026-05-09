@@ -1,3 +1,9 @@
+/**
+ * Рендерит каркас таблицы файлов: заголовки колонок (Название/Дата/Владелец),
+ * sort-trigger с dropdown (asc/desc по date и title), пустое tbody (заполняется
+ * динамически в FilesTable.setData), empty-state.
+ * @returns HTML-разметка для innerHTML
+ */
 export function FilesTableTemplate(): string {
     return `<div class="files-table">
     <table class="files-table__table">

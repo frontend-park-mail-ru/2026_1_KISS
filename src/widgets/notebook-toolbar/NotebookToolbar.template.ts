@@ -1,3 +1,8 @@
+/**
+ * Рендерит панель инструментов notebook'а: чекбокс показа комментариев,
+ * кнопки добавления code/text-блоков, "Выполнить все".
+ * @returns HTML-разметка для innerHTML
+ */
 export function NotebookToolbarTemplate(): string {
     return `<div class="notebook-toolbar">
     <label class="notebook-toolbar__toggle" data-action="toggle-comments">

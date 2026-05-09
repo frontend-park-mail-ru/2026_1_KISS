@@ -1,16 +1,33 @@
 import { escapeHtml } from '../../shared/utils/escapeHtml.js';
 
+/**
+ * Контекст шаблона шапки notebook'а.
+ */
 interface NotebookHeaderTemplateCtx {
+    /** Имя файла notebook'а — отображается в центре */
     filename: string;
+    /** true если текущий пользователь — владелец (показывает edit/share кнопки) */
     isOwner: boolean;
+    /** Не-undefined если пользователь — админ */
     onAdmin?: unknown;
+    /** Данные пользователя для user-pill */
     user?: {
+        /** URL аватара */
         avatarUrl?: string;
+        /** Инициалы для дефолтного аватара */
         initials: string;
+        /** Логин для отображения */
         username: string;
     } | null;
 }
 
+/**
+ * Рендерит шапку страницы notebook'а: логотип, имя файла с кнопками
+ * (rename для владельца, share для владельца, избранное, облако), user-pill
+ * с dropdown'ом, menu-bar с File-меню (Открыть/Сохранить/Сохранить как).
+ * @param ctx - контекст шаблона
+ * @returns HTML-разметка для innerHTML
+ */
 export function NotebookHeaderTemplate(ctx: NotebookHeaderTemplateCtx): string {
     return `<header class="notebook-header">
     <div class="notebook-header__top">

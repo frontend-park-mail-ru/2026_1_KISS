@@ -1,3 +1,8 @@
+/**
+ * Рендерит сайдбар notebook'а: 4 кнопки переключения панелей (search/toc/files/resources)
+ * и сами панели (find&replace, оглавление, файлы, ресурсы контейнера со sparklines).
+ * @returns HTML-разметка для innerHTML
+ */
 export function NotebookSidebarTemplate(): string {
     return `<aside class="notebook-sidebar">
     <div class="notebook-sidebar__icons">
