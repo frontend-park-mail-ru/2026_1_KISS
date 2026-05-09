@@ -15,10 +15,27 @@ import type {
     UserDTO
 } from '../../shared/api/types.js';
 
+/**
+ * Notebook с флагом _isShared: true для notebook'ов расшаренных мне другими.
+ * В UI они отображаются вместе со своими, но без kebab-меню (нельзя удалить чужое).
+ */
 interface FilesNotebook extends Notebook {
+    /** true если notebook расшарен мне (а не мой) */
     _isShared?: boolean;
 }
 
+/**
+ * Главная страница списка файлов (`/files`). Показывает таблицу notebook'ов с
+ * пагинацией (7 штук на страницу) + расшаренные мне ниже своих, FilterBar
+ * (поиск+дата+владелец), кнопку "+ Создать файл" в FilterBar.
+ *
+ * Особенности:
+ * - **Поиск** идёт через бэкенд (URL параметр) — на каждое изменение перезапрос.
+ * - **Фильтры даты/владельца** применяются на клиенте к загруженной странице
+ *   (не идеально для пагинации, но MVP-достаточно).
+ * - **Расшаренные** загружаются отдельным эндпоинтом (limit=100) — без пагинации.
+ * - При неавторизации — редирект на /sign.
+ */
 export class FilesPage {
     #root: HTMLElement;
     #header: GreenHeader | null = null;
@@ -51,11 +68,20 @@ export class FilesPage {
 
     #httpClient: HttpClient;
 
+    /**
+     * Сохраняет root и берёт singleton HttpClient.
+     * @param root - корневой элемент SPA
+     */
     public constructor(root: HTMLElement) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
     }
 
+    /**
+     * Загружает данные пользователя через /auth/me, рендерит шапку с user-pill
+     * (включая Админ-панель если is_admin), создаёт FilterBar/FilesTable/Pagination,
+     * подгружает первую страницу + расшаренные. При неавторизации — редирект на /sign.
+     */
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
@@ -141,6 +167,9 @@ export class FilesPage {
         await this.#loadNotebooks(1);
     }
 
+    /**
+     * Размонтирует все три виджета и очищает root. Вызывается роутером.
+     */
     public destroy(): void {
         if (this.#filterBar) this.#filterBar.unmount();
         if (this.#filesTable) this.#filesTable.unmount();
@@ -148,6 +177,12 @@ export class FilesPage {
         this.#root.innerHTML = '';
     }
 
+    /**
+     * Загружает страницу notebook'ов с сервера. Если запрошенная страница
+     * больше реальной (после удалений) — fallback на последнюю существующую.
+     * Применяет клиентские фильтры через #applyFilters.
+     * @param page - номер страницы (1-based)
+     */
     async #loadNotebooks(page: number): Promise<void> {
         const requestedPage = Math.max(1, page);
         const offset = (requestedPage - 1) * this.#state.limit;
@@ -192,6 +227,11 @@ export class FilesPage {
         }
     }
 
+    /**
+     * Обработчик изменения фильтров от FilterBar. search идёт через сервер
+     * (перезапрос с page=1); date/owner — клиентский #applyFilters.
+     * @param filters - частичный объект с обновлёнными фильтрами
+     */
     #onFilterChange(filters: Record<string, unknown>): void {
         const searchChanged = 'search' in filters && filters.search !== this.#filters.search;
         Object.assign(this.#filters, filters);
@@ -202,6 +242,11 @@ export class FilesPage {
         }
     }
 
+    /**
+     * Применяет клиентские фильтры (date/owner) к notebook'ам и расшаренным,
+     * передаёт результат в FilesTable. Owner-фильтр работает только для
+     * собственных notebook'ов (расшаренные не фильтруются по владельцу).
+     */
     #applyFilters(): void {
         let filtered = [...this.#allNotebooks];
 
@@ -234,6 +279,10 @@ export class FilesPage {
         nn(this.#filesTable).setData([...filtered, ...sharedFiltered], this.#state.username);
     }
 
+    /**
+     * Загружает все notebook'и расшаренные мне другими (limit=100) и помечает
+     * их флагом _isShared=true. Ошибки молча игнорирует — список просто будет пуст.
+     */
     async #loadSharedNotebooks(): Promise<void> {
         try {
             const response = await this.#httpClient.get('/notebooks/shared?limit=100&offset=0');
@@ -250,6 +299,10 @@ export class FilesPage {
         }
     }
 
+    /**
+     * Создаёт новый notebook с дефолтным title 'Untitled' и сразу навигирует
+     * на его страницу для редактирования.
+     */
     async #createNotebook(): Promise<void> {
         try {
             const response = await this.#httpClient.post('/notebooks', {
@@ -264,6 +317,10 @@ export class FilesPage {
         }
     }
 
+    /**
+     * Удаляет notebook через DELETE и перезагружает текущую страницу.
+     * @param id - ID удаляемого notebook'а
+     */
     async #deleteNotebook(id: string): Promise<void> {
         try {
             const response = await this.#httpClient.delete(`/notebooks/${id}`);
@@ -275,6 +332,11 @@ export class FilesPage {
         }
     }
 
+    /**
+     * Переименовывает notebook через PUT и перезагружает текущую страницу.
+     * @param id - ID notebook'а
+     * @param newTitle - новый title
+     */
     async #renameNotebook(id: string, newTitle: string): Promise<void> {
         try {
             const response = await this.#httpClient.put(`/notebooks/${id}`, {

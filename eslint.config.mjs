@@ -8,7 +8,13 @@ const jsdocRequiredFiles = [
     'src/sw.ts',
     'src/shared/**/*.ts',
     'src/app/**/*.ts',
-    'src/widgets/**/*.ts'
+    'src/widgets/**/*.ts',
+    'src/pages/**/*.template.ts',
+    'src/pages/landing/**/*.ts',
+    'src/pages/sign/**/*.ts',
+    'src/pages/profile/**/*.ts',
+    'src/pages/files/**/*.ts',
+    'src/feedback/index.ts'
 ];
 
 const jsdocRules = {

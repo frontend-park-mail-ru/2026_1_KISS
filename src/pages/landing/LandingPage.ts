@@ -4,14 +4,29 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Главная (landing) страница для гостей. Сначала проверяет авторизацию через
+ * /auth/me — если пользователь уже залогинен, сразу редиректит на /files
+ * (чтобы не показывать landing залогиненным). Иначе рендерит шапку с
+ * Войти/Регистрация и hero-секцию с CTA.
+ */
 export class LandingPage {
     #root: HTMLElement;
     #header: GreenHeader | null = null;
 
+    /**
+     * Сохраняет ссылку на корневой элемент. Реальный рендер откладывается до render().
+     * @param root - корневой элемент SPA
+     */
     public constructor(root: HTMLElement) {
         this.#root = root;
     }
 
+    /**
+     * Рендерит landing-страницу. Перед рендером проверяет /auth/me — если 200,
+     * редиректит на /files без рендера. Иначе создаёт шапку с гостевыми кнопками
+     * (login/register с навигацией на /sign?mode=...) и тело страницы.
+     */
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
@@ -44,6 +59,10 @@ export class LandingPage {
         this.#attachEvents();
     }
 
+    /**
+     * Навешивает обработчик единственной CTA-кнопки "Создать блокнот" — ведёт
+     * на /sign?mode=login (требуется авторизация для создания).
+     */
     #attachEvents(): void {
         const el = this.#root.querySelector('.landing-page');
         if (!el) return;
@@ -53,6 +72,10 @@ export class LandingPage {
         });
     }
 
+    /**
+     * Уничтожает шапку (снимает обработчики) и очищает root. Вызывается роутером
+     * при навигации на следующую страницу.
+     */
     public destroy(): void {
         if (this.#header) this.#header.destroy();
         this.#root.innerHTML = '';
