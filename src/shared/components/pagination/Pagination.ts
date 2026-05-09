@@ -1,5 +1,6 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import type { PageChangeCallback } from '../../types.js';
+import { nn } from '../../utils/notNull.js';
 
 export class Pagination extends BaseComponent {
     #currentPage: number;
@@ -31,8 +32,8 @@ export class Pagination extends BaseComponent {
 
     #generateHTML(): string {
         const hasPrev = this.#currentPage > 0;
-        const hasNext = this.#currentPage < this.#totalPages! - 1;
-        const lastPage = this.#totalPages! - 1;
+        const hasNext = this.#currentPage < nn(this.#totalPages) - 1;
+        const lastPage = nn(this.#totalPages) - 1;
 
         let html = '<span class="pagination__label">for</span>';
 
@@ -74,7 +75,7 @@ export class Pagination extends BaseComponent {
 
     #getVisiblePages(): (number | string)[] {
         const pages: (number | string)[] = [];
-        const total = this.#totalPages!;
+        const total = nn(this.#totalPages);
         const current = this.#currentPage;
         const visibleCount = this.#visiblePagesCount;
 
@@ -173,7 +174,7 @@ export class Pagination extends BaseComponent {
             );
             if (!btn || (btn as HTMLButtonElement).disabled) return;
 
-            const pageAttr = btn.dataset.page!;
+            const pageAttr = nn(btn.dataset.page);
             let targetPage: number;
 
             if (pageAttr === 'prev') {
@@ -188,7 +189,7 @@ export class Pagination extends BaseComponent {
                 !isNaN(targetPage) &&
                 targetPage !== this.#currentPage &&
                 targetPage >= 0 &&
-                targetPage < this.#totalPages!
+                targetPage < nn(this.#totalPages)
             ) {
                 this.#onPageChange(targetPage);
             }

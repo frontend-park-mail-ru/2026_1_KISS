@@ -8,6 +8,7 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { ProfilePageTemplate } from './ProfilePage.template.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SECTION_MAP: Record<string, new (...args: any[]) => { mount(): void; unmount(): void }> = {
@@ -39,23 +40,23 @@ export class ProfilePage {
         try {
             const response = await this.#httpClient.get('/auth/me');
             if (!response.ok) {
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
                 return;
             }
             const { data: user } = await response.json();
             this.#user = user;
         } catch (_e) {
-            Router.getInstance()!.navigate('/sign');
+            nn(Router.getInstance()).navigate('/sign');
             return;
         }
 
-        const initials = (this.#user!.username as string).substring(0, 2).toUpperCase();
+        const initials = (nn(this.#user).username as string).substring(0, 2).toUpperCase();
 
         const headerConfig: Record<string, unknown> = {
             user: {
-                username: this.#user!.username,
+                username: nn(this.#user).username,
                 initials,
-                avatarUrl: (this.#user!.avatar_url as string) || ''
+                avatarUrl: (nn(this.#user).avatar_url as string) || ''
             },
             onProfile: () => {},
             onFeedback: () => {
@@ -68,21 +69,21 @@ export class ProfilePage {
                 } catch (_e) {
                     /* ignore */
                 }
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
             }
         };
-        if (this.#user!.is_admin) {
-            headerConfig.onAdmin = () => { Router.getInstance()!.navigate('/admin'); };
+        if (nn(this.#user).is_admin) {
+            headerConfig.onAdmin = () => { nn(Router.getInstance()).navigate('/admin'); };
         }
         this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
 
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = ProfilePageTemplate();
-        const main = tempContainer.firstElementChild!;
+        const main = nn(tempContainer.firstElementChild);
         this.#root.appendChild(main);
 
-        this.#contentArea = main.querySelector('.profile-page__content')!;
+        this.#contentArea = nn(main.querySelector('.profile-page__content'));
         this.#attachSidebarEvents(main as HTMLElement);
         this.#showSection('profile');
     }

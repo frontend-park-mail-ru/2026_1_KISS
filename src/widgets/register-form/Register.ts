@@ -3,6 +3,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { RegisterTemplate } from './Register.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 const FIELD_NAMES = {
     login: 'login',
@@ -56,7 +57,7 @@ export class Register extends BaseComponent {
     }
 
     #createInputs(): void {
-        const fieldsContainer = this._element.querySelector('.form-fields')!;
+        const fieldsContainer = nn(this._element.querySelector('.form-fields'));
         const fieldsConfig = [
             { name: FIELD_NAMES.login, type: TYPE_INPUT_CONFIG.LOGIN },
             { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
@@ -76,7 +77,7 @@ export class Register extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const btn = this._element.querySelector('#register-btn')!;
+        const btn = nn(this._element.querySelector('#register-btn'));
         this._addListener(btn, 'click', (e: Event) => {
             e.preventDefault();
             this.#submit();
@@ -84,7 +85,7 @@ export class Register extends BaseComponent {
     }
 
     async #submit(): Promise<void> {
-        (this._element.querySelector('.sign-error-message')!).textContent = '';
+        (nn(this._element.querySelector('.sign-error-message'))).textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {

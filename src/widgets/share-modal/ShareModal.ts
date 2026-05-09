@@ -1,6 +1,7 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { ShareModalTemplate } from './ShareModal.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface Collaborator {
     id: number;
@@ -94,8 +95,8 @@ export class ShareModal extends BaseComponent {
             if ((e as KeyboardEvent).key === 'Escape') this.close();
         });
 
-        const input = this._element.querySelector('.share-modal__input')!;
-        const addBtn = this._element.querySelector('.share-modal__add-btn')!;
+        const input = nn(this._element.querySelector('.share-modal__input'));
+        const addBtn = nn(this._element.querySelector('.share-modal__add-btn'));
         this._addListener(addBtn, 'click', () => this.#handleAdd(input));
         this._addListener(input, 'keydown', (e: Event) => {
             if ((e as KeyboardEvent).key === 'Enter') this.#handleAdd(input);
@@ -117,9 +118,9 @@ export class ShareModal extends BaseComponent {
             });
         }
 
-        const toggle = this._element.querySelector(
+        const toggle = nn(this._element.querySelector(
             '.share-modal__toggle-input'
-        )!;
+        ));
         this._addListener(toggle, 'change', () => this.#handlePublicToggle(toggle.checked));
 
         this._addListener(this._element.querySelector('.share-modal__copy-btn'), 'click', () => {
@@ -143,7 +144,7 @@ export class ShareModal extends BaseComponent {
             return;
         }
 
-        const addBtn = this._element.querySelector('.share-modal__add-btn')!;
+        const addBtn = nn(this._element.querySelector('.share-modal__add-btn'));
         addBtn.disabled = true;
         this.#clearError();
 

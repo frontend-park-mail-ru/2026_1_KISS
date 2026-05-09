@@ -6,6 +6,7 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import type { Notebook } from '../../shared/types.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface FilesNotebook extends Notebook {
     _isShared?: boolean;
@@ -54,7 +55,7 @@ export class FilesPage {
         try {
             const response = await this.#httpClient.get('/auth/me');
             if (!response.ok) {
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
                 return;
             }
             const { data: user } = await response.json();
@@ -62,7 +63,7 @@ export class FilesPage {
             this.#state.avatarUrl = user.avatar_url ?? '';
             this.#state.isAdmin = user.is_admin ?? false;
         } catch (_e) {
-            Router.getInstance()!.navigate('/sign');
+            nn(Router.getInstance()).navigate('/sign');
             return;
         }
 
@@ -70,7 +71,7 @@ export class FilesPage {
 
         const headerConfig: Record<string, unknown> = {
             user: { username: this.#state.username, initials, avatarUrl: this.#state.avatarUrl },
-            onProfile: () => { Router.getInstance()!.navigate('/profile'); },
+            onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -81,11 +82,11 @@ export class FilesPage {
                 } catch (_e) {
                     /* ignore */
                 }
-                Router.getInstance()!.navigate('/sign');
+                nn(Router.getInstance()).navigate('/sign');
             }
         };
         if (this.#state.isAdmin) {
-            headerConfig.onAdmin = () => { Router.getInstance()!.navigate('/admin'); };
+            headerConfig.onAdmin = () => { nn(Router.getInstance()).navigate('/admin'); };
         }
         this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
@@ -107,7 +108,7 @@ export class FilesPage {
         this.#filesTable = new FilesTable(container, {
             onDelete: (id: string) => this.#deleteNotebook(id),
             onRename: (id: string, newTitle: string) => this.#renameNotebook(id, newTitle),
-            onOpen: (id: string) => { Router.getInstance()!.navigate(`/notebooks/${id}`); }
+            onOpen: (id: string) => { nn(Router.getInstance()).navigate(`/notebooks/${id}`); }
         });
         this.#filesTable.mount();
 
@@ -161,11 +162,11 @@ export class FilesPage {
             this.#allNotebooks = [...notebooks];
 
             const uniqueOwners = [...new Set([this.#state.username])];
-            this.#filterBar!.setOwners(uniqueOwners);
+            nn(this.#filterBar).setOwners(uniqueOwners);
 
             this.#applyFilters();
 
-            this.#pagination!.update(requestedPage - 1, totalPages);
+            nn(this.#pagination).update(requestedPage - 1, totalPages);
         } catch (e: unknown) {
             console.error('Failed to load notebooks:', e);
         }
@@ -210,7 +211,7 @@ export class FilesPage {
             sharedFiltered = sharedFiltered.filter((n) => new Date(n.updated_at) <= to);
         }
 
-        this.#filesTable!.setData([...filtered, ...sharedFiltered], this.#state.username);
+        nn(this.#filesTable).setData([...filtered, ...sharedFiltered], this.#state.username);
     }
 
     async #loadSharedNotebooks(): Promise<void> {
@@ -236,7 +237,7 @@ export class FilesPage {
                 const { data: notebook } = (await response.json()) as {
                     data: Record<string, unknown>;
                 };
-                Router.getInstance()!.navigate(`/notebooks/${notebook.id}`);
+                nn(Router.getInstance()).navigate(`/notebooks/${notebook.id}`);
             }
         } catch (e: unknown) {
             console.error('Failed to create notebook:', e);

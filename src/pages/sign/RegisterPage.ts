@@ -1,6 +1,7 @@
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { Register } from '../../widgets/register-form/Register.js';
 import { Login } from '../../widgets/login-form/Login.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 const SESSION_ACTIVE_STATE = 'registerPageState';
 const LOGIN_STATE = 'login';
@@ -49,22 +50,22 @@ export class RegisterPage {
     #attachEvents(): void {
         const moveToRegister = (e: Event) => {
             e.preventDefault();
-            this.#register!.mount();
-            this.#login!.unmount();
+            nn(this.#register).mount();
+            nn(this.#login).unmount();
             this.#activeElement = this.#register;
             this.#saveState();
             this.update();
         };
         const moveToLogin = (e: Event) => {
             e.preventDefault();
-            this.#register!.unmount();
-            this.#login!.mount();
+            nn(this.#register).unmount();
+            nn(this.#login).mount();
             this.#activeElement = this.#login;
             this.#saveState();
             this.update();
         };
-        this.#elements.header!.loginBtn?.addEventListener('click', moveToLogin);
-        this.#elements.header!.registerBtn?.addEventListener('click', moveToRegister);
+        nn(this.#elements.header).loginBtn?.addEventListener('click', moveToLogin);
+        nn(this.#elements.header).registerBtn?.addEventListener('click', moveToRegister);
         if (this.#register) {
             this.#register.goOutBtn?.addEventListener('click', moveToLogin);
         }
@@ -74,7 +75,7 @@ export class RegisterPage {
     }
 
     public update(): void {
-        this.#activeElement!.update();
+        nn(this.#activeElement).update();
     }
 
     #saveState(): void {
@@ -92,19 +93,19 @@ export class RegisterPage {
 
     #restoreState(): Login | Register {
         const urlMode = new URLSearchParams(window.location.search).get('mode');
-        if (urlMode === LOGIN_STATE) return this.#login!;
-        if (urlMode === REGISTER_STATE) return this.#register!;
+        if (urlMode === LOGIN_STATE) return nn(this.#login);
+        if (urlMode === REGISTER_STATE) return nn(this.#register);
 
         const savedState = sessionStorage.getItem(SESSION_ACTIVE_STATE);
         if (savedState) {
             try {
                 const { activeView } = JSON.parse(savedState);
-                return activeView === LOGIN_STATE ? this.#login! : this.#register!;
+                return activeView === LOGIN_STATE ? nn(this.#login) : nn(this.#register);
             } catch (_e) {
-                return this.#register!;
+                return nn(this.#register);
             }
         } else {
-            return this.#register!;
+            return nn(this.#register);
         }
     }
 

@@ -1,5 +1,6 @@
 import { GreenHeaderTemplate } from './GreenHeader.template.js';
 import type { EventListenerRecord } from '../../shared/types.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface HeaderUser {
     avatarUrl?: string;
@@ -50,7 +51,7 @@ export class GreenHeader {
             'afterbegin',
             GreenHeaderTemplate(this.#config as Parameters<typeof GreenHeaderTemplate>[0])
         );
-        this.#header = this.#parent.querySelector('.green-header')!;
+        this.#header = nn(this.#parent.querySelector('.green-header'));
         this.#attachDropdownEvents();
     }
 
@@ -98,15 +99,15 @@ export class GreenHeader {
 
     #openDropdown(): void {
         this.#isDropdownOpen = true;
-        this.#header
-            .querySelector('.header-user-dropdown')!
+        nn(this.#header
+            .querySelector('.header-user-dropdown'))
             .classList.add('header-user-dropdown_visible');
     }
 
     #closeDropdown(): void {
         this.#isDropdownOpen = false;
-        this.#header
-            .querySelector('.header-user-dropdown')!
+        nn(this.#header
+            .querySelector('.header-user-dropdown'))
             .classList.remove('header-user-dropdown_visible');
     }
 

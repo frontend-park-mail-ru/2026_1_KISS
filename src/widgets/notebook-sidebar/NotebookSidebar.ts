@@ -1,6 +1,7 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { NotebookSidebarTemplate } from './NotebookSidebar.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 interface FindQuery {
     query: string;
@@ -96,7 +97,7 @@ export class NotebookSidebar extends BaseComponent {
     #attachEvents(): void {
         this._element.querySelectorAll('.notebook-sidebar__icon-btn').forEach((btn) => {
             this._addListener(btn, 'click', () => {
-                const panel = (btn as HTMLElement).dataset.panel!;
+                const panel = nn((btn as HTMLElement).dataset.panel);
                 if (this.#activePanel === panel) {
                     this.#closePanel();
                 } else {
@@ -178,12 +179,12 @@ export class NotebookSidebar extends BaseComponent {
             const stats = await this.#runnerApi.getContainerStats(this.#notebookId);
             panel.classList.remove('container-stats--inactive');
 
-            const ramEl = panel.querySelector('[data-metric="ram"]')!;
-            const cpuEl = panel.querySelector('[data-metric="cpu"]')!;
-            const coresEl = panel.querySelector('[data-metric="cores"]')!;
-            const diskEl = panel.querySelector('[data-metric="disk"]')!;
-            const gpuEl = panel.querySelector('[data-metric="gpu"]')!;
-            const fill = panel.querySelector('.container-stats__bar-fill')!;
+            const ramEl = nn(panel.querySelector('[data-metric="ram"]'));
+            const cpuEl = nn(panel.querySelector('[data-metric="cpu"]'));
+            const coresEl = nn(panel.querySelector('[data-metric="cores"]'));
+            const diskEl = nn(panel.querySelector('[data-metric="disk"]'));
+            const gpuEl = nn(panel.querySelector('[data-metric="gpu"]'));
+            const fill = nn(panel.querySelector('.container-stats__bar-fill'));
 
             const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
             const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);

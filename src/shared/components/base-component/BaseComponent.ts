@@ -1,4 +1,5 @@
 import type { EventListenerRecord } from '../../types.js';
+import { nn } from '../../utils/notNull.js';
 
 export class BaseComponent {
     protected _parent: HTMLElement;
@@ -7,7 +8,7 @@ export class BaseComponent {
     protected _isMounted = false;
 
     public constructor(element: HTMLElement | null, parent: HTMLElement) {
-        this._element = element!;
+        this._element = nn(element);
         this._parent = parent;
     }
 

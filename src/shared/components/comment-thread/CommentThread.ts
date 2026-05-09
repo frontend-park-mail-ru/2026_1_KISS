@@ -2,6 +2,7 @@ import { BaseComponent } from '../base-component/BaseComponent.js';
 import { CommentThreadTemplate, CommentItemTemplate } from './CommentThread.template.js';
 import type { Comment } from '../../types.js';
 import type { NotebookApi } from '../../api/NotebookApi.js';
+import { nn } from '../../utils/notNull.js';
 
 export interface CommentThreadOptions {
     notebookId: number | string;
@@ -54,8 +55,8 @@ export class CommentThread extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const form = this._element.querySelector('.comment-thread__form')!;
-        const textarea = form.querySelector('.comment-thread__textarea')!;
+        const form = nn(this._element.querySelector('.comment-thread__form'));
+        const textarea = nn(form.querySelector('.comment-thread__textarea'));
 
         if (this.#canComment) {
             form.hidden = false;
@@ -110,7 +111,7 @@ export class CommentThread extends BaseComponent {
     }
 
     #renderComments(): void {
-        const list = this._element.querySelector('.comment-thread__list')!;
+        const list = nn(this._element.querySelector('.comment-thread__list'));
         const form = list.querySelector('.comment-thread__form');
         list.innerHTML = this.#comments
             .map((c) => CommentItemTemplate(c, c.user_id === this.#currentUserId || this.#isOwner))
@@ -129,7 +130,7 @@ export class CommentThread extends BaseComponent {
 
     public appendComment(comment: Comment): void {
         this.#comments.push(comment);
-        const list = this._element.querySelector('.comment-thread__list')!;
+        const list = nn(this._element.querySelector('.comment-thread__list'));
         const form = list.querySelector('.comment-thread__form');
         const html = CommentItemTemplate(
             comment,

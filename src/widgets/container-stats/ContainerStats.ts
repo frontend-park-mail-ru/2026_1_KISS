@@ -1,6 +1,7 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
 import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { ContainerStatsTemplate } from './ContainerStats.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 const POLL_INTERVAL = 3000;
 
@@ -61,9 +62,9 @@ export class ContainerStats extends BaseComponent {
     }): void {
         this._element.classList.remove('container-stats--inactive');
 
-        const ramEl = this._element.querySelector('[data-metric="ram"]')!;
-        const cpuEl = this._element.querySelector('[data-metric="cpu"]')!;
-        const fill = this._element.querySelector('.container-stats__bar-fill')!;
+        const ramEl = nn(this._element.querySelector('[data-metric="ram"]'));
+        const cpuEl = nn(this._element.querySelector('[data-metric="cpu"]'));
+        const fill = nn(this._element.querySelector('.container-stats__bar-fill'));
 
         const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
         const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);
@@ -85,8 +86,8 @@ export class ContainerStats extends BaseComponent {
 
     #setInactive(): void {
         this._element.classList.add('container-stats--inactive');
-        const ramEl = this._element.querySelector('[data-metric="ram"]')!;
-        const cpuEl = this._element.querySelector('[data-metric="cpu"]')!;
+        const ramEl = nn(this._element.querySelector('[data-metric="ram"]'));
+        const cpuEl = nn(this._element.querySelector('[data-metric="cpu"]'));
         ramEl.textContent = '—';
         cpuEl.textContent = '—';
     }

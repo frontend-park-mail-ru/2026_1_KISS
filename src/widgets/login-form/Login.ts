@@ -4,6 +4,7 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { LoginTemplate } from './Login.template.js';
+import { nn } from '../../shared/utils/notNull.js';
 
 const FIELD_NAMES = {
     email: 'email',
@@ -54,7 +55,7 @@ export class Login extends BaseComponent {
     }
 
     #createInputs(): void {
-        const fieldsContainer = this._element.querySelector('.form-fields')!;
+        const fieldsContainer = nn(this._element.querySelector('.form-fields'));
         const fieldsConfig = [
             { name: FIELD_NAMES.email, type: TYPE_INPUT_CONFIG.EMAIL },
             { name: FIELD_NAMES.password, type: TYPE_INPUT_CONFIG.PASSWORD }
@@ -72,7 +73,7 @@ export class Login extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const btn = this._element.querySelector('#login-btn')!;
+        const btn = nn(this._element.querySelector('#login-btn'));
         this._addListener(btn, 'click', (e: Event) => {
             e.preventDefault();
             this.#submit();
@@ -80,7 +81,7 @@ export class Login extends BaseComponent {
     }
 
     async #submit(): Promise<void> {
-        (this._element.querySelector('.sign-error-message')!).textContent = '';
+        (nn(this._element.querySelector('.sign-error-message'))).textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {
@@ -105,7 +106,7 @@ export class Login extends BaseComponent {
                 }
                 return;
             }
-            Router.getInstance()!.navigate('/files');
+            nn(Router.getInstance()).navigate('/files');
         } catch (_e) {
             this.#inputs[0].showError('Сервер недоступен');
         }
