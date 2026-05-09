@@ -51,7 +51,9 @@ export class FilesTable extends BaseComponent {
     }
 
     public unmount(): void {
-        this.#kebabMenus.forEach((m) => { m.unmount(); });
+        this.#kebabMenus.forEach((m) => {
+            m.unmount();
+        });
         this.#kebabMenus = [];
         if (!this._isMounted) return;
         super.unmount();
@@ -76,7 +78,9 @@ export class FilesTable extends BaseComponent {
     }
 
     #renderRows(): void {
-        this.#kebabMenus.forEach((m) => { m.unmount(); });
+        this.#kebabMenus.forEach((m) => {
+            m.unmount();
+        });
         this.#kebabMenus = [];
 
         const sorted = [...this.#notebooks];
@@ -124,7 +128,9 @@ export class FilesTable extends BaseComponent {
 
             const ownerCell = document.createElement('td');
             ownerCell.className = 'files-table__cell';
-            ownerCell.textContent = nb._isShared ? nb.owner_username ?? '\u2014' : this.#ownerName;
+            ownerCell.textContent = nb._isShared
+                ? (nb.owner_username ?? '\u2014')
+                : this.#ownerName;
 
             const kebabCell = document.createElement('td');
             kebabCell.className = 'files-table__cell files-table__kebab-cell';
@@ -150,13 +156,17 @@ export class FilesTable extends BaseComponent {
                     actions.push({
                         name: 'rename',
                         label: 'Переименовать',
-                        handler: () => { this.#startRename(tr, titleSpan, nb); }
+                        handler: () => {
+                            this.#startRename(tr, titleSpan, nb);
+                        }
                     });
                 }
                 actions.push({
                     name: 'delete',
                     label: 'Удалить',
-                    handler: () => { this.#onDelete(nb.id); }
+                    handler: () => {
+                        this.#onDelete(nb.id);
+                    }
                 });
                 const menu = new KebabMenu(kebabCell, actions);
                 menu.mount();
@@ -243,9 +253,7 @@ export class FilesTable extends BaseComponent {
         const dropdown = nn(this._element.querySelector('.files-table__sort-dropdown'));
         this._addListener(dropdown, 'click', (e: Event) => {
             e.stopPropagation();
-            const arrow = (e.target as HTMLElement).closest(
-                '.files-table__sort-arrow'
-            );
+            const arrow = (e.target as HTMLElement).closest('.files-table__sort-arrow');
             if (!arrow) return;
 
             const option = nn(arrow.closest('.files-table__sort-option'));
@@ -270,16 +278,16 @@ export class FilesTable extends BaseComponent {
 
     #openSortDropdown(): void {
         this.#sortOpen = true;
-        nn(this._element
-            .querySelector('.files-table__sort-dropdown'))
-            .classList.add('files-table__sort-dropdown_visible');
+        nn(this._element.querySelector('.files-table__sort-dropdown')).classList.add(
+            'files-table__sort-dropdown_visible'
+        );
     }
 
     #closeSortDropdown(): void {
         this.#sortOpen = false;
-        nn(this._element
-            .querySelector('.files-table__sort-dropdown'))
-            .classList.remove('files-table__sort-dropdown_visible');
+        nn(this._element.querySelector('.files-table__sort-dropdown')).classList.remove(
+            'files-table__sort-dropdown_visible'
+        );
     }
 
     #updateSortArrows(): void {

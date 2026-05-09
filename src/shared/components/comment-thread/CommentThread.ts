@@ -64,7 +64,7 @@ export class CommentThread extends BaseComponent {
 
         const autoResize = (): void => {
             textarea.style.height = 'auto';
-            textarea.style.height = `${textarea.scrollHeight  }px`;
+            textarea.style.height = `${textarea.scrollHeight}px`;
         };
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises

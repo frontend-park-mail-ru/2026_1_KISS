@@ -35,7 +35,11 @@ class CellRow {
     #commentThread: CommentThread;
     #rowElement: HTMLElement;
 
-    public constructor(rowElement: HTMLElement, cell: CodeCell | TextCell, commentThread: CommentThread) {
+    public constructor(
+        rowElement: HTMLElement,
+        cell: CodeCell | TextCell,
+        commentThread: CommentThread
+    ) {
         this.#rowElement = rowElement;
         this.#cell = cell;
         this.#commentThread = commentThread;
@@ -206,9 +210,15 @@ export class CellList extends BaseComponent {
     #buildCellCallbacks(block: BlockData): Record<string, unknown> {
         return {
             blockData: block,
-            onMoveUp: (id: string) => { this.#moveBlock(id, -1); },
-            onMoveDown: (id: string) => { this.#moveBlock(id, 1); },
-            onCopy: (id: string) => { this.#copyBlock(id); },
+            onMoveUp: (id: string) => {
+                this.#moveBlock(id, -1);
+            },
+            onMoveDown: (id: string) => {
+                this.#moveBlock(id, 1);
+            },
+            onCopy: (id: string) => {
+                this.#copyBlock(id);
+            },
             onDelete: (id: string) => {
                 if (this.#onDeleteCell) this.#onDeleteCell(id);
             }
@@ -323,9 +333,7 @@ export class CellList extends BaseComponent {
 
         if (this.#blocks.length === 0) {
             const container = nn(this._element.querySelector('.cell-list__cells'));
-            const emptyState = nn(this._element.querySelector(
-                '.cell-list__empty-state'
-            ));
+            const emptyState = nn(this._element.querySelector('.cell-list__empty-state'));
             container.style.display = 'none';
             emptyState.style.display = '';
         }
@@ -375,11 +383,15 @@ export class CellList extends BaseComponent {
         if (!cell) return;
 
         const content = cell.getCell().getContent();
-        navigator.clipboard.writeText(content).catch(() => { /* noop */ });
+        navigator.clipboard.writeText(content).catch(() => {
+            /* noop */
+        });
     }
 
     #clearCells(): void {
-        this.#cells.forEach((row) => { row.unmount(); });
+        this.#cells.forEach((row) => {
+            row.unmount();
+        });
         this.#cells = [];
     }
 

@@ -60,9 +60,7 @@ export class NotebookToolbar extends BaseComponent {
             });
         });
 
-        const toggle = this._element.querySelector(
-            '.notebook-toolbar__toggle'
-        );
+        const toggle = this._element.querySelector('.notebook-toolbar__toggle');
         const toggleInput = toggle?.querySelector('input') as HTMLInputElement | null;
         const onToggle = this.#onToggleComments;
         if (toggle && toggleInput) {

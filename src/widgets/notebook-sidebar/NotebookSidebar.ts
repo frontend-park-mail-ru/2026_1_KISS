@@ -78,15 +78,9 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     public getFindQuery(): FindQuery {
-        const findInput = this._element.querySelector(
-            '.notebook-sidebar__find-input'
-        );
-        const replaceInput = this._element.querySelector(
-            '.notebook-sidebar__replace-input'
-        );
-        const caseToggle = this._element.querySelector(
-            '.notebook-sidebar__case-toggle'
-        );
+        const findInput = this._element.querySelector('.notebook-sidebar__find-input');
+        const replaceInput = this._element.querySelector('.notebook-sidebar__replace-input');
+        const caseToggle = this._element.querySelector('.notebook-sidebar__case-toggle');
         return {
             query: findInput ? findInput.value : '',
             replacement: replaceInput ? replaceInput.value : '',

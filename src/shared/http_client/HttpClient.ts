@@ -84,7 +84,7 @@ export class HttpClient {
     }
 
     #getCookie(name: string): string {
-        const match = new RegExp(`(?:^|; )${  name  }=([^;]*)`).exec(document.cookie);
+        const match = new RegExp(`(?:^|; )${name}=([^;]*)`).exec(document.cookie);
         return match ? decodeURIComponent(match[1]) : '';
     }
 

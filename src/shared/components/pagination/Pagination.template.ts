@@ -23,15 +23,9 @@ export function PaginationTemplate(ctx: {
             if (item.type === 'ellipsis') {
                 return '<span class="pagination__ellipsis">...</span>';
             }
-            return (
-                `<button class="pagination__btn ${ 
-                item.isActive ? 'pagination__btn_active' : '' 
-                }" data-page="${ 
-                escapeHtml(item.number) 
-                }">${ 
-                escapeHtml(item.number) 
-                }</button>`
-            );
+            return `<button class="pagination__btn ${
+                item.isActive ? 'pagination__btn_active' : ''
+            }" data-page="${escapeHtml(item.number)}">${escapeHtml(item.number)}</button>`;
         })
         .join('\n    ')}
 

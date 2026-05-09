@@ -114,8 +114,7 @@ export class CodeCell extends BaseComponent {
                 const ta = textarea as HTMLTextAreaElement;
                 const start = ta.selectionStart;
                 const end = ta.selectionEnd;
-                ta.value =
-                    `${ta.value.substring(0, start)  }    ${  ta.value.substring(end)}`;
+                ta.value = `${ta.value.substring(0, start)}    ${ta.value.substring(end)}`;
                 ta.selectionStart = start + 4;
                 ta.selectionEnd = start + 4;
                 this.#updateLineNumbers();
@@ -140,7 +139,9 @@ export class CodeCell extends BaseComponent {
     }
 
     #updateLineNumbers(): void {
-        const textarea = nn(this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea'));
+        const textarea = nn(
+            this._element.querySelector<HTMLTextAreaElement>('.code-cell__textarea')
+        );
         const lineNumbers = nn(this._element.querySelector('.code-cell__line-numbers'));
         const lines = textarea.value.split('\n');
         lineNumbers.innerHTML = lines.map((_: string, i: number) => `<div>${i + 1}</div>`).join('');
@@ -151,11 +152,11 @@ export class CodeCell extends BaseComponent {
         textarea.style.height = 'auto';
         const scrollH = textarea.scrollHeight;
         const editorH = nn(this._element.querySelector('.code-cell__editor')).clientHeight;
-        textarea.style.height = `${Math.max(scrollH, editorH)  }px`;
+        textarea.style.height = `${Math.max(scrollH, editorH)}px`;
     }
 
     public getContent(): string {
-        return (nn(this._element.querySelector('.code-cell__textarea'))).value;
+        return nn(this._element.querySelector('.code-cell__textarea')).value;
     }
 
     public setContent(text: string): void {
@@ -217,7 +218,7 @@ export class CodeCell extends BaseComponent {
             ? ansiToHtml(handleCarriageReturns(stripTracebackDashes(stderrText)))
             : '';
 
-        resultEl.textContent = imageOutputs.length ? '' : out.result ?? '';
+        resultEl.textContent = imageOutputs.length ? '' : (out.result ?? '');
 
         imagesEl.innerHTML = '';
         for (const output of imageOutputs) {
@@ -227,7 +228,10 @@ export class CodeCell extends BaseComponent {
             imagesEl.appendChild(img);
         }
 
-        this._element.classList.toggle('code-cell--error', Boolean(out.stderr?.length ?? out.error));
+        this._element.classList.toggle(
+            'code-cell--error',
+            Boolean(out.stderr?.length ?? out.error)
+        );
     }
 
     public clearOutput(): void {

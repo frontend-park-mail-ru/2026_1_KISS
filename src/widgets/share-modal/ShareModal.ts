@@ -35,7 +35,7 @@ export class ShareModal extends BaseComponent {
         this.#buildElement();
         super.mount();
         document.body.style.overflow = 'hidden';
-        (this._element.querySelector('.share-modal__input'))?.focus();
+        this._element.querySelector('.share-modal__input')?.focus();
     }
 
     public close(): void {
@@ -44,7 +44,9 @@ export class ShareModal extends BaseComponent {
         document.body.style.overflow = '';
     }
 
-    public mount(): void { /* noop */ }
+    public mount(): void {
+        /* noop */
+    }
 
     public unmount(): void {
         this.close();
@@ -106,22 +108,16 @@ export class ShareModal extends BaseComponent {
         const list = this._element.querySelector('.share-modal__collaborators');
         if (list) {
             this._addListener(list, 'click', (e: Event) => {
-                const btn = (e.target as HTMLElement).closest(
-                    '.share-modal__remove-btn'
-                );
+                const btn = (e.target as HTMLElement).closest('.share-modal__remove-btn');
                 if (btn) void this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
-                const sel = (e.target as HTMLElement).closest(
-                    '.share-modal__collaborator-level'
-                );
+                const sel = (e.target as HTMLElement).closest('.share-modal__collaborator-level');
                 if (sel) void this.#handleLevelChange(sel.dataset.userId, sel.value);
             });
         }
 
-        const toggle = nn(this._element.querySelector(
-            '.share-modal__toggle-input'
-        ));
+        const toggle = nn(this._element.querySelector('.share-modal__toggle-input'));
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(toggle, 'change', () => this.#handlePublicToggle(toggle.checked));
 
@@ -187,9 +183,7 @@ export class ShareModal extends BaseComponent {
                 `/notebooks/${this.#notebookId}/permissions/${userId}`
             );
             if (res.ok || res.status === 204) {
-                this.#collaborators = this.#collaborators.filter(
-                    (c) => String(c.id) !== userId
-                );
+                this.#collaborators = this.#collaborators.filter((c) => String(c.id) !== userId);
                 this.#rerenderList();
             }
         } catch {
@@ -230,16 +224,12 @@ export class ShareModal extends BaseComponent {
             });
             if (!res.ok) {
                 this.#isPublic = prev;
-                const toggle = this._element.querySelector(
-                    '.share-modal__toggle-input'
-                );
+                const toggle = this._element.querySelector('.share-modal__toggle-input');
                 if (toggle) toggle.checked = prev;
             }
         } catch {
             this.#isPublic = prev;
-            const toggle = this._element.querySelector(
-                '.share-modal__toggle-input'
-            );
+            const toggle = this._element.querySelector('.share-modal__toggle-input');
             if (toggle) toggle.checked = prev;
         }
     }
@@ -274,15 +264,11 @@ export class ShareModal extends BaseComponent {
         const list = section.querySelector('.share-modal__collaborators');
         if (list) {
             this._addListener(list, 'click', (e: Event) => {
-                const btn = (e.target as HTMLElement).closest(
-                    '.share-modal__remove-btn'
-                );
+                const btn = (e.target as HTMLElement).closest('.share-modal__remove-btn');
                 if (btn) void this.#handleRemove(btn.dataset.userId);
             });
             this._addListener(list, 'change', (e: Event) => {
-                const sel = (e.target as HTMLElement).closest(
-                    '.share-modal__collaborator-level'
-                );
+                const sel = (e.target as HTMLElement).closest('.share-modal__collaborator-level');
                 if (sel) void this.#handleLevelChange(sel.dataset.userId, sel.value);
             });
         }

@@ -85,7 +85,7 @@ export class Register extends BaseComponent {
     }
 
     async #submit(): Promise<void> {
-        (nn(this._element.querySelector('.sign-error-message'))).textContent = '';
+        nn(this._element.querySelector('.sign-error-message')).textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {

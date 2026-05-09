@@ -64,15 +64,15 @@ export class KebabMenu extends BaseComponent {
 
     #open(): void {
         this.#isOpen = true;
-        nn(this._element
-            .querySelector('.kebab-menu__dropdown'))
-            .classList.add('kebab-menu__dropdown_visible');
+        nn(this._element.querySelector('.kebab-menu__dropdown')).classList.add(
+            'kebab-menu__dropdown_visible'
+        );
     }
 
     #close(): void {
         this.#isOpen = false;
-        nn(this._element
-            .querySelector('.kebab-menu__dropdown'))
-            .classList.remove('kebab-menu__dropdown_visible');
+        nn(this._element.querySelector('.kebab-menu__dropdown')).classList.remove(
+            'kebab-menu__dropdown_visible'
+        );
     }
 }

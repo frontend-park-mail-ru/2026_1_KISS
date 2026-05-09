@@ -112,15 +112,21 @@ export class AdminPage {
                 initials,
                 avatarUrl: (this.#user.avatar_url as string) || ''
             },
-            onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
-            onAdmin: () => { /* noop */ },
+            onProfile: () => {
+                nn(Router.getInstance()).navigate('/profile');
+            },
+            onAdmin: () => {
+                /* noop */
+            },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
             },
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onLogout: async () => {
-                await this.#httpClient.post('/auth/logout').catch(() => { /* noop */ });
+                await this.#httpClient.post('/auth/logout').catch(() => {
+                    /* noop */
+                });
                 nn(Router.getInstance()).navigate('/sign');
             }
         });
@@ -144,7 +150,9 @@ export class AdminPage {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
                 if (section && section !== this.#activeKey) {
-                    items.forEach((i) => { i.classList.remove('admin-page__sidebar-item--active'); });
+                    items.forEach((i) => {
+                        i.classList.remove('admin-page__sidebar-item--active');
+                    });
                     item.classList.add('admin-page__sidebar-item--active');
                     this.#showSection(section);
                 }
@@ -664,7 +672,8 @@ export class AdminPage {
     }
 
     async #banUser(user: Record<string, unknown>): Promise<void> {
-        if (!confirm(`Забанить "${String(user.username)}"? Публичные блокноты станут приватными.`)) return;
+        if (!confirm(`Забанить "${String(user.username)}"? Публичные блокноты станут приватными.`))
+            return;
         try {
             await this.#adminApi.banUser(user.id as string | number);
             void this.#refreshUsersTable();
@@ -820,7 +829,9 @@ export class AdminPage {
         prevBtn.className = 'admin-pagination__btn';
         prevBtn.textContent = '<';
         prevBtn.disabled = current <= 1;
-        prevBtn.addEventListener('click', () => { onPage(current - 1); });
+        prevBtn.addEventListener('click', () => {
+            onPage(current - 1);
+        });
         nav.appendChild(prevBtn);
 
         const start = Math.max(1, current - 2);
@@ -831,7 +842,9 @@ export class AdminPage {
             btn.className = 'admin-pagination__btn';
             if (i === current) btn.classList.add('admin-pagination__btn--active');
             btn.textContent = String(i);
-            btn.addEventListener('click', () => { onPage(i); });
+            btn.addEventListener('click', () => {
+                onPage(i);
+            });
             nav.appendChild(btn);
         }
 
@@ -839,7 +852,9 @@ export class AdminPage {
         nextBtn.className = 'admin-pagination__btn';
         nextBtn.textContent = '>';
         nextBtn.disabled = current >= total;
-        nextBtn.addEventListener('click', () => { onPage(current + 1); });
+        nextBtn.addEventListener('click', () => {
+            onPage(current + 1);
+        });
         nav.appendChild(nextBtn);
 
         container.appendChild(nav);
@@ -971,7 +986,7 @@ export class AdminPage {
                 const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category as string);
                 const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status as string);
                 const content = issue.content as string;
-                const preview = content.length > 60 ? `${content.substring(0, 60)  }...` : content;
+                const preview = content.length > 60 ? `${content.substring(0, 60)}...` : content;
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${String(issue.id)}</td>
@@ -1012,7 +1027,9 @@ export class AdminPage {
         const backBtn = document.createElement('button');
         backBtn.className = 'admin-issue-detail__back-btn';
         backBtn.innerHTML = '&larr; Назад к обращениям';
-        backBtn.addEventListener('click', () => { this.#showSection('issues'); });
+        backBtn.addEventListener('click', () => {
+            this.#showSection('issues');
+        });
         nn(this.#contentArea).appendChild(backBtn);
 
         const container = document.createElement('div');
@@ -1111,12 +1128,8 @@ export class AdminPage {
                     </div>
                 </div>`;
 
-            const statusSelect = nn(container.querySelector(
-                '[data-role="status-select"]'
-            ));
-            const updateBtn = nn(container.querySelector(
-                '[data-role="update-status"]'
-            ));
+            const statusSelect = nn(container.querySelector('[data-role="status-select"]'));
+            const updateBtn = nn(container.querySelector('[data-role="update-status"]'));
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             updateBtn.addEventListener('click', async () => {
                 try {
@@ -1127,12 +1140,8 @@ export class AdminPage {
                 }
             });
 
-            const responseTextarea = nn(container.querySelector(
-                '.admin-issue-detail__textarea'
-            ));
-            const sendBtn = nn(container.querySelector(
-                '[data-role="send-response"]'
-            ));
+            const responseTextarea = nn(container.querySelector('.admin-issue-detail__textarea'));
+            const sendBtn = nn(container.querySelector('[data-role="send-response"]'));
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             sendBtn.addEventListener('click', async () => {
                 const text = responseTextarea.value.trim();
@@ -1150,7 +1159,10 @@ export class AdminPage {
     }
 
     #issueBadge(badges: Record<string, { cls: string; label: string }>, key: string): string {
-        const b = (badges[key] as { cls: string; label: string } | undefined) ?? { cls: '', label: key };
+        const b = (badges[key] as { cls: string; label: string } | undefined) ?? {
+            cls: '',
+            label: key
+        };
         return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 

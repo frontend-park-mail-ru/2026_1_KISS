@@ -110,6 +110,5 @@ self.addEventListener('fetch', (event) => {
 
     if (isStaticAsset(url.pathname)) {
         event.respondWith(staleWhileRevalidate(event.request));
-        
     }
 });

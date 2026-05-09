@@ -99,16 +99,16 @@ export class GreenHeader {
 
     #openDropdown(): void {
         this.#isDropdownOpen = true;
-        nn(this.#header
-            .querySelector('.header-user-dropdown'))
-            .classList.add('header-user-dropdown_visible');
+        nn(this.#header.querySelector('.header-user-dropdown')).classList.add(
+            'header-user-dropdown_visible'
+        );
     }
 
     #closeDropdown(): void {
         this.#isDropdownOpen = false;
-        nn(this.#header
-            .querySelector('.header-user-dropdown'))
-            .classList.remove('header-user-dropdown_visible');
+        nn(this.#header.querySelector('.header-user-dropdown')).classList.remove(
+            'header-user-dropdown_visible'
+        );
     }
 
     #addListener(element: EventTarget, event: string, handler: EventListener): void {
