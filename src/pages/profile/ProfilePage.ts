@@ -58,7 +58,9 @@ export class ProfilePage {
                 initials,
                 avatarUrl: (nn(this.#user).avatar_url as string) || ''
             },
-            onProfile: () => { /* noop */ },
+            onProfile: () => {
+                /* noop */
+            },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -73,7 +75,9 @@ export class ProfilePage {
             }
         };
         if (nn(this.#user).is_admin) {
-            headerConfig.onAdmin = () => { nn(Router.getInstance()).navigate('/admin'); };
+            headerConfig.onAdmin = () => {
+                nn(Router.getInstance()).navigate('/admin');
+            };
         }
         this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
@@ -94,7 +98,9 @@ export class ProfilePage {
             item.addEventListener('click', () => {
                 const section = (item as HTMLElement).dataset.section;
                 if (section && section !== this.#activeKey) {
-                    items.forEach((i) => { i.classList.remove('profile-page__sidebar-item--active'); });
+                    items.forEach((i) => {
+                        i.classList.remove('profile-page__sidebar-item--active');
+                    });
                     item.classList.add('profile-page__sidebar-item--active');
                     this.#showSection(section);
                 }
@@ -109,7 +115,9 @@ export class ProfilePage {
         }
 
         this.#activeKey = key;
-        const SectionClass = SECTION_MAP[key] as (typeof SECTION_MAP)[keyof typeof SECTION_MAP] | undefined;
+        const SectionClass = SECTION_MAP[key] as
+            | (typeof SECTION_MAP)[keyof typeof SECTION_MAP]
+            | undefined;
         if (!SectionClass) return;
 
         this.#activeSection = new SectionClass(this.#contentArea, {

@@ -63,9 +63,7 @@ export class StatsSection extends BaseComponent {
         } else {
             text.textContent = `${this.#formatTime(stats.quota.total_time_seconds)} — безлимитный план`;
             fill.style.width = '0%';
-            (
-                nn(this._element.querySelector('.stats-section__progress-bar'))
-            ).style.display = 'none';
+            nn(this._element.querySelector('.stats-section__progress-bar')).style.display = 'none';
         }
     }
 
@@ -102,17 +100,13 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateChart(stats: UserStats): void {
-        const container = nn(this._element.querySelector(
-            '.stats-section__chart-container'
-        ));
+        const container = nn(this._element.querySelector('.stats-section__chart-container'));
         const filled = fillDays(stats.resources.daily_executions, 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 
     #populateStorage(stats: UserStats): void {
-        const container = nn(this._element.querySelector(
-            '.stats-section__storage-cards'
-        ));
+        const container = nn(this._element.querySelector('.stats-section__storage-cards'));
         const categories = Object.keys(stats.storage.files_by_category);
 
         if (categories.length === 0) {

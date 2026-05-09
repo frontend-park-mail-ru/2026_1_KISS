@@ -49,9 +49,7 @@ export class ProfileSection extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
 
-        const usernameWrap = nn(this._element.querySelector(
-            '.profile-section__username-wrap'
-        ));
+        const usernameWrap = nn(this._element.querySelector('.profile-section__username-wrap'));
         this.#usernameInput = new Input(usernameWrap, {
             ...TYPE_INPUT_CONFIG.LOGIN,
             id: `profile-username-${Date.now()}`,
@@ -75,17 +73,13 @@ export class ProfileSection extends BaseComponent {
     }
 
     #attachAvatarEvents(): void {
-        const fileInput = nn(this._element.querySelector(
-            '.profile-section__file-input'
-        ));
-        const uploadBtn = nn(this._element.querySelector(
-            '.profile-section__upload-btn'
-        ));
-        const errorEl = nn(this._element.querySelector(
-            '.profile-section__upload-error'
-        ));
+        const fileInput = nn(this._element.querySelector('.profile-section__file-input'));
+        const uploadBtn = nn(this._element.querySelector('.profile-section__upload-btn'));
+        const errorEl = nn(this._element.querySelector('.profile-section__upload-error'));
 
-        this._addListener(uploadBtn, 'click', () => { fileInput.click(); });
+        this._addListener(uploadBtn, 'click', () => {
+            fileInput.click();
+        });
 
         this._addListener(fileInput, 'change', () => {
             const file = nn(fileInput.files)[0];
@@ -112,9 +106,7 @@ export class ProfileSection extends BaseComponent {
                         this.#config.onUserUpdate(result.data);
                     }
 
-                    const avatarEl = nn(this._element.querySelector(
-                        '.profile-section__avatar'
-                    ));
+                    const avatarEl = nn(this._element.querySelector('.profile-section__avatar'));
                     avatarEl.innerHTML = '';
                     const imgEl = document.createElement('img');
                     imgEl.className = 'profile-section__avatar-img';
@@ -147,12 +139,8 @@ export class ProfileSection extends BaseComponent {
             if (!this.#usernameInput.validate()) return;
 
             const username = this.#usernameInput.getValue();
-            const status = (
-                nn(this._element.querySelector('[data-field="status"]'))
-            ).value;
-            const description = (
-                nn(this._element.querySelector('[data-field="description"]'))
-            ).value;
+            const status = nn(this._element.querySelector('[data-field="status"]')).value;
+            const description = nn(this._element.querySelector('[data-field="description"]')).value;
 
             msgEl.textContent = '';
             msgEl.className = 'profile-section__save-msg';
@@ -185,20 +173,14 @@ export class ProfileSection extends BaseComponent {
     }
 
     #attachEmailEvents(): void {
-        const changeBtn = nn(this._element.querySelector(
-            '.profile-section__email-change-btn'
-        ));
-        const emailForm = nn(this._element.querySelector(
-            '.profile-section__email-form'
-        ));
-        const emailSaveBtn = nn(this._element.querySelector(
-            '.profile-section__email-save-btn'
-        ));
+        const changeBtn = nn(this._element.querySelector('.profile-section__email-change-btn'));
+        const emailForm = nn(this._element.querySelector('.profile-section__email-form'));
+        const emailSaveBtn = nn(this._element.querySelector('.profile-section__email-save-btn'));
         const emailMsg = nn(this._element.querySelector('.profile-section__email-msg'));
 
-        const passwordWrap = nn(this._element.querySelector(
-            '.profile-section__email-password-wrap'
-        ));
+        const passwordWrap = nn(
+            this._element.querySelector('.profile-section__email-password-wrap')
+        );
         const passwordInput = new Input(passwordWrap, {
             ...TYPE_INPUT_CONFIG.PASSWORD,
             id: `email-password-${Date.now()}`,
@@ -221,9 +203,7 @@ export class ProfileSection extends BaseComponent {
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(emailSaveBtn, 'click', async () => {
-            const newEmailInput = nn(this._element.querySelector(
-                '[data-field="new_email"]'
-            ));
+            const newEmailInput = nn(this._element.querySelector('[data-field="new_email"]'));
             const newEmail = newEmailInput.value;
             const password = passwordInput.getValue();
 
@@ -264,9 +244,9 @@ export class ProfileSection extends BaseComponent {
                     this.#config.onUserUpdate(result.data);
                 }
 
-                const currentEl = nn(this._element.querySelector(
-                    '.profile-section__email-current'
-                ));
+                const currentEl = nn(
+                    this._element.querySelector('.profile-section__email-current')
+                );
                 currentEl.textContent = result.data.email;
                 emailForm.classList.add('profile-section__email-form--hidden');
                 passwordInput.unmount();

@@ -21,7 +21,9 @@ export class Heartbeat {
             return;
         }
         this.#send();
-        this.#intervalId = setInterval(() => { this.#send(); }, HEARTBEAT_INTERVAL_MS);
+        this.#intervalId = setInterval(() => {
+            this.#send();
+        }, HEARTBEAT_INTERVAL_MS);
 
         window.addEventListener('beforeunload', this.#onUnload);
     }
@@ -35,7 +37,9 @@ export class Heartbeat {
     }
 
     #send(): void {
-        this.#eventApi.trackEvent('heartbeat').catch(() => { /* noop */ });
+        this.#eventApi.trackEvent('heartbeat').catch(() => {
+            /* noop */
+        });
     }
 
     #onUnload = (): void => {

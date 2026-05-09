@@ -78,7 +78,9 @@ export class FeedbackPage {
 
     #renderForm(): void {
         this.#root.innerHTML = '';
-        this.#setEsc(() => { this.#close(); });
+        this.#setEsc(() => {
+            this.#close();
+        });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -126,17 +128,17 @@ export class FeedbackPage {
     }
 
     #attachFormEvents(modal: HTMLElement): void {
-        nn(modal
-            .querySelector('.feedback-modal__close-btn'))
-            .addEventListener('click', () => { this.#close(); });
+        nn(modal.querySelector('.feedback-modal__close-btn')).addEventListener('click', () => {
+            this.#close();
+        });
 
         const categoriesContainer = nn(modal.querySelector('.feedback-modal__categories'));
         categoriesContainer.addEventListener('click', (e: Event) => {
             const card = (e.target as HTMLElement).closest('[data-category]');
             if (!card) return;
-            categoriesContainer
-                .querySelectorAll('.feedback-modal__category-card')
-                .forEach((c) => { c.classList.remove('feedback-modal__category-card--selected'); });
+            categoriesContainer.querySelectorAll('.feedback-modal__category-card').forEach((c) => {
+                c.classList.remove('feedback-modal__category-card--selected');
+            });
             card.classList.add('feedback-modal__category-card--selected');
             this.#selectedCategory = nn(card.dataset.category);
         });
@@ -147,12 +149,10 @@ export class FeedbackPage {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
         });
 
-        nn(modal
-            .querySelector('.feedback-modal__history-btn'))
+        nn(modal.querySelector('.feedback-modal__history-btn'))
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .addEventListener('click', () => this.#renderList());
-        nn(modal
-            .querySelector('.feedback-modal__submit-btn'))
+        nn(modal.querySelector('.feedback-modal__submit-btn'))
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .addEventListener('click', () => this.#handleSubmit(modal));
     }
@@ -192,7 +192,9 @@ export class FeedbackPage {
 
     #renderSuccess(): void {
         this.#root.innerHTML = '';
-        this.#setEsc(() => { this.#close(); });
+        this.#setEsc(() => {
+            this.#close();
+        });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -218,18 +220,19 @@ export class FeedbackPage {
             </div>`;
 
         this.#root.appendChild(modal);
-        nn(modal
-            .querySelector('.feedback-modal__close-btn'))
-            .addEventListener('click', () => { this.#close(); });
-        nn(modal
-            .querySelector('.feedback-modal__history-btn'))
+        nn(modal.querySelector('.feedback-modal__close-btn')).addEventListener('click', () => {
+            this.#close();
+        });
+        nn(modal.querySelector('.feedback-modal__history-btn'))
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .addEventListener('click', () => this.#renderList());
     }
 
     async #renderList(): Promise<void> {
         this.#root.innerHTML = '';
-        this.#setEsc(() => { this.#close(); });
+        this.#setEsc(() => {
+            this.#close();
+        });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -251,9 +254,9 @@ export class FeedbackPage {
             </div>`;
 
         this.#root.appendChild(modal);
-        nn(modal
-            .querySelector('.feedback-modal__close-btn'))
-            .addEventListener('click', () => { this.#close(); });
+        nn(modal.querySelector('.feedback-modal__close-btn')).addEventListener('click', () => {
+            this.#close();
+        });
         nn(modal.querySelector('.feedback-modal__new-btn')).addEventListener('click', () => {
             this.#selectedCategory = null;
             this.#renderForm();
@@ -265,7 +268,9 @@ export class FeedbackPage {
             const data = await this.#issueApi.getIssues();
             const issues: Record<string, unknown>[] = Array.isArray(data)
                 ? data
-                : ((data as Record<string, unknown>).issues as Record<string, unknown>[] | undefined) ?? [];
+                : (((data as Record<string, unknown>).issues as
+                      | Record<string, unknown>[]
+                      | undefined) ?? []);
 
             if (issues.length === 0) {
                 listContent.innerHTML =
@@ -282,7 +287,7 @@ export class FeedbackPage {
                     STATUS_LABELS[issue.status as string] || (issue.status as string);
                 const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU');
                 const content = issue.content as string;
-                const preview = content.length > 100 ? `${content.substring(0, 100)  }...` : content;
+                const preview = content.length > 100 ? `${content.substring(0, 100)}...` : content;
 
                 card.innerHTML = `
                     <div class="feedback-modal__issue-meta">
@@ -293,9 +298,7 @@ export class FeedbackPage {
                     </div>
                     <div class="feedback-modal__issue-preview">${this.#esc(preview)}</div>`;
 
-                const deleteBtn = nn(card.querySelector(
-                    '.feedback-modal__issue-delete-btn'
-                ));
+                const deleteBtn = nn(card.querySelector('.feedback-modal__issue-delete-btn'));
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 deleteBtn.addEventListener('click', async (e: Event) => {
                     e.stopPropagation();
@@ -350,7 +353,9 @@ export class FeedbackPage {
 
     async #renderDetail(issueId: number): Promise<void> {
         this.#root.innerHTML = '';
-        this.#setEsc(() => { this.#close(); });
+        this.#setEsc(() => {
+            this.#close();
+        });
 
         const modal = document.createElement('div');
         modal.className = 'feedback-modal';
@@ -368,9 +373,9 @@ export class FeedbackPage {
             </div>`;
 
         this.#root.appendChild(modal);
-        nn(modal
-            .querySelector('.feedback-modal__close-btn'))
-            .addEventListener('click', () => { this.#close(); });
+        nn(modal.querySelector('.feedback-modal__close-btn')).addEventListener('click', () => {
+            this.#close();
+        });
 
         const body = nn(modal.querySelector('.feedback-modal__detail-body'));
 
@@ -430,9 +435,7 @@ export class FeedbackPage {
                 this.#renderList()
             );
 
-            const replyTextarea = nn(body.querySelector(
-                '.feedback-modal__reply-textarea'
-            ));
+            const replyTextarea = nn(body.querySelector('.feedback-modal__reply-textarea'));
             const replyCount = nn(body.querySelector('.feedback-modal__reply-count'));
             const replyBtn = nn(body.querySelector('.feedback-modal__reply-btn'));
             const replyError = nn(body.querySelector('.feedback-modal__reply-error'));

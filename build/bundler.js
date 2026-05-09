@@ -93,7 +93,7 @@ function wrapModule(filePath, code) {
     if (hasDefault) {
         const defaultMatch = code.match(/export\s+default\s+(?:class|function)\s+(\w+)/);
         if (defaultMatch) {
-            exportsObj += `${exportsObj ? ', ' : ''  }default: ${defaultMatch[1]}`;
+            exportsObj += `${exportsObj ? ', ' : ''}default: ${defaultMatch[1]}`;
         }
     }
 
@@ -152,7 +152,7 @@ function buildBundle(entry, outJs, htmlSrc, outHtml) {
 
     let bundle = '"use strict";\nconst __modules = {};\n\n';
     for (const fp of sorted) {
-        bundle += `${wrapModule(fp, modules.get(fp))  }\n`;
+        bundle += `${wrapModule(fp, modules.get(fp))}\n`;
     }
 
     const outJsName = path.basename(outJs);

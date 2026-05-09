@@ -52,7 +52,7 @@ function processFile(filePath, alias = null) {
             continue;
         }
 
-        result += `${line  }\n`;
+        result += `${line}\n`;
     }
 
     return result;
@@ -156,7 +156,7 @@ function transpile() {
     let css = processFile(ENTRY);
     css = substituteVariables(css);
     css = expandNesting(css);
-    css = `${css.replace(/\n{3,}/g, '\n\n').trim()  }\n`;
+    css = `${css.replace(/\n{3,}/g, '\n\n').trim()}\n`;
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     fs.writeFileSync(OUT, css, 'utf-8');
     console.log(`[scss] -> dist/app.css (${(css.length / 1024).toFixed(1)} kB)`);

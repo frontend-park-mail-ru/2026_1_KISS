@@ -35,14 +35,11 @@ export class PasswordSection extends BaseComponent {
                 placeholder: 'Текущий пароль'
             }
         );
-        this.#newInput = new Input(
-            nn(this._element.querySelector('.password-section__new-wrap')),
-            {
-                ...TYPE_INPUT_CONFIG.PASSWORD,
-                id: `pwd-new-${Date.now()}`,
-                placeholder: 'Новый пароль'
-            }
-        );
+        this.#newInput = new Input(nn(this._element.querySelector('.password-section__new-wrap')), {
+            ...TYPE_INPUT_CONFIG.PASSWORD,
+            id: `pwd-new-${Date.now()}`,
+            placeholder: 'Новый пароль'
+        });
         this.#confirmInput = new Input(
             nn(this._element.querySelector('.password-section__confirm-wrap')),
             {

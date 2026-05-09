@@ -16,7 +16,10 @@ export class NotebookApi {
         return body.data;
     }
 
-    public async getComments(notebookId: number | string, blockId: number | string): Promise<Comment[]> {
+    public async getComments(
+        notebookId: number | string,
+        blockId: number | string
+    ): Promise<Comment[]> {
         const response = await this.#http.get(
             `/notebooks/${notebookId}/blocks/${blockId}/comments`
         );

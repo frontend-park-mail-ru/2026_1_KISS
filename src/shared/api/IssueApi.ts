@@ -15,7 +15,11 @@ export class IssueApi {
         return body.data;
     }
 
-    public async createIssue(category: string, content: string, files: File[] = []): Promise<unknown> {
+    public async createIssue(
+        category: string,
+        content: string,
+        files: File[] = []
+    ): Promise<unknown> {
         if (files.length === 0) {
             const response = await this.#http.post('/issues', { category, content });
             return this.#parse(response);
@@ -24,7 +28,9 @@ export class IssueApi {
         const formData = new FormData();
         formData.append('category', category);
         formData.append('content', content);
-        files.forEach((file) => { formData.append('files', file); });
+        files.forEach((file) => {
+            formData.append('files', file);
+        });
 
         const csrfToken = this.#getCookie('csrf_token');
         const headers: Record<string, string> = {};
@@ -32,7 +38,7 @@ export class IssueApi {
             headers['X-CSRF-Token'] = csrfToken;
         }
 
-        const response = await fetch(`${this.#http.baseUrl  }/issues`, {
+        const response = await fetch(`${this.#http.baseUrl}/issues`, {
             method: 'POST',
             headers,
             body: formData,
@@ -66,7 +72,7 @@ export class IssueApi {
     }
 
     #getCookie(name: string): string {
-        const match = new RegExp(`(?:^|; )${  name  }=([^;]*)`).exec(document.cookie);
+        const match = new RegExp(`(?:^|; )${name}=([^;]*)`).exec(document.cookie);
         return match ? decodeURIComponent(match[1]) : '';
     }
 }

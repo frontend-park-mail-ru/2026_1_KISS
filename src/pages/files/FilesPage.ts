@@ -71,7 +71,9 @@ export class FilesPage {
 
         const headerConfig: Record<string, unknown> = {
             user: { username: this.#state.username, initials, avatarUrl: this.#state.avatarUrl },
-            onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
+            onProfile: () => {
+                nn(Router.getInstance()).navigate('/profile');
+            },
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -86,7 +88,9 @@ export class FilesPage {
             }
         };
         if (this.#state.isAdmin) {
-            headerConfig.onAdmin = () => { nn(Router.getInstance()).navigate('/admin'); };
+            headerConfig.onAdmin = () => {
+                nn(Router.getInstance()).navigate('/admin');
+            };
         }
         this.#header = new GreenHeader(this.#root, headerConfig);
         this.#header.render();
@@ -102,7 +106,9 @@ export class FilesPage {
         this.#filterBar = new FilterBar(container, {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onCreate: () => this.#createNotebook(),
-            onFilterChange: (filters) => { this.#onFilterChange(filters as Record<string, unknown>); }
+            onFilterChange: (filters) => {
+                this.#onFilterChange(filters as Record<string, unknown>);
+            }
         });
         this.#filterBar.mount();
 
@@ -111,7 +117,9 @@ export class FilesPage {
             onDelete: (id: string) => this.#deleteNotebook(id),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRename: (id: string, newTitle: string) => this.#renameNotebook(id, newTitle),
-            onOpen: (id: string) => { nn(Router.getInstance()).navigate(`/notebooks/${id}`); }
+            onOpen: (id: string) => {
+                nn(Router.getInstance()).navigate(`/notebooks/${id}`);
+            }
         });
         this.#filesTable.mount();
 

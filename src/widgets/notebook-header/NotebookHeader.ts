@@ -104,9 +104,7 @@ export class NotebookHeader extends BaseComponent {
         if (fileDropdown) {
             this._addListener(fileDropdown, 'click', (e: Event) => {
                 e.stopPropagation();
-                const item = (e.target as HTMLElement).closest(
-                    '[data-action]'
-                );
+                const item = (e.target as HTMLElement).closest('[data-action]');
                 if (!item) return;
                 const action = item.dataset.action;
                 if (action === 'save' && this.#config.onSave) this.#config.onSave();
@@ -131,9 +129,7 @@ export class NotebookHeader extends BaseComponent {
             if (dropdown) {
                 this._addListener(dropdown, 'click', (e: Event) => {
                     e.stopPropagation();
-                    const item = (e.target as HTMLElement).closest(
-                        '[data-action]'
-                    );
+                    const item = (e.target as HTMLElement).closest('[data-action]');
                     if (!item) return;
                     const action = item.dataset.action;
                     if (action === 'profile' && this.#config.onProfile) {
@@ -155,15 +151,15 @@ export class NotebookHeader extends BaseComponent {
         const cloudBtn = this._element.querySelector('[title="Облако"]');
         if (!cloudBtn) return;
         cloudBtn.classList.add('notebook-header__icon-btn--saving');
-        setTimeout(() => { cloudBtn.classList.remove('notebook-header__icon-btn--saving'); }, 1500);
+        setTimeout(() => {
+            cloudBtn.classList.remove('notebook-header__icon-btn--saving');
+        }, 1500);
     }
 
     async #finishEditing(): Promise<void> {
         if (!this.#isEditing) return;
 
-        const filenameSpan = nn(this._element.querySelector(
-            '.notebook-header__filename'
-        ));
+        const filenameSpan = nn(this._element.querySelector('.notebook-header__filename'));
         this.#isEditing = false;
         filenameSpan.contentEditable = 'false';
         filenameSpan.classList.remove('notebook-header__filename--editing');
@@ -186,22 +182,22 @@ export class NotebookHeader extends BaseComponent {
 
     #openMenu(): void {
         this.#isMenuOpen = true;
-        nn(this._element
-            .querySelector('.notebook-header__dropdown'))
-            .classList.add('notebook-header__dropdown--open');
-        nn(this._element
-            .querySelector('[data-menu="file"]'))
-            .classList.add('notebook-header__menu-item--active');
+        nn(this._element.querySelector('.notebook-header__dropdown')).classList.add(
+            'notebook-header__dropdown--open'
+        );
+        nn(this._element.querySelector('[data-menu="file"]')).classList.add(
+            'notebook-header__menu-item--active'
+        );
     }
 
     #closeMenu(): void {
         this.#isMenuOpen = false;
-        nn(this._element
-            .querySelector('.notebook-header__dropdown'))
-            .classList.remove('notebook-header__dropdown--open');
-        nn(this._element
-            .querySelector('[data-menu="file"]'))
-            .classList.remove('notebook-header__menu-item--active');
+        nn(this._element.querySelector('.notebook-header__dropdown')).classList.remove(
+            'notebook-header__dropdown--open'
+        );
+        nn(this._element.querySelector('[data-menu="file"]')).classList.remove(
+            'notebook-header__menu-item--active'
+        );
     }
 
     #toggleDropdown(): void {
@@ -214,22 +210,20 @@ export class NotebookHeader extends BaseComponent {
 
     #openDropdown(): void {
         this.#isDropdownOpen = true;
-        nn(this._element
-            .querySelector('.notebook-header__user-dropdown'))
-            .classList.add('header-user-dropdown_visible');
+        nn(this._element.querySelector('.notebook-header__user-dropdown')).classList.add(
+            'header-user-dropdown_visible'
+        );
     }
 
     #closeDropdown(): void {
         this.#isDropdownOpen = false;
-        nn(this._element
-            .querySelector('.notebook-header__user-dropdown'))
-            .classList.remove('header-user-dropdown_visible');
+        nn(this._element.querySelector('.notebook-header__user-dropdown')).classList.remove(
+            'header-user-dropdown_visible'
+        );
     }
 
     #startRename(): void {
-        const filenameSpan = nn(this._element.querySelector(
-            '.notebook-header__filename'
-        ));
+        const filenameSpan = nn(this._element.querySelector('.notebook-header__filename'));
         this.#originalText = filenameSpan.textContent || '';
         this.#isEditing = true;
 

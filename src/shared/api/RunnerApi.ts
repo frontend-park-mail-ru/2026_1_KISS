@@ -34,14 +34,20 @@ export class RunnerApi {
         return raw;
     }
 
-    public async executeBlock(notebookId: number | string, blockPosition: number): Promise<unknown> {
+    public async executeBlock(
+        notebookId: number | string,
+        blockPosition: number
+    ): Promise<unknown> {
         const response = await this.#http.post(
             `/runner/${notebookId}/block?block_position=${blockPosition}`
         );
         return this.#parse(response);
     }
 
-    public async executeFromPosition(notebookId: number | string, startPosition = 0): Promise<unknown> {
+    public async executeFromPosition(
+        notebookId: number | string,
+        startPosition = 0
+    ): Promise<unknown> {
         const response = await this.#http.post(
             `/runner/${notebookId}?block_position=${startPosition}`
         );
@@ -50,7 +56,9 @@ export class RunnerApi {
 
     public stopSession(notebookId: number | string): Promise<void> {
         try {
-            return this.#http.post(`/runner/${notebookId}/stop`).catch(() => { /* noop */ }) as Promise<void>;
+            return this.#http.post(`/runner/${notebookId}/stop`).catch(() => {
+                /* noop */
+            }) as Promise<void>;
         } catch {
             return Promise.resolve();
         }

@@ -89,7 +89,9 @@ export class Modal extends BaseComponent {
             cancelBtn.type = 'button';
             cancelBtn.className = 'modal-card__btn modal-card__btn--cancel';
             cancelBtn.textContent = 'Отмена';
-            cancelBtn.addEventListener('click', () => { this.close(null); });
+            cancelBtn.addEventListener('click', () => {
+                this.close(null);
+            });
 
             const submitBtn = document.createElement('button');
             submitBtn.type = 'submit';
@@ -104,9 +106,7 @@ export class Modal extends BaseComponent {
                 e.preventDefault();
                 const data: Record<string, string> = {};
                 fields.forEach(({ name }) => {
-                    const el = (form.elements).namedItem(
-                        name
-                    ) as HTMLInputElement | null;
+                    const el = form.elements.namedItem(name) as HTMLInputElement | null;
                     if (el) data[name] = el.value;
                 });
                 this.close(data);

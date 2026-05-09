@@ -81,7 +81,7 @@ export class Login extends BaseComponent {
     }
 
     async #submit(): Promise<void> {
-        (nn(this._element.querySelector('.sign-error-message'))).textContent = '';
+        nn(this._element.querySelector('.sign-error-message')).textContent = '';
         if (!this.validateFields()) return;
 
         const formData = {
@@ -98,9 +98,7 @@ export class Login extends BaseComponent {
                 } catch (_e) {
                     data = {};
                 }
-                const errorElement = this._element.querySelector(
-                    '.sign-error-message'
-                );
+                const errorElement = this._element.querySelector('.sign-error-message');
                 if (errorElement) {
                     errorElement.textContent = translateError(data.error as string);
                 }

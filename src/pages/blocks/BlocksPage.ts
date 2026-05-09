@@ -124,9 +124,17 @@ export class BlocksPage {
             onSave: () => this.#saveAll(),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onSaveAs: () => this.#exportAsIpynb(),
-            onOpen: () => { this.#importNotebook(); },
-            onProfile: () => { nn(Router.getInstance()).navigate('/profile'); },
-            onAdmin: this.#isAdmin ? () => { nn(Router.getInstance()).navigate('/admin'); } : null,
+            onOpen: () => {
+                this.#importNotebook();
+            },
+            onProfile: () => {
+                nn(Router.getInstance()).navigate('/profile');
+            },
+            onAdmin: this.#isAdmin
+                ? () => {
+                      nn(Router.getInstance()).navigate('/admin');
+                  }
+                : null,
             onFeedback: () => {
                 if (!this.#feedbackModal) this.#feedbackModal = new FeedbackModal();
                 this.#feedbackModal.open();
@@ -140,7 +148,11 @@ export class BlocksPage {
                 }
                 nn(Router.getInstance()).navigate('/sign');
             },
-            onShare: isOwner ? () => { this.#openShareModal(); } : null
+            onShare: isOwner
+                ? () => {
+                      this.#openShareModal();
+                  }
+                : null
         });
         this.#header.mount();
 
@@ -154,8 +166,7 @@ export class BlocksPage {
 
         const commentsVisible = localStorage.getItem('notebook_comments_visible') === 'true';
         const main = document.createElement('main');
-        main.className =
-            `blocks-page__main${  commentsVisible ? ' blocks-page__main--with-comments' : ''}`;
+        main.className = `blocks-page__main${commentsVisible ? ' blocks-page__main--with-comments' : ''}`;
         body.appendChild(main);
 
         this.#toolbar = new NotebookToolbar(headerArea, {
@@ -175,15 +186,21 @@ export class BlocksPage {
         this.#toolbar.mount();
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
-            onFind: (q: { query: string; caseSensitive: boolean }) => { this.#handleFind(q); },
-            onNext: (q: { query: string; caseSensitive: boolean }) =>
-                { this.#handleFindNav(q, 'next'); },
-            onPrev: (q: { query: string; caseSensitive: boolean }) =>
-                { this.#handleFindNav(q, 'prev'); },
-            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }) =>
-                { this.#handleReplace(q); },
-            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }) =>
-                { this.#handleReplaceAll(q); },
+            onFind: (q: { query: string; caseSensitive: boolean }) => {
+                this.#handleFind(q);
+            },
+            onNext: (q: { query: string; caseSensitive: boolean }) => {
+                this.#handleFindNav(q, 'next');
+            },
+            onPrev: (q: { query: string; caseSensitive: boolean }) => {
+                this.#handleFindNav(q, 'prev');
+            },
+            onReplace: (q: { query: string; replacement: string; caseSensitive: boolean }) => {
+                this.#handleReplace(q);
+            },
+            onReplaceAll: (q: { query: string; replacement: string; caseSensitive: boolean }) => {
+                this.#handleReplaceAll(q);
+            },
             notebookId: this.#notebookId
         });
         this.#sidebar.mount();
@@ -195,7 +212,9 @@ export class BlocksPage {
             canComment: this.#canComment,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRunCell: (blockId: number | string) => this.#runSingleBlock(blockId),
-            onRerender: () => { this.#reapplyCellState(); },
+            onRerender: () => {
+                this.#reapplyCellState();
+            },
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onDeleteCell: (blockId: number | string) => this.#deleteBlock(blockId),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -227,7 +246,9 @@ export class BlocksPage {
     #openWebSocket(): void {
         let skipNextResync = true;
         this.#ws = new NotebookWS(this.#notebookId, {
-            onEvent: (event: Record<string, unknown>) => { this.#handleWSEvent(event); },
+            onEvent: (event: Record<string, unknown>) => {
+                this.#handleWSEvent(event);
+            },
             onConnect: () => {
                 if (skipNextResync) {
                     skipNextResync = false;
@@ -235,7 +256,9 @@ export class BlocksPage {
                 }
                 void this.#resyncFromServer();
             },
-            onClose: () => { /* noop */ }
+            onClose: () => {
+                /* noop */
+            }
         });
         this.#ws.connect();
     }
@@ -254,7 +277,9 @@ export class BlocksPage {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
                 if (cell && cell instanceof CodeCell) {
-                    cell.setOutput({ error: typeof event.message === 'string' ? event.message : 'execution error' });
+                    cell.setOutput({
+                        error: typeof event.message === 'string' ? event.message : 'execution error'
+                    });
                     cell.setRunning(false);
                 }
                 this.#streamingBlockId = null;
@@ -278,7 +303,9 @@ export class BlocksPage {
                 break;
             case 'stdout_chunk':
                 if (this.#streamingBlockId !== null) {
-                    this.#streamingStdout.push(typeof event.message === 'string' ? event.message : '');
+                    this.#streamingStdout.push(
+                        typeof event.message === 'string' ? event.message : ''
+                    );
                     if (this.#streamingStdout.length > BlocksPage.#MAX_STREAM_LINES) {
                         this.#streamingStdout = this.#streamingStdout.slice(
                             -BlocksPage.#MAX_STREAM_LINES
@@ -289,7 +316,9 @@ export class BlocksPage {
                 break;
             case 'stderr_chunk':
                 if (this.#streamingBlockId !== null) {
-                    this.#streamingStderr.push(typeof event.message === 'string' ? event.message : '');
+                    this.#streamingStderr.push(
+                        typeof event.message === 'string' ? event.message : ''
+                    );
                     if (this.#streamingStderr.length > BlocksPage.#MAX_STREAM_LINES) {
                         this.#streamingStderr = this.#streamingStderr.slice(
                             -BlocksPage.#MAX_STREAM_LINES
@@ -306,8 +335,10 @@ export class BlocksPage {
                         this.#executionCounter += 1;
                         this.#execNumbers.set(this.#streamingBlockId, this.#executionCounter);
                         const output = {
-                            stdout: (result.stdout as string[] | undefined) ?? this.#streamingStdout,
-                            stderr: (result.stderr as string[] | undefined) ?? this.#streamingStderr,
+                            stdout:
+                                (result.stdout as string[] | undefined) ?? this.#streamingStdout,
+                            stderr:
+                                (result.stderr as string[] | undefined) ?? this.#streamingStderr,
                             result: result.result as string
                         };
                         this.#lastOutputs.set(this.#streamingBlockId, output);
@@ -340,7 +371,10 @@ export class BlocksPage {
             this.#notebook = notebook;
             if (!nn(this.#cellList).containsActiveElement()) {
                 this.#loadSavedOutputs(
-                    ((notebook.blocks as BlockData[] | undefined) ?? []) as unknown as Record<string, unknown>[]
+                    ((notebook.blocks as BlockData[] | undefined) ?? []) as unknown as Record<
+                        string,
+                        unknown
+                    >[]
                 );
                 nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
             }
@@ -508,7 +542,9 @@ export class BlocksPage {
             }
         });
 
-        codeCells.forEach((c) => { c.setRunning(true); });
+        codeCells.forEach((c) => {
+            c.setRunning(true);
+        });
 
         try {
             const results = await this.#runnerApi.executeFromPosition(this.#notebookId, 0);
@@ -561,7 +597,9 @@ export class BlocksPage {
                 }
             });
         } finally {
-            codeCells.forEach((c) => { c.setRunning(false); });
+            codeCells.forEach((c) => {
+                c.setRunning(false);
+            });
         }
     }
 
@@ -621,7 +659,7 @@ export class BlocksPage {
             const source = content
                 ? content
                       .split('\n')
-                      .map((l: string, i: number, a: string[]) => (i < a.length - 1 ? `${l  }\n` : l))
+                      .map((l: string, i: number, a: string[]) => (i < a.length - 1 ? `${l}\n` : l))
                 : [];
 
             if (!isCode) {
@@ -635,14 +673,14 @@ export class BlocksPage {
                     outputs.push({
                         output_type: 'stream',
                         name: 'stdout',
-                        text: (out.stdout as string[]).map((s: string) => `${s  }\n`)
+                        text: (out.stdout as string[]).map((s: string) => `${s}\n`)
                     });
                 }
                 if ((out.stderr as string[]).length) {
                     outputs.push({
                         output_type: 'stream',
                         name: 'stderr',
-                        text: (out.stderr as string[]).map((s: string) => `${s  }\n`)
+                        text: (out.stderr as string[]).map((s: string) => `${s}\n`)
                     });
                 }
                 if (out.result) {
@@ -690,7 +728,7 @@ export class BlocksPage {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${(this.#notebook?.title as string) || 'Untitled'  }.ipynb`;
+        a.download = `${(this.#notebook?.title as string) || 'Untitled'}.ipynb`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -808,11 +846,13 @@ export class BlocksPage {
     }
 
     #collectSearchableCells(): { id: number | string; kind: 'code' | 'text'; content: string }[] {
-        return nn(this.#cellList).getAllCells().map((c) => ({
-            id: c.getBlockId(),
-            kind: (c instanceof CodeCell ? 'code' : 'text'),
-            content: c.getContent()
-        }));
+        return nn(this.#cellList)
+            .getAllCells()
+            .map((c) => ({
+                id: c.getBlockId(),
+                kind: c instanceof CodeCell ? 'code' : 'text',
+                content: c.getContent()
+            }));
     }
 
     #handleFind({ query, caseSensitive }: { query: string; caseSensitive: boolean }): void {
@@ -838,9 +878,12 @@ export class BlocksPage {
     }
 
     #focusCurrentMatch(): void {
-        nn(this.#cellList).getAllCells()
+        nn(this.#cellList)
+            .getAllCells()
             .filter((c): c is TextCell => c instanceof TextCell)
-            .forEach((c) => { c.clearHighlights(); });
+            .forEach((c) => {
+                c.clearHighlights();
+            });
 
         const m = this.#findEngine.current();
         if (!m) return;

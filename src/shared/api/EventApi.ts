@@ -7,7 +7,10 @@ export class EventApi {
         this.#http = HttpClient.getInstance();
     }
 
-    public trackEvent(eventType: string, metadata: Record<string, unknown> = {}): Promise<Response> {
+    public trackEvent(
+        eventType: string,
+        metadata: Record<string, unknown> = {}
+    ): Promise<Response> {
         return this.#http.post('/events/track', {
             event_type: eventType,
             metadata: JSON.stringify(metadata)
