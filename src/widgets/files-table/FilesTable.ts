@@ -152,6 +152,7 @@ export class FilesTable extends BaseComponent {
         const tbody = nn(this._element.querySelector('.files-table__body'));
         tbody.innerHTML = '';
 
+        // eslint-disable-next-line max-statements -- TODO(refactor): extract row-builder into private #buildRow helper; pre-existing tech debt
         sorted.forEach((nb) => {
             const tr = document.createElement('tr');
             tr.className = 'files-table__row';

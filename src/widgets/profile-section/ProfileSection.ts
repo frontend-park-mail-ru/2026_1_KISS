@@ -275,7 +275,7 @@ export class ProfileSection extends BaseComponent {
             }
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async event handler
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises, max-statements -- async event handler; TODO(refactor): split email-change flow into helper; pre-existing tech debt
         this._addListener(emailSaveBtn, 'click', async () => {
             const newEmailInput = nn(
                 this._element.querySelector<HTMLInputElement>('[data-field="new_email"]')
