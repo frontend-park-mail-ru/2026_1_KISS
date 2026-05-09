@@ -1,3 +1,9 @@
+/**
+ * Рендерит секцию статистики профиля: карточка квоты с progress-bar, инфо-блок
+ * (даты), KPI-карточки (notebook'и/блоки/запуски), график запусков за 30 дней,
+ * блок storage. Все числовые значения и график заполняются динамически.
+ * @returns HTML-разметка для innerHTML
+ */
 export function StatsSectionTemplate(): string {
     return `<div class="stats-section">
     <h2 class="stats-section__title">Статистика</h2>

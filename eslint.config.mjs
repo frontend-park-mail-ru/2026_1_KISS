@@ -7,7 +7,8 @@ import tseslint from 'typescript-eslint';
 const jsdocRequiredFiles = [
     'src/sw.ts',
     'src/shared/**/*.ts',
-    'src/app/**/*.ts'
+    'src/app/**/*.ts',
+    'src/widgets/**/*.template.ts'
 ];
 
 const jsdocRules = {

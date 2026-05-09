@@ -1,3 +1,8 @@
+/**
+ * Рендерит баннер с информацией о тарифе: план, прогресс-бар квоты,
+ * хранилище, количество ноутбуков. Значения подставляются по data-field.
+ * @returns HTML-разметка для innerHTML
+ */
 export function ResourceBannerTemplate(): string {
     return `<div class="resource-banner">
     <div class="resource-banner__item">

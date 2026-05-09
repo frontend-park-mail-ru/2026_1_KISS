@@ -1,3 +1,9 @@
+/**
+ * Рендерит панель фильтров FilesPage: поиск по названию, dropdown с диапазоном
+ * дат (от-до), dropdown владельца, теги активных фильтров, кнопка "очистить",
+ * кнопка "+ Создать файл".
+ * @returns HTML-разметка для innerHTML
+ */
 export function FilterBarTemplate(): string {
     return `<div class="filter-bar">
     <div class="filter-bar__filters">

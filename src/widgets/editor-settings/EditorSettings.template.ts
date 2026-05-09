@@ -1,3 +1,8 @@
+/**
+ * Рендерит панель настроек редактора (размер шрифта и табуляции).
+ * Все select помечены data-setting для автоматической персистенции в localStorage.
+ * @returns HTML-разметка для innerHTML
+ */
 export function EditorSettingsTemplate(): string {
     return `<div class="editor-settings">
     <h2 class="editor-settings__title">Настройки редактора</h2>

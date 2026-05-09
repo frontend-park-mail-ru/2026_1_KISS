@@ -1,22 +1,46 @@
 import { escapeHtml } from '../../shared/utils/escapeHtml.js';
 
+/**
+ * Кнопка в правой части шапки для гостевых страниц (Войти/Регистрация).
+ */
 interface HeaderButton {
+    /** Текст кнопки */
     text: string;
+    /** Дополнительный CSS-класс */
     class: string;
+    /** Идентификатор действия (попадает в data-action) */
     action: string;
 }
 
+/**
+ * Контекст шаблона шапки. Если задан user — показывается user-pill с dropdown'ом,
+ * иначе — массив buttons (для гостей: Войти/Регистрация).
+ */
 interface GreenHeaderTemplateCtx {
+    /** Путь к логотипу */
     logo: string;
+    /** Данные текущего пользователя (для авторизованных) */
     user?: {
+        /** URL аватара */
         avatarUrl?: string;
+        /** Инициалы для дефолтного аватара */
         initials: string;
+        /** Логин для отображения */
         username: string;
     };
+    /** Не-undefined если пользователь — админ (показывает пункт "Админ-панель") */
     onAdmin?: unknown;
+    /** Кнопки для гостей */
     buttons?: HeaderButton[];
 }
 
+/**
+ * Рендерит зелёную шапку приложения. Для авторизованных пользователей показывает
+ * user-pill с dropdown (Профиль/Админка/Обратная связь/Выйти), для гостей —
+ * набор кнопок переданных через ctx.buttons.
+ * @param ctx - контекст шаблона (логотип, пользователь или кнопки)
+ * @returns HTML-разметка для innerHTML
+ */
 export function GreenHeaderTemplate(ctx: GreenHeaderTemplateCtx): string {
     return `<header class="green-header">
     <div class="header-container">

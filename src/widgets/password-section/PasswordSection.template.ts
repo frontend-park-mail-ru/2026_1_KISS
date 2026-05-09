@@ -1,3 +1,8 @@
+/**
+ * Рендерит секцию смены пароля: три wrap'а для динамически монтируемых полей
+ * Input (текущий/новый/повтор), кнопка отправки, место для сообщения.
+ * @returns HTML-разметка для innerHTML
+ */
 export function PasswordSectionTemplate(): string {
     return `<div class="password-section">
     <h2 class="password-section__title">Смена пароля</h2>

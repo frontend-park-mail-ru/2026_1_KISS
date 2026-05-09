@@ -1,3 +1,8 @@
+/**
+ * Рендерит секцию управления подпиской в профиле. Сейчас статичная — показывает
+ * текущий план (бесплатный) и плейсхолдер "скоро будет выбор тарифов".
+ * @returns HTML-разметка для innerHTML
+ */
 export function SubscriptionSectionTemplate(): string {
     return `<div class="subscription-section">
     <h2 class="subscription-section__title">Подписка</h2>
