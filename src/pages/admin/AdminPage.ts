@@ -95,7 +95,7 @@ export class AdminPage {
                 return;
             }
             const { data: user } = (await response.json()) as { data: Record<string, unknown> };
-            if (!Boolean(user.is_admin)) {
+            if (user.is_admin !== true) {
                 nn(Router.getInstance()).navigate('/files');
                 return;
             }
@@ -272,10 +272,10 @@ export class AdminPage {
 
                 const cat = issueStats.by_category;
                 const categoryData = [
-                    { label: 'Ошибки', count: cat.bug ?? 0 },
-                    { label: 'Предложения', count: cat.idea ?? 0 },
-                    { label: 'Проблемы', count: cat.problem ?? 0 },
-                    { label: 'Общее', count: cat.feedback ?? 0 }
+                    { label: 'Ошибки', count: cat.bug },
+                    { label: 'Предложения', count: cat.idea },
+                    { label: 'Проблемы', count: cat.problem },
+                    { label: 'Общее', count: cat.feedback }
                 ];
                 this.#renderTimeSeriesChart(
                     'Обращения по категориям',
@@ -495,7 +495,7 @@ export class AdminPage {
                 let statusBadge = '';
                 if (isBanned) {
                     statusBadge = '<span class="admin-badge admin-badge--banned">banned</span>';
-                } else if (!Boolean(user.is_verified)) {
+                } else if (user.is_verified !== true) {
                     statusBadge =
                         '<span class="admin-badge admin-badge--freeze">не подтверждён</span>';
                 }
@@ -618,7 +618,7 @@ export class AdminPage {
         const result = await nn(this.#modal).open('Сменить пароль', [
             { name: 'password', label: 'Новый пароль (минимум 8 символов)', type: 'password' }
         ]);
-        if (result === null || result.password === undefined || result.password === '') return;
+        if (result?.password === undefined || result.password === '') return;
         try {
             await this.#adminApi.resetPassword(user.id as string | number, result.password);
             // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
@@ -654,15 +654,7 @@ export class AdminPage {
             { name: 'subject', label: 'Тема', type: 'text' },
             { name: 'body', label: 'Сообщение', type: 'textarea' }
         ]);
-        if (
-            result === null ||
-            result.subject === undefined ||
-            result.subject === '' ||
-            result.body === undefined ||
-            result.body === ''
-        ) {
-            return;
-        }
+        if (result === null || result.subject === '' || result.body === '') return;
         try {
             await this.#adminApi.sendEmail(user.email as string, result.subject, result.body);
             // eslint-disable-next-line no-alert -- admin-only confirmation/notification dialog
@@ -763,7 +755,7 @@ export class AdminPage {
             const tbody = document.createElement('tbody');
             notebooks.forEach((nb) => {
                 const tr = document.createElement('tr');
-                const accessBadge = Boolean(nb.is_public)
+                const accessBadge = nb.is_public !== undefined && nb.is_public !== null
                     ? '<span class="admin-badge admin-badge--active">public</span>'
                     : '<span class="admin-badge">private</span>';
 
@@ -1085,10 +1077,10 @@ export class AdminPage {
                             hour: '2-digit',
                             minute: '2-digit'
                         });
-                        const author = Boolean(m.is_admin)
+                        const author = m.is_admin !== undefined && m.is_admin !== null
                             ? 'Администратор'
                             : (m.username as string) || `User #${String(m.user_id)}`;
-                        const cls = Boolean(m.is_admin)
+                        const cls = m.is_admin !== undefined && m.is_admin !== null
                             ? 'admin-issue-detail__message--admin'
                             : 'admin-issue-detail__message--user';
                         return `<div class="admin-issue-detail__message ${cls}">

@@ -51,7 +51,7 @@ export function ansiToHtml(text: string): string {
                 }
             } else {
                 const style = codeToStyle(code);
-                if (Boolean(style)) {
+                if (style !== null) {
                     result += `<span style="${style}">`;
                     openSpans++;
                 }

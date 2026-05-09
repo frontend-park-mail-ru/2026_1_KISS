@@ -35,9 +35,8 @@ export class EditorSettings extends BaseComponent {
             );
             selects.forEach((select) => {
                 const key = nn(select.dataset.setting);
-                const value = saved[key];
-                if (value !== undefined) {
-                    select.value = value;
+                if (Object.hasOwn(saved, key)) {
+                    select.value = saved[key];
                 }
             });
         } catch (_e) {

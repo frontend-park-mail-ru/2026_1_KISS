@@ -40,6 +40,7 @@ export class StatsApi {
         if (!response.ok) {
             throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
-        return body.data!;
+        if (!body.data) throw new Error('Empty response data');
+        return body.data;
     }
 }

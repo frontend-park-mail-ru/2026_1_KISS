@@ -214,7 +214,7 @@ export type NotebookEventType =
     | 'comment_deleted';
 
 export interface NotebookEventDTO {
-    type: NotebookEventType | string;
+    type: string;
     notebook_id?: number;
     actor_id?: number;
     block?: BlockDTO;

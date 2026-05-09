@@ -130,7 +130,7 @@ export class FilesTable extends BaseComponent {
 
             const ownerCell = document.createElement('td');
             ownerCell.className = 'files-table__cell';
-            ownerCell.textContent = Boolean(nb._isShared)
+            ownerCell.textContent = nb._isShared === true
                 ? (nb.owner_username ?? '\u2014')
                 : this.#ownerName;
 
@@ -152,7 +152,7 @@ export class FilesTable extends BaseComponent {
                 });
             }
 
-            if (!Boolean(nb._isShared)) {
+            if (nb._isShared !== true) {
                 const actions = [];
                 if (this.#onRename) {
                     actions.push({
@@ -298,9 +298,9 @@ export class FilesTable extends BaseComponent {
         this._element.querySelectorAll('.files-table__sort-arrow').forEach((el) => {
             el.classList.remove('files-table__sort-arrow_active');
         });
-        if (Boolean(this.#sortField)) {
+        if ((this.#sortField ?? '') !== '') {
             const option = this._element.querySelector(
-                `.files-table__sort-option[data-sort="${this.#sortField}"]`
+                `.files-table__sort-option[data-sort="${String(this.#sortField)}"]`
             );
             if (option) {
                 const arrow = option.querySelector(

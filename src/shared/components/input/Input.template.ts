@@ -13,7 +13,7 @@ export function InputTemplate(ctx: {
     disabled?: boolean;
     isPassword?: boolean;
 }): string {
-    return `<div class="input-wrapper ${Boolean(ctx.error) ? 'input-wrapper_error' : ''} ${Boolean(ctx.disabled) ? 'input-wrapper_disabled' : ''}">
+    return `<div class="input-wrapper ${(ctx.error ?? '') !== '' ? 'input-wrapper_error' : ''} ${ctx.disabled === true ? 'input-wrapper_disabled' : ''}">
     <div class="input-field-container">
         <input
                 type="${escapeHtml(ctx.type)}"
@@ -21,13 +21,13 @@ export function InputTemplate(ctx: {
                 value="${escapeHtml(ctx.value)}"
                 placeholder="${escapeHtml(ctx.placeholder)}"
                 class="input-field"
-            ${Boolean(ctx.required) ? 'required' : ''}
-            ${Boolean(ctx.pattern) ? `pattern="${escapeHtml(ctx.pattern)}"` : ''}
-            ${Boolean(ctx.minlength) ? `minlength="${escapeHtml(ctx.minlength)}"` : ''}
-            ${Boolean(ctx.maxlength) ? `maxlength="${escapeHtml(ctx.maxlength)}"` : ''}
+            ${ctx.required === true ? 'required' : ''}
+            ${(ctx.pattern ?? '') !== '' ? `pattern="${escapeHtml(ctx.pattern)}"` : ''}
+            ${(ctx.minlength ?? 0) !== 0 ? `minlength="${escapeHtml(ctx.minlength)}"` : ''}
+            ${(ctx.maxlength ?? 0) !== 0 ? `maxlength="${escapeHtml(ctx.maxlength)}"` : ''}
         />
         ${
-            Boolean(ctx.isPassword)
+            ctx.isPassword === true
                 ? `<button type="button" class="toggle-password-btn" aria-label="Показать пароль">
                 <img class="eye-icon eye-icon_closed" src="/images/eye-closed.svg" alt="Показать пароль"/>
                 <img class="eye-icon eye-icon_open eye-icon_hidden" src="/images/eye-open.svg" alt="Скрыть пароль"/>
