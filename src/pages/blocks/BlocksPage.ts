@@ -1,25 +1,40 @@
+/* eslint-disable max-lines -- TODO(refactor): extract BlockExecutor (#runSingleBlock + #runAllBlocks) into shared/domain/notebook/, ~120 строк уйдёт; уже срезано 35% от исходных 1179 */
 import { NotebookHeader } from '../../widgets/notebook-header/NotebookHeader.js';
 import { NotebookToolbar } from '../../widgets/notebook-toolbar/NotebookToolbar.js';
-import { NotebookSidebar } from '../../widgets/notebook-sidebar/NotebookSidebar.js';
+import {
+    NotebookSidebar,
+    type NotebookSearchAdapter,
+    type SearchMatch,
+    type SearchableCellSnapshot
+} from '../../widgets/notebook-sidebar/NotebookSidebar.js';
 import { CellList } from '../../widgets/cell-list/CellList.js';
 import { CodeCell } from '../../shared/components/code-cell/CodeCell.js';
 import { TextCell } from '../../shared/components/text-cell/TextCell.js';
 import type { BlockData } from '../../shared/types.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
+import { NotebookApi } from '../../shared/api/NotebookApi.js';
+import { NotebookModel } from '../../shared/domain/notebook/NotebookModel.js';
+import { NotebookPermissions } from '../../shared/domain/permissions/NotebookPermissions.js';
+import {
+    cellsToIpynb,
+    ipynbToBlocks,
+    type CellOutput,
+    type ExportCell
+} from '../../shared/domain/notebook/nbformat.js';
+import {
+    ExecutionState,
+    runnerResultToCellOutput
+} from '../../shared/domain/notebook/ExecutionState.js';
+import { StreamBuffer } from '../../shared/domain/streaming/StreamBuffer.js';
+import { createWsHandler } from './BlocksPage.events.js';
 import { RunnerApi } from '../../shared/api/RunnerApi.js';
-import { FindEngine } from '../../shared/search/FindEngine.js';
 import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
-import type {
-    ApiEnvelope,
-    NotebookDTO,
-    PermissionListResponse,
-    UserDTO
-} from '../../shared/api/types.js';
+import type { ApiEnvelope, PermissionDTO, UserDTO } from '../../shared/api/types.js';
 
 /**
  * Минимальный контракт ячейки для операций сохранения её содержимого.
@@ -41,8 +56,8 @@ interface CellContentSource {
  * .ipynb и live-синхронизацию изменений других пользователей через WS-события.
  *
  * Стриминг исполнения: stdout/stderr приходят чанками и аккумулируются в
- * #streamingStdout/#streamingStderr с throttle-рендером через #scheduleStreamRender,
- * чтобы не перерисовывать ячейку на каждый чанк.
+ * StreamBuffer (#streamBuffer) с throttle-flush'ем, чтобы не перерисовывать
+ * ячейку на каждый чанк.
  */
 export class BlocksPage {
     #root: HTMLElement;
@@ -51,23 +66,19 @@ export class BlocksPage {
     #toolbar: NotebookToolbar | null = null;
     #sidebar: NotebookSidebar | null = null;
     #cellList: CellList | null = null;
-    #notebook: Record<string, unknown> | null = null;
+    #model: NotebookModel | null = null;
     #userId: number | null = null;
     #username = '';
     #avatarUrl = '';
     #isAdmin = false;
-    #isOwner = false;
-    #canComment = false;
+    #perms: NotebookPermissions | null = null;
     #httpClient: HttpClient;
+    #notebookApi: NotebookApi;
     #runnerApi: RunnerApi;
 
-    #executionCounter = 0;
-    #execNumbers = new Map<number | string, number>();
-    #lastOutputs = new Map<number | string, Record<string, unknown>>();
+    #execState = new ExecutionState();
     #beforeUnloadHandler: (() => void) | null = null;
     #feedbackModal: FeedbackModal | null = null;
-
-    #findEngine: FindEngine = new FindEngine();
 
     #shareModal: ShareModal | null = null;
 
@@ -83,7 +94,16 @@ export class BlocksPage {
         this.#root = root;
         this.#notebookId = params.id;
         this.#httpClient = HttpClient.getInstance();
+        this.#notebookApi = new NotebookApi();
         this.#runnerApi = new RunnerApi();
+        this.#streamBuffer = new StreamBuffer({
+            onFlush: (blockId, stdout, stderr): void => {
+                const cell = this.#cellList?.getCellByBlockId(blockId);
+                if (cell instanceof CodeCell) {
+                    cell.setOutput({ stdout, stderr });
+                }
+            }
+        });
     }
 
     /**
@@ -113,58 +133,41 @@ export class BlocksPage {
         }
 
         try {
-            const response = await this.#httpClient.get(`/notebooks/${this.#notebookId}`);
-            if (!response.ok) {
-                nn(Router.getInstance()).navigate('/files');
-                return;
-            }
-            const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
-            this.#notebook = body.data as unknown as Record<string, unknown>;
+            const notebook = await this.#notebookApi.getNotebook(this.#notebookId);
+            this.#model = new NotebookModel(notebook);
         } catch (_e) {
             nn(Router.getInstance()).navigate('/files');
             return;
         }
 
-        this.#isOwner = nn(this.#notebook).owner_id === this.#userId;
-        this.#canComment = this.#isOwner;
-        if (!this.#canComment) {
+        if (nn(this.#model).isOwner(this.#userId)) {
+            this.#perms = NotebookPermissions.forOwner();
+        } else {
+            let permissions: PermissionDTO[] = [];
             try {
-                const permResponse = await this.#httpClient.get(
-                    `/notebooks/${this.#notebookId}/permissions`
-                );
-                if (permResponse.ok) {
-                    const body = (await permResponse.json()) as ApiEnvelope<PermissionListResponse>;
-                    const perms = body.data.permissions;
-                    const mine = perms.find((p) => p.user_id === this.#userId);
-                    this.#canComment = mine?.permission_level === 'editor';
-                }
+                permissions = (await this.#notebookApi.getPermissions(this.#notebookId))
+                    .permissions;
             } catch {
                 /* ignore */
             }
+            this.#perms = NotebookPermissions.forSharedUser(permissions, this.#userId);
         }
 
         this.#buildLayout();
     }
 
     /**
-     * Создаёт всю DOM-композицию страницы: NotebookHeader (с пунктами меню в
-     * зависимости от прав), NotebookToolbar (Run All / добавить ячейку / комментарии),
-     * NotebookSidebar (поиск/замена/история), CellList (сами ячейки).
-     * Подключает обработчик beforeunload для остановки runner-сессии и
-     * открывает WebSocket для real-time событий.
+     * Создаёт NotebookHeader с пунктами меню (зависят от прав) и монтирует
+     * его в headerArea. Извлечено из #buildLayout, чтобы тот укладывался
+     * в лимиты по длине метода.
+     * @param headerArea - контейнер для шапки
      */
-    #buildLayout(): void {
-        const page = document.createElement('div');
-        page.className = 'blocks-page';
-
-        const headerArea = document.createElement('div');
-        headerArea.className = 'blocks-page__header-area';
-        page.appendChild(headerArea);
-
+    #buildHeader(headerArea: HTMLElement): void {
         const initials = this.#username.substring(0, 2).toUpperCase();
-        const isOwner = nn(this.#notebook).owner_id === this.#userId;
+        const model = nn(this.#model);
+        const isOwner = model.isOwner(this.#userId);
         this.#header = new NotebookHeader(headerArea, {
-            filename: (nn(this.#notebook).title as string) || 'Untitled',
+            filename: model.title || 'Untitled',
             user: { username: this.#username, initials, avatarUrl: this.#avatarUrl },
             isOwner,
             onRename: isOwner
@@ -205,6 +208,22 @@ export class BlocksPage {
                 : null
         });
         this.#header.mount();
+    }
+
+    /**
+     * Создаёт всю DOM-композицию страницы: NotebookHeader (через #buildHeader),
+     * NotebookToolbar, NotebookSidebar, CellList. Подключает beforeunload и
+     * открывает WebSocket.
+     */
+    #buildLayout(): void {
+        const page = document.createElement('div');
+        page.className = 'blocks-page';
+
+        const headerArea = document.createElement('div');
+        headerArea.className = 'blocks-page__header-area';
+        page.appendChild(headerArea);
+
+        this.#buildHeader(headerArea);
 
         const body = document.createElement('div');
         body.className = 'blocks-page__body';
@@ -236,29 +255,7 @@ export class BlocksPage {
         this.#toolbar.mount();
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
-            onFind: (q: { query: string; caseSensitive: boolean }): void => {
-                this.#handleFind(q);
-            },
-            onNext: (q: { query: string; caseSensitive: boolean }): void => {
-                this.#handleFindNav(q, 'next');
-            },
-            onPrev: (q: { query: string; caseSensitive: boolean }): void => {
-                this.#handleFindNav(q, 'prev');
-            },
-            onReplace: (q: {
-                query: string;
-                replacement: string;
-                caseSensitive: boolean;
-            }): void => {
-                this.#handleReplace(q);
-            },
-            onReplaceAll: (q: {
-                query: string;
-                replacement: string;
-                caseSensitive: boolean;
-            }): void => {
-                this.#handleReplaceAll(q);
-            },
+            searchTarget: this.#buildSearchAdapter(),
             notebookId: this.#notebookId
         });
         this.#sidebar.mount();
@@ -266,8 +263,8 @@ export class BlocksPage {
         this.#cellList = new CellList(main, {
             notebookId: this.#notebookId,
             currentUserId: nn(this.#userId),
-            isOwner: this.#isOwner,
-            canComment: this.#canComment,
+            isOwner: nn(this.#perms).isOwner,
+            canComment: nn(this.#perms).canComment,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRunCell: (blockId: number | string): Promise<void> => this.#runSingleBlock(blockId),
             onRerender: (): void => {
@@ -289,8 +286,8 @@ export class BlocksPage {
 
         this.#root.appendChild(page);
 
-        const blocks = (nn(this.#notebook).blocks as BlockData[] | undefined) ?? [];
-        this.#loadSavedOutputs(blocks as unknown as Record<string, unknown>[]);
+        const blocks = nn(this.#model).blocks as unknown as BlockData[];
+        this.#execState.loadFromServerBlocks(blocks as unknown as Record<string, unknown>[]);
         this.#cellList.updateBlocks(blocks);
         this.#cellList.toggleComments(commentsVisible);
 
@@ -309,10 +306,19 @@ export class BlocksPage {
      */
     #openWebSocket(): void {
         let skipNextResync = true;
-        this.#ws = new NotebookWS(this.#notebookId, {
-            onEvent: (event: Record<string, unknown>): void => {
-                this.#handleWSEvent(event);
+        const wsHandler = createWsHandler({
+            streamBuffer: this.#streamBuffer,
+            execState: this.#execState,
+            getCellList: (): CellList | null => this.#cellList,
+            onStreamComplete: (): void => {
+                if (this.#streamingResolve) this.#streamingResolve();
             },
+            onResync: (): void => {
+                void this.#resyncFromServer();
+            }
+        });
+        this.#ws = new NotebookWS(this.#notebookId, {
+            onEvent: wsHandler,
             onConnect: (): void => {
                 if (skipNextResync) {
                     skipNextResync = false;
@@ -328,105 +334,7 @@ export class BlocksPage {
     }
 
     #streamingResolve: (() => void) | null = null;
-    #streamingBlockId: number | string | null = null;
-    #streamingStdout: string[] = [];
-    #streamingStderr: string[] = [];
-    #streamingRenderPending = false;
-    static readonly #MAX_STREAM_LINES = 1000;
-    static readonly #STREAM_THROTTLE_MS = 200;
-
-    /**
-     * Главный диспетчер WebSocket-событий от Runner'а и других клиентов.
-     * Обрабатывает: ошибки исполнения, добавление/обновление/удаление блоков
-     * и комментариев, обновление notebook-метаданных, стрим stdout/stderr и
-     * финальный execute_completed. Стрим-чанки буферизуются и рендерятся
-     * через throttle (#scheduleStreamRender), чтобы избежать рендер-шторма.
-     * @param event - сообщение WS с обязательным полем `type`
-     */
-    #handleWSEvent(event: Record<string, unknown>): void {
-        if (typeof event.type !== 'string' || event.type === '') return;
-        if (event.type === 'error' || event.type === 'execute_error') {
-            if (this.#streamingBlockId !== null) {
-                const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
-                if (cell && cell instanceof CodeCell) {
-                    cell.setOutput({
-                        error: typeof event.message === 'string' ? event.message : 'execution error'
-                    });
-                    cell.setRunning(false);
-                }
-                this.#streamingBlockId = null;
-                if (this.#streamingResolve) this.#streamingResolve();
-            }
-            return;
-        }
-
-        switch (event.type) {
-            case 'block_added':
-            case 'block_updated':
-            case 'block_deleted':
-            case 'comment_added':
-            case 'comment_deleted':
-                nn(this.#cellList).applyRemoteEvent(
-                    event as { type: string; block?: BlockData; block_id?: string | number }
-                );
-                break;
-            case 'notebook_updated':
-                void this.#resyncFromServer();
-                break;
-            case 'stdout_chunk':
-                if (this.#streamingBlockId !== null) {
-                    this.#streamingStdout.push(
-                        typeof event.message === 'string' ? event.message : ''
-                    );
-                    if (this.#streamingStdout.length > BlocksPage.#MAX_STREAM_LINES) {
-                        this.#streamingStdout = this.#streamingStdout.slice(
-                            -BlocksPage.#MAX_STREAM_LINES
-                        );
-                    }
-                    this.#scheduleStreamRender();
-                }
-                break;
-            case 'stderr_chunk':
-                if (this.#streamingBlockId !== null) {
-                    this.#streamingStderr.push(
-                        typeof event.message === 'string' ? event.message : ''
-                    );
-                    if (this.#streamingStderr.length > BlocksPage.#MAX_STREAM_LINES) {
-                        this.#streamingStderr = this.#streamingStderr.slice(
-                            -BlocksPage.#MAX_STREAM_LINES
-                        );
-                    }
-                    this.#scheduleStreamRender();
-                }
-                break;
-            case 'execute_completed': {
-                if (this.#streamingBlockId !== null) {
-                    const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
-                    const result = (event.block ?? {}) as Record<string, unknown>;
-                    if (cell && cell instanceof CodeCell) {
-                        this.#executionCounter += 1;
-                        this.#execNumbers.set(this.#streamingBlockId, this.#executionCounter);
-                        const output = {
-                            stdout:
-                                (result.stdout as string[] | undefined) ?? this.#streamingStdout,
-                            stderr:
-                                (result.stderr as string[] | undefined) ?? this.#streamingStderr,
-                            result: result.result as string
-                        };
-                        this.#lastOutputs.set(this.#streamingBlockId, output);
-                        cell.setExecutionNumber(this.#executionCounter);
-                        cell.setOutput(output);
-                        cell.setRunning(false);
-                    }
-                    this.#streamingBlockId = null;
-                    if (this.#streamingResolve) this.#streamingResolve();
-                }
-                break;
-            }
-            default:
-                break;
-        }
-    }
+    #streamBuffer: StreamBuffer;
 
     /**
      * Перезагружает блокнот с сервера (no-cache) и заменяет локальное состояние,
@@ -436,20 +344,19 @@ export class BlocksPage {
     async #resyncFromServer(): Promise<void> {
         if (!this.#notebookId) return;
         try {
-            const response = await this.#httpClient.get(`/notebooks/${this.#notebookId}`, {
+            const notebook = await this.#notebookApi.getNotebook(this.#notebookId, {
                 noCache: true
             });
-            if (!response.ok) return;
-            const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
-            const notebook = body.data;
             const newTitle = notebook.title || 'Untitled';
-            if (this.#notebook && newTitle !== this.#notebook.title && this.#header) {
+            if (this.#model && newTitle !== this.#model.title && this.#header) {
                 this.#header.setFilename(newTitle);
             }
-            this.#notebook = notebook as unknown as Record<string, unknown>;
+            nn(this.#model).replaceFrom(notebook);
             if (!nn(this.#cellList).containsActiveElement()) {
                 const blocks = (notebook.blocks ?? []) as unknown as BlockData[];
-                this.#loadSavedOutputs(blocks as unknown as Record<string, unknown>[]);
+                this.#execState.loadFromServerBlocks(
+                    blocks as unknown as Record<string, unknown>[]
+                );
                 nn(this.#cellList).updateBlocks(blocks);
             }
         } catch {
@@ -465,9 +372,7 @@ export class BlocksPage {
      */
     async #saveCodeCellContent(blockId: number | string, content: string): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
-                content
-            });
+            await this.#notebookApi.updateBlockContent(this.#notebookId, blockId, content);
         } catch {
             /* tolerate */
         }
@@ -481,9 +386,7 @@ export class BlocksPage {
      */
     async #saveTextCellContent(blockId: number | string, content: string): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
-                content
-            });
+            await this.#notebookApi.updateBlockContent(this.#notebookId, blockId, content);
         } catch {
             /* tolerate */
         }
@@ -525,23 +428,12 @@ export class BlocksPage {
     async #createBlock(type: string): Promise<void> {
         await this.#saveAllTextCells();
         try {
-            const body: Record<string, string> = { type, content: '' };
-            if (type === 'code') {
-                body.language = 'python';
-            }
-            const response = await this.#httpClient.post(
-                `/notebooks/${this.#notebookId}/blocks`,
-                body
-            );
-            if (!response.ok) return;
-
-            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`, {
+            await this.#notebookApi.createBlock(this.#notebookId, type);
+            const reloaded = await this.#notebookApi.getNotebook(this.#notebookId, {
                 noCache: true
             });
-            if (!reloadResponse.ok) return;
-            const reloaded = (await reloadResponse.json()) as ApiEnvelope<NotebookDTO>;
-            this.#notebook = reloaded.data as unknown as Record<string, unknown>;
-            nn(this.#cellList).updateBlocks((reloaded.data.blocks ?? []) as unknown as BlockData[]);
+            nn(this.#model).replaceFrom(reloaded);
+            nn(this.#cellList).updateBlocks((reloaded.blocks ?? []) as unknown as BlockData[]);
         } catch (e: unknown) {
             logError('Failed to create block:', e);
         }
@@ -555,45 +447,16 @@ export class BlocksPage {
      */
     async #deleteBlock(blockId: number | string): Promise<void> {
         try {
-            const response = await this.#httpClient.delete(
-                `/notebooks/${this.#notebookId}/blocks/${String(blockId)}`
-            );
-            if (!response.ok) return;
-
-            const reloadResponse = await this.#httpClient.get(`/notebooks/${this.#notebookId}`, {
+            await this.#notebookApi.deleteBlock(this.#notebookId, blockId);
+            const reloaded = await this.#notebookApi.getNotebook(this.#notebookId, {
                 noCache: true
             });
-            if (!reloadResponse.ok) return;
-            const reloaded = (await reloadResponse.json()) as ApiEnvelope<NotebookDTO>;
-            this.#notebook = reloaded.data as unknown as Record<string, unknown>;
-            nn(this.#cellList).updateBlocks((reloaded.data.blocks ?? []) as unknown as BlockData[]);
-            this.#execNumbers.delete(blockId);
-            this.#lastOutputs.delete(blockId);
+            nn(this.#model).replaceFrom(reloaded);
+            nn(this.#cellList).updateBlocks((reloaded.blocks ?? []) as unknown as BlockData[]);
+            this.#execState.discard(blockId);
         } catch (e: unknown) {
             logError('Failed to delete block:', e);
         }
-    }
-
-    /**
-     * Throttle-обёртка для рендера стримящихся stdout/stderr: запоминает что
-     * рендер запланирован, и через #STREAM_THROTTLE_MS показывает накопленные
-     * чанки в активной ячейке. Защищает от рендер-шторма при быстром потоке
-     * вывода (например `for i in range(10000): print(i)`).
-     */
-    #scheduleStreamRender(): void {
-        if (this.#streamingRenderPending) return;
-        this.#streamingRenderPending = true;
-        setTimeout(() => {
-            this.#streamingRenderPending = false;
-            if (this.#streamingBlockId === null) return;
-            const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
-            if (cell && cell instanceof CodeCell) {
-                cell.setOutput({
-                    stdout: this.#streamingStdout,
-                    stderr: this.#streamingStderr
-                });
-            }
-        }, BlocksPage.#STREAM_THROTTLE_MS);
     }
 
     /**
@@ -614,9 +477,7 @@ export class BlocksPage {
         cell.setRunning(true);
 
         if (this.#ws && this.#ws.isOpen()) {
-            this.#streamingBlockId = blockId;
-            this.#streamingStdout = [];
-            this.#streamingStderr = [];
+            this.#streamBuffer.start(blockId);
             cell.setOutput({});
             this.#ws.executeBlock(position);
             await new Promise<void>((resolve) => {
@@ -625,19 +486,14 @@ export class BlocksPage {
         } else {
             try {
                 const result = await this.#runnerApi.executeBlock(this.#notebookId, position);
-                this.#executionCounter += 1;
-                this.#execNumbers.set(blockId, this.#executionCounter);
-                this.#lastOutputs.set(blockId, {
-                    stdout: result.stdout,
-                    stderr: result.stderr,
-                    result: result.result,
-                    outputs: result.outputs
-                });
-                cell.setExecutionNumber(this.#executionCounter);
-                cell.setOutput(this.#lastOutputs.get(blockId));
+                const out = runnerResultToCellOutput(result as unknown as Record<string, unknown>);
+                const execNum = this.#execState.assignNextNumber(blockId);
+                this.#execState.setOutput(blockId, out);
+                cell.setExecutionNumber(execNum);
+                cell.setOutput(out);
             } catch (e: unknown) {
-                const errOut = { error: (e as Error).message || String(e) };
-                this.#lastOutputs.set(blockId, errOut);
+                const errOut: CellOutput = { error: (e as Error).message || String(e) };
+                this.#execState.setOutput(blockId, errOut);
                 cell.setOutput(errOut);
             } finally {
                 cell.setRunning(false);
@@ -660,11 +516,11 @@ export class BlocksPage {
             await this.#maybeSaveCellContent(c.getBlockId(), c);
         }
 
-        const savedOutputs = new Map<number | string, Record<string, unknown>>();
+        const savedOutputs = new Map<number | string, CellOutput>();
         codeCells.forEach((c) => {
             const blockId = c.getBlockId();
-            if (this.#lastOutputs.has(blockId)) {
-                savedOutputs.set(blockId, nn(this.#lastOutputs.get(blockId)));
+            if (this.#execState.hasOutput(blockId)) {
+                savedOutputs.set(blockId, nn(this.#execState.getOutput(blockId)));
             }
         });
 
@@ -692,33 +548,28 @@ export class BlocksPage {
                     return;
                 }
 
-                if (r.error !== undefined && r.error !== null) {
-                    const errOut = { error: r.error } as Record<string, unknown>;
-                    this.#lastOutputs.set(blockId, errOut);
-                    c.setOutput(errOut);
+                const out = runnerResultToCellOutput(r);
+                if (out.error !== undefined) {
+                    this.#execState.setOutput(blockId, out);
+                    c.setOutput(out);
                     return;
                 }
 
-                this.#executionCounter += 1;
-                this.#execNumbers.set(blockId, this.#executionCounter);
-                const out = {
-                    stdout: r.stdout,
-                    stderr: r.stderr,
-                    result: r.result,
-                    outputs: r.outputs
-                } as Record<string, unknown>;
-                this.#lastOutputs.set(blockId, out);
-                c.setExecutionNumber(this.#executionCounter);
+                const execNum = this.#execState.assignNextNumber(blockId);
+                this.#execState.setOutput(blockId, out);
+                c.setExecutionNumber(execNum);
                 c.setOutput(out);
             });
         } catch (e: unknown) {
-            const errOut = { error: `Run-all failed: ${String((e as Error).message || e)}` };
+            const errOut: CellOutput = {
+                error: `Run-all failed: ${String((e as Error).message || e)}`
+            };
             codeCells.forEach((c) => {
                 const blockId = c.getBlockId();
                 if (savedOutputs.has(blockId)) {
                     c.setOutput(savedOutputs.get(blockId));
                 } else {
-                    this.#lastOutputs.set(blockId, errOut);
+                    this.#execState.setOutput(blockId, errOut);
                     c.setOutput(errOut);
                 }
             });
@@ -735,11 +586,11 @@ export class BlocksPage {
      * после WS-события block_added/block_updated), когда DOM пересоздан.
      */
     #reapplyCellState(): void {
-        this.#execNumbers.forEach((n, id) => {
+        this.#execState.forEachNumber((n, id) => {
             const cell = nn(this.#cellList).getCellByBlockId(id);
             if (cell && cell instanceof CodeCell) cell.setExecutionNumber(n);
         });
-        this.#lastOutputs.forEach((out, id) => {
+        this.#execState.forEachOutput((out, id) => {
             const cell = nn(this.#cellList).getCellByBlockId(id);
             if (cell && cell instanceof CodeCell) cell.setOutput(out);
         });
@@ -753,41 +604,13 @@ export class BlocksPage {
      */
     async #maybeSaveCellContent(blockId: number | string, cell: CellContentSource): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
-                content: cell.getContent()
-            });
+            await this.#notebookApi.updateBlockContent(
+                this.#notebookId,
+                blockId,
+                cell.getContent()
+            );
         } catch {
             /* tolerate */
-        }
-    }
-
-    /**
-     * Восстанавливает outputs из ответа GET /notebooks/:id (блоки приходят с
-     * сохранёнными результатами последнего исполнения) в локальный Map
-     * #lastOutputs. Преобразует формат хранения (output_type/content) в
-     * формат для UI (stdout/stderr/result/outputs[mime_type/data]).
-     * Если для блока уже есть локальные outputs (свежее) — пропускает.
-     * @param blocks - массив блоков из ответа сервера
-     */
-    #loadSavedOutputs(blocks: Record<string, unknown>[]): void {
-        for (const block of blocks) {
-            const outputs = block.outputs as Record<string, unknown>[] | undefined;
-            if (!outputs || outputs.length === 0) continue;
-            if (this.#lastOutputs.has(block.id as number | string)) continue;
-            const out: Record<string, unknown> = {};
-            for (const o of outputs) {
-                if (o.output_type === 'stdout') out.stdout = [o.content];
-                else if (o.output_type === 'stderr') out.stderr = [o.content];
-                else if (o.output_type === 'result') out.result = o.content;
-                else {
-                    out.outputs ??= [];
-                    (out.outputs as Record<string, unknown>[]).push({
-                        mime_type: o.output_type,
-                        data: o.content
-                    });
-                }
-            }
-            this.#lastOutputs.set(block.id as number | string, out);
         }
     }
 
@@ -795,90 +618,24 @@ export class BlocksPage {
      * Экспортирует текущий блокнот в формат Jupyter `.ipynb`. Сначала
      * сохраняет все ячейки, затем строит nbformat-4 структуру:
      * - text-ячейки → cell_type=markdown
-     * - code-ячейки → cell_type=code с outputs из #lastOutputs
+     * - code-ячейки → cell_type=code с outputs из #execState
      *   (stdout/stderr → stream, result → execute_result, остальное → display_data)
      * Скачивает результат через временный <a> элемент с blob: URL.
      */
     async #exportAsIpynb(): Promise<void> {
         await this.#saveAll();
         const cells = nn(this.#cellList).getAllCells();
-        const ipynbCells = cells.map((cell) => {
-            const blockId = cell.getBlockId();
-            const content = cell.getContent();
-            const isCode = cell instanceof CodeCell;
-            const source = content
-                ? content
-                      .split('\n')
-                      .map((l: string, i: number, a: string[]) => (i < a.length - 1 ? `${l}\n` : l))
-                : [];
-
-            if (!isCode) {
-                return { cell_type: 'markdown', metadata: {}, source };
-            }
-
-            const out = this.#lastOutputs.get(blockId);
-            const outputs: Record<string, unknown>[] = [];
-            if (out) {
-                if ((out.stdout as string[]).length) {
-                    outputs.push({
-                        output_type: 'stream',
-                        name: 'stdout',
-                        text: (out.stdout as string[]).map((s: string) => `${s}\n`)
-                    });
-                }
-                if ((out.stderr as string[]).length) {
-                    outputs.push({
-                        output_type: 'stream',
-                        name: 'stderr',
-                        text: (out.stderr as string[]).map((s: string) => `${s}\n`)
-                    });
-                }
-                if (out.result !== undefined && out.result !== null) {
-                    outputs.push({
-                        output_type: 'execute_result',
-                        execution_count: null,
-                        data: { 'text/plain': [out.result] },
-                        metadata: {}
-                    });
-                }
-                if (out.outputs !== undefined && out.outputs !== null) {
-                    for (const o of out.outputs as { mime_type: string; data: string }[]) {
-                        outputs.push({
-                            output_type: 'display_data',
-                            data: { [o.mime_type]: o.data },
-                            metadata: {}
-                        });
-                    }
-                }
-            }
-            return {
-                cell_type: 'code',
-                execution_count: null,
-                metadata: {},
-                source,
-                outputs
-            };
-        });
-
-        const ipynb = {
-            nbformat: 4,
-            nbformat_minor: 5,
-            metadata: {
-                kernelspec: {
-                    display_name: 'Python 3',
-                    language: 'python',
-                    name: 'python3'
-                },
-                language_info: { name: 'python', version: '3.13' }
-            },
-            cells: ipynbCells
-        };
-
+        const exportCells: ExportCell[] = cells.map((c) => ({
+            blockId: c.getBlockId(),
+            content: c.getContent(),
+            isCode: c instanceof CodeCell
+        }));
+        const ipynb = cellsToIpynb(exportCells, this.#execState.outputsMap());
         const blob = new Blob([JSON.stringify(ipynb, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${(this.#notebook?.title as string) || 'Untitled'}.ipynb`;
+        a.download = `${this.#model?.title ?? 'Untitled'}.ipynb`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -900,66 +657,10 @@ export class BlocksPage {
             try {
                 const text = await file.text();
                 const ipynb = JSON.parse(text) as { cells?: Record<string, unknown>[] };
-
-                const blocks = (ipynb.cells ?? []).map((cell, i) => {
-                    const content = Array.isArray(cell.source)
-                        ? (cell.source as string[]).join('')
-                        : (cell.source as string) || '';
-                    const type = cell.cell_type === 'code' ? 'code' : 'text';
-                    const language = type === 'code' ? 'python' : 'markdown';
-                    const outputs: Record<string, unknown>[] = [];
-
-                    if (type === 'code' && Boolean(cell.outputs)) {
-                        let pos = 0;
-                        for (const o of cell.outputs as Record<string, unknown>[]) {
-                            if (o.output_type === 'stream') {
-                                const t = Array.isArray(o.text)
-                                    ? (o.text as string[]).join('')
-                                    : (o.text as string) || '';
-                                outputs.push({
-                                    output_type: o.name ?? 'stdout',
-                                    content: t,
-                                    position: pos++
-                                });
-                            } else if (
-                                o.output_type === 'execute_result' ||
-                                o.output_type === 'display_data'
-                            ) {
-                                if (o.data !== undefined && o.data !== null) {
-                                    for (const [mime, val] of Object.entries(
-                                        o.data as Record<string, unknown>
-                                    )) {
-                                        const c = Array.isArray(val)
-                                            ? (val as string[]).join('')
-                                            : String(val);
-                                        outputs.push({
-                                            output_type: mime === 'text/plain' ? 'result' : mime,
-                                            content: c,
-                                            position: pos++
-                                        });
-                                    }
-                                }
-                            } else if (o.output_type === 'error') {
-                                const tb = ((o.traceback ?? []) as string[]).join('\n');
-                                outputs.push({
-                                    output_type: 'stderr',
-                                    content: tb,
-                                    position: pos++
-                                });
-                            }
-                        }
-                    }
-                    return { type, language, content, position: i, outputs };
-                });
-
+                const blocks = ipynbToBlocks(ipynb);
                 const title = file.name.replace(/\.ipynb$/, '') || 'Imported';
-                const resp = await this.#httpClient.post('/notebooks/import', { title, blocks });
-                if (resp.ok) {
-                    const { data: notebook } = (await resp.json()) as {
-                        data: Record<string, unknown>;
-                    };
-                    nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
-                }
+                const notebook = await this.#notebookApi.importNotebook(title, blocks);
+                nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
             } catch (err: unknown) {
                 logError('Failed to import notebook:', err);
             }
@@ -975,9 +676,7 @@ export class BlocksPage {
      */
     async #reorderBlocks(blockIds: (number | string)[]): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/reorder`, {
-                block_ids: blockIds
-            });
+            await this.#notebookApi.reorderBlocks(this.#notebookId, blockIds);
         } catch {
             /* tolerate */
         }
@@ -993,8 +692,8 @@ export class BlocksPage {
         }
         void this.#shareModal.open(
             this.#notebookId,
-            (this.#notebook?.title as string) || 'Untitled',
-            (this.#notebook?.is_public as boolean | undefined) ?? false
+            this.#model?.title ?? 'Untitled',
+            this.#model?.isPublic ?? false
         );
     }
 
@@ -1005,149 +704,58 @@ export class BlocksPage {
      */
     async #renameNotebook(newTitle: string): Promise<void> {
         try {
-            const response = await this.#httpClient.put(`/notebooks/${this.#notebookId}`, {
-                title: newTitle
-            });
-            if (response.ok) {
-                const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
-                Object.assign(nn(this.#notebook), body.data);
-            }
+            const updated = await this.#notebookApi.renameNotebook(this.#notebookId, newTitle);
+            nn(this.#model).mergeFrom(updated);
         } catch (e: unknown) {
             logError('Failed to rename notebook:', e);
         }
     }
 
     /**
-     * Собирает плоский снимок всех ячеек для FindEngine: id, тип
-     * (code/text) и текущее содержимое. Вызывается на каждый поиск, чтобы
-     * учитывать несохранённые изменения.
-     * @returns массив снимков ячеек для поиска
+     * Строит адаптер NotebookSearchAdapter, через который NotebookSidebar
+     * получает доступ к ячейкам блокнота для поиска/замены, не зная про
+     * конкретные классы CodeCell/TextCell. Адаптер делегирует операции
+     * на CellList и инкапсулирует instanceof-проверки.
+     * @returns адаптер для передачи в конструктор NotebookSidebar
      */
-    #collectSearchableCells(): { id: number | string; kind: 'code' | 'text'; content: string }[] {
-        return nn(this.#cellList)
-            .getAllCells()
-            .map((c) => ({
-                id: c.getBlockId(),
-                kind: c instanceof CodeCell ? 'code' : 'text',
-                content: c.getContent()
-            }));
-    }
-
-    /**
-     * Запускает новый поиск через FindEngine: собирает текущие ячейки,
-     * передаёт в движок, обновляет счётчик в sidebar и сразу фокусирует
-     * первое совпадение.
-     * @param param0 - параметры поиска: строка query и флаг caseSensitive
-     */
-    #handleFind({ query, caseSensitive }: { query: string; caseSensitive: boolean }): void {
-        const cells = this.#collectSearchableCells();
-        const total = this.#findEngine.search(cells, query, caseSensitive);
-        nn(this.#sidebar).setMatchCount(this.#findEngine.index(), total);
-        if (total > 0) this.#focusCurrentMatch();
-    }
-
-    /**
-     * Навигация по результатам поиска (стрелки next/prev в sidebar).
-     * Если движок ещё не искал (total=0) — сначала запускает поиск.
-     * @param query - параметры текущего поиска
-     * @param direction - 'next' (вперёд) или 'prev' (назад)
-     */
-    #handleFindNav(
-        query: { query: string; caseSensitive: boolean },
-        direction: 'next' | 'prev'
-    ): void {
-        if (this.#findEngine.total() === 0) {
-            this.#handleFind(query);
-            return;
-        }
-        const m = direction === 'next' ? this.#findEngine.next() : this.#findEngine.prev();
-        if (m) {
-            nn(this.#sidebar).setMatchCount(this.#findEngine.index(), this.#findEngine.total());
-            this.#focusCurrentMatch();
-        }
-    }
-
-    /**
-     * Подсвечивает текущее совпадение поиска: сначала снимает все подсветки
-     * с TextCell'ов, затем подсвечивает диапазон в нужной ячейке (highlightRange
-     * для CodeCell, highlightMatch для TextCell с учётом порядкового индекса).
-     */
-    #focusCurrentMatch(): void {
-        nn(this.#cellList)
-            .getAllCells()
-            .filter((c): c is TextCell => c instanceof TextCell)
-            .forEach((c) => {
-                c.clearHighlights();
-            });
-
-        const m = this.#findEngine.current();
-        if (!m) return;
-        const cell = nn(this.#cellList).getCellByBlockId(m.blockId);
-        if (!cell) return;
-
-        if (m.kind === 'code' && cell instanceof CodeCell) {
-            cell.highlightRange(m.start, m.end);
-        } else if (m.kind === 'text' && cell instanceof TextCell) {
-            cell.highlightMatch(m.index, m.start, m.end);
-        }
-    }
-
-    /**
-     * Заменяет текущее совпадение на replacement и переходит к следующему.
-     * Если поиск ещё не активен — запускает его. Использует substring/concat
-     * по индексам [start, end] из FindEngine.
-     * @param param0 - параметры замены: query, replacement, caseSensitive
-     */
-    #handleReplace({
-        query,
-        replacement,
-        caseSensitive
-    }: {
-        query: string;
-        replacement: string;
-        caseSensitive: boolean;
-    }): void {
-        if (this.#findEngine.total() === 0) {
-            this.#handleFind({ query, caseSensitive });
-            if (this.#findEngine.total() === 0) return;
-        }
-        const m = this.#findEngine.current();
-        if (!m) return;
-        const cell = nn(this.#cellList).getCellByBlockId(m.blockId);
-        if (!cell || typeof cell.setContent !== 'function') return;
-
-        const content = cell.getContent();
-        const updated = content.substring(0, m.start) + replacement + content.substring(m.end);
-        cell.setContent(updated);
-
-        this.#handleFind({ query, caseSensitive });
-    }
-
-    /**
-     * Заменяет все вхождения query на replacement во всех ячейках одним
-     * RegExp.replace (с эскейпом метасимволов и флагом g/gi). Сбрасывает
-     * FindEngine — счётчик в sidebar показывает 0 после операции.
-     * @param param0 - параметры массовой замены: query, replacement, caseSensitive
-     */
-    #handleReplaceAll({
-        query,
-        replacement,
-        caseSensitive
-    }: {
-        query: string;
-        replacement: string;
-        caseSensitive: boolean;
-    }): void {
-        if (!query) return;
-        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const re = new RegExp(escaped, caseSensitive ? 'g' : 'gi');
-        for (const cell of nn(this.#cellList).getAllCells()) {
-            const original = cell.getContent();
-            const updated = original.replace(re, replacement);
-            if (updated !== original) cell.setContent(updated);
-        }
-        this.#findEngine.reset();
-        nn(this.#sidebar).setMatchCount(-1, 0);
+    #buildSearchAdapter(): NotebookSearchAdapter {
+        return {
+            getSearchableCells: (): SearchableCellSnapshot[] =>
+                nn(this.#cellList)
+                    .getAllCells()
+                    .map((c) => ({
+                        id: c.getBlockId(),
+                        kind: c instanceof CodeCell ? 'code' : 'text',
+                        content: c.getContent()
+                    })),
+            clearAllHighlights: (): void => {
+                nn(this.#cellList)
+                    .getAllCells()
+                    .filter((c): c is TextCell => c instanceof TextCell)
+                    .forEach((c) => {
+                        c.clearHighlights();
+                    });
+            },
+            focusMatch: (m: SearchMatch): void => {
+                const cell = nn(this.#cellList).getCellByBlockId(m.blockId);
+                if (!cell) return;
+                if (m.kind === 'code' && cell instanceof CodeCell) {
+                    cell.highlightRange(m.start, m.end);
+                } else if (m.kind === 'text' && cell instanceof TextCell) {
+                    cell.highlightMatch(m.index, m.start, m.end);
+                }
+            },
+            getContent: (blockId: number | string): string | null => {
+                const cell = this.#cellList?.getCellByBlockId(blockId);
+                return cell?.getContent() ?? null;
+            },
+            setContent: (blockId: number | string, content: string): boolean => {
+                const cell = this.#cellList?.getCellByBlockId(blockId);
+                if (!cell || typeof cell.setContent !== 'function') return false;
+                cell.setContent(content);
+                return true;
+            }
+        };
     }
 
     /**
