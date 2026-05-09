@@ -107,7 +107,7 @@ const strictOverrides = {
 
 export default [
     {
-        ignores: ['node_modules/', 'dist/', '.ts-out/', 'src/all-templates.precompiled.js']
+        ignores: ['node_modules/', 'dist/', '.ts-out/']
     },
 
     ...tseslint.configs.strictTypeChecked.map((config) => ({
