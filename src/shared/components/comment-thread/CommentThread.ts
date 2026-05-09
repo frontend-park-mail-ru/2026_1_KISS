@@ -74,7 +74,9 @@ export class CommentThread extends BaseComponent {
 
             try {
                 const comment = await this.#api.addComment(this.#notebookId, this.#blockId, text);
+                // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
                 textarea.value = '';
+                // eslint-disable-next-line require-atomic-updates -- DOM element is captured locally; UI is single-threaded
                 textarea.style.height = '';
                 this.appendComment(comment);
             } catch (err: unknown) {
