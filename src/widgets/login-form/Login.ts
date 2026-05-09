@@ -76,7 +76,7 @@ export class Login extends BaseComponent {
         const btn = nn(this._element.querySelector('#login-btn'));
         this._addListener(btn, 'click', (e: Event) => {
             e.preventDefault();
-            this.#submit();
+            void this.#submit();
         });
     }
 

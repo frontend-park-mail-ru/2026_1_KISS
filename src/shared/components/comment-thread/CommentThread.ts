@@ -46,7 +46,7 @@ export class CommentThread extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
-        this.#loadComments();
+        void this.#loadComments();
     }
 
     public unmount(): void {
@@ -67,6 +67,7 @@ export class CommentThread extends BaseComponent {
             textarea.style.height = `${textarea.scrollHeight  }px`;
         };
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(form, 'submit', async (e: Event) => {
             e.preventDefault();
             const text = textarea.value.trim();
@@ -97,7 +98,7 @@ export class CommentThread extends BaseComponent {
             const deleteBtn = target.closest('.comment-thread__delete');
             if (deleteBtn) {
                 const commentId = deleteBtn.dataset.commentId;
-                if (commentId) this.#deleteComment(Number(commentId));
+                if (commentId) void this.#deleteComment(Number(commentId));
             }
         });
     }

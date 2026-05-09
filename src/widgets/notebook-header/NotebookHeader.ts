@@ -69,6 +69,7 @@ export class NotebookHeader extends BaseComponent {
 
     #attachEvents(): void {
         const logoLink = nn(this._element.querySelector('.notebook-header__logo-link'));
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(logoLink, 'click', async (e: Event) => {
             e.preventDefault();
             await this.#finishEditing();
@@ -266,7 +267,7 @@ export class NotebookHeader extends BaseComponent {
             'blur',
             () => {
                 controller.abort();
-                this.#finishEditing();
+                void this.#finishEditing();
             },
             { signal: controller.signal }
         );

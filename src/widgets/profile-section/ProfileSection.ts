@@ -142,6 +142,7 @@ export class ProfileSection extends BaseComponent {
         const saveBtn = nn(this._element.querySelector('.profile-section__save-btn'));
         const msgEl = nn(this._element.querySelector('.profile-section__save-msg'));
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(saveBtn, 'click', async () => {
             if (!this.#usernameInput.validate()) return;
 
@@ -218,6 +219,7 @@ export class ProfileSection extends BaseComponent {
             }
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         this._addListener(emailSaveBtn, 'click', async () => {
             const newEmailInput = nn(this._element.querySelector(
                 '[data-field="new_email"]'

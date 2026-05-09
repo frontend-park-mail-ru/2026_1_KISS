@@ -149,9 +149,11 @@ export class FeedbackPage {
 
         nn(modal
             .querySelector('.feedback-modal__history-btn'))
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .addEventListener('click', () => this.#renderList());
         nn(modal
             .querySelector('.feedback-modal__submit-btn'))
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .addEventListener('click', () => this.#handleSubmit(modal));
     }
 
@@ -221,6 +223,7 @@ export class FeedbackPage {
             .addEventListener('click', () => { this.#close(); });
         nn(modal
             .querySelector('.feedback-modal__history-btn'))
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             .addEventListener('click', () => this.#renderList());
     }
 
@@ -293,6 +296,7 @@ export class FeedbackPage {
                 const deleteBtn = nn(card.querySelector(
                     '.feedback-modal__issue-delete-btn'
                 ));
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 deleteBtn.addEventListener('click', async (e: Event) => {
                     e.stopPropagation();
                     await this.#handleIssueDelete(
@@ -303,6 +307,7 @@ export class FeedbackPage {
                     );
                 });
 
+                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 card.addEventListener('click', () => this.#renderDetail(issue.id as number));
                 listContent.appendChild(card);
             });
@@ -420,6 +425,7 @@ export class FeedbackPage {
                     <div class="feedback-modal__reply-error" hidden></div>
                 </div>`;
 
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             nn(body.querySelector('.feedback-modal__back-btn')).addEventListener('click', () =>
                 this.#renderList()
             );
@@ -435,6 +441,7 @@ export class FeedbackPage {
                 replyCount.textContent = `${replyTextarea.value.length} / 2000`;
             });
 
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             replyBtn.addEventListener('click', async () => {
                 const text = replyTextarea.value.trim();
                 if (!text) return;
@@ -443,7 +450,7 @@ export class FeedbackPage {
                 replyError.hidden = true;
                 try {
                     await this.#issueApi.addMessage(issueId, text);
-                    this.#renderDetail(issueId);
+                    void this.#renderDetail(issueId);
                 } catch (e: unknown) {
                     replyError.textContent = (e as Error).message || 'Не удалось отправить';
                     replyError.hidden = false;

@@ -44,10 +44,10 @@ async function bootstrap(): Promise<void> {
     router.start();
 }
 
-bootstrap();
+void bootstrap();
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js');
+        void navigator.serviceWorker.register('/sw.js');
     });
 }

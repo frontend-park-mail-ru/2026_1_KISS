@@ -159,7 +159,7 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     #startContainerPolling(): void {
-        this.#pollContainer();
+        void this.#pollContainer();
         this.#containerPollTimer = setInterval(() => this.#pollContainer(), 3000);
     }
 

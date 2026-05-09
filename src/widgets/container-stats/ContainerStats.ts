@@ -34,7 +34,7 @@ export class ContainerStats extends BaseComponent {
     }
 
     #startPolling(): void {
-        this.#poll();
+        void this.#poll();
         this.#timer = setInterval(() => this.#poll(), POLL_INTERVAL);
     }
 
