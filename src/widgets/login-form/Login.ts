@@ -11,16 +11,28 @@ const FIELD_NAMES = {
     password: 'password'
 } as const;
 
+/**
+ * Форма логина: два поля Input (email + пароль), кнопка отправки, переход на
+ * регистрацию. На submit POST /auth/login; при успехе — navigate('/files'),
+ * при 4xx — показывает translateError, при network-ошибке — "Сервер недоступен".
+ */
 export class Login extends BaseComponent {
     #inputs: Input[] = [];
     #httpClient: HttpClient;
 
+    /**
+     * Создаёт форму, рендерит шаблон и подготавливает поля.
+     * @param parent - родительский элемент
+     */
     public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер и создаёт Input-компоненты.
+     */
     #render(): void {
         const data = {
             title: 'Вход'
@@ -31,6 +43,9 @@ export class Login extends BaseComponent {
         this.#createInputs();
     }
 
+    /**
+     * Маунтит форму и все Input'ы, навешивает submit-обработчик.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -40,6 +55,9 @@ export class Login extends BaseComponent {
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM (включая Input'ы).
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
@@ -48,12 +66,21 @@ export class Login extends BaseComponent {
         });
     }
 
+    /**
+     * Сбрасывает значения всех Input'ов. Вызывается после успешного логина или
+     * при переключении формы.
+     */
     public update(): void {
         this.#inputs.forEach((input) => {
             input.update();
         });
     }
 
+    /**
+     * Создаёт Input-компоненты для email и password по конфигурации TYPE_INPUT_CONFIG
+     * и монтирует их в .form-fields. Сохраняет ссылки в #inputs для последующего
+     * mount/getValue/validate.
+     */
     #createInputs(): void {
         const fieldsContainer = nn(this._element.querySelector('.form-fields'));
         const fieldsConfig = [
@@ -72,6 +99,10 @@ export class Login extends BaseComponent {
         });
     }
 
+    /**
+     * Навешивает submit-обработчик на кнопку (предотвращает дефолтный submit
+     * формы, вызывает асинхронный #submit).
+     */
     #attachEvents(): void {
         const btn = nn(this._element.querySelector('#login-btn'));
         this._addListener(btn, 'click', (e: Event) => {
@@ -80,6 +111,10 @@ export class Login extends BaseComponent {
         });
     }
 
+    /**
+     * Валидирует поля, отправляет POST /auth/login. При успехе — navigate('/files'),
+     * при ошибке — показывает translateError или "Сервер недоступен".
+     */
     async #submit(): Promise<void> {
         nn(this._element.querySelector('.sign-error-message')).textContent = '';
         if (!this.validateFields()) return;
@@ -110,6 +145,10 @@ export class Login extends BaseComponent {
         }
     }
 
+    /**
+     * Прогоняет валидацию каждого Input'а; возвращает true только если все валидны.
+     * @returns true если форма валидна целиком
+     */
     public validateFields(): boolean {
         let allValid = true;
         this.#inputs.forEach((input) => {
@@ -120,6 +159,11 @@ export class Login extends BaseComponent {
         return allValid;
     }
 
+    /**
+     * Геттер ссылки на регистрацию — родительская страница вешает на неё
+     * обработчик переключения формы.
+     * @returns DOM-элемент ссылки или null если форма не отрендерена
+     */
     public get goToRegisterBtn(): HTMLElement | null {
         return this._element.querySelector('#register-from-login-btn');
     }

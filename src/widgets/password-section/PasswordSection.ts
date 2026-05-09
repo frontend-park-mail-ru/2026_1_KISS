@@ -5,24 +5,41 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Секция смены пароля в профиле: три поля Input (текущий/новый/повтор),
+ * валидация совпадения паролей на клиенте, отправка PUT /users/me/password.
+ * При успехе — очистка полей + сообщение об успехе; при ошибке — translateError.
+ */
 export class PasswordSection extends BaseComponent {
     #httpClient: HttpClient;
     #currentInput!: Input;
     #newInput!: Input;
     #confirmInput!: Input;
 
+    /**
+     * Создаёт секцию и рендерит шаблон. Input'ы создаются в mount() (требуют
+     * существующих DOM-элементов wrap'ов).
+     * @param parent - родительский элемент
+     */
     public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = PasswordSectionTemplate();
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит секцию, создаёт три Input-компонента (PASSWORD/PASSWORD/REPEAT_PASSWORD)
+     * с уникальными id, монтирует их и навешивает submit-обработчик.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -56,6 +73,9 @@ export class PasswordSection extends BaseComponent {
         this.#attachSubmit();
     }
 
+    /**
+     * Снимает с DOM включая все три Input'а.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         this.#currentInput.unmount();
@@ -64,6 +84,11 @@ export class PasswordSection extends BaseComponent {
         super.unmount();
     }
 
+    /**
+     * Навешивает submit-обработчик: валидирует поля + проверяет совпадение
+     * нового и повтора, отправляет PUT /users/me/password. При успехе очищает
+     * все поля и показывает сообщение; при ошибке — translateError.
+     */
     #attachSubmit(): void {
         const btn = nn(this._element.querySelector('.password-section__submit-btn'));
         const msgEl = nn(this._element.querySelector('.password-section__msg'));

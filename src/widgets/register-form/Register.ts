@@ -13,16 +13,31 @@ const FIELD_NAMES = {
     repeat_password: 'repeat_password'
 } as const;
 
+/**
+ * Форма регистрации: 4 поля (login, email, password, repeat_password). После
+ * валидации (включая совпадение паролей) делает POST /auth/register; при успехе
+ * заменяет содержимое на email-sent заглушку с инструкцией проверить почту
+ * (письмо с верификационной ссылкой).
+ *
+ * Field repeat_password в JSON НЕ отправляется — только валидируется на клиенте.
+ */
 export class Register extends BaseComponent {
     #inputs: Input[] = [];
     #httpClient: HttpClient;
 
+    /**
+     * Создаёт форму, рендерит шаблон и подготавливает 4 поля.
+     * @param parent - родительский элемент
+     */
     public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#httpClient = HttpClient.getInstance();
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер и создаёт Input-компоненты.
+     */
     #render(): void {
         const data = {
             title: 'Регистрация'
@@ -34,6 +49,9 @@ export class Register extends BaseComponent {
         this.#createInputs();
     }
 
+    /**
+     * Маунтит форму и все 4 Input'а, навешивает submit-обработчик.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -43,6 +61,9 @@ export class Register extends BaseComponent {
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM включая все Input'ы.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
@@ -51,12 +72,19 @@ export class Register extends BaseComponent {
         });
     }
 
+    /**
+     * Сбрасывает значения всех Input'ов.
+     */
     public update(): void {
         this.#inputs.forEach((input) => {
             input.update();
         });
     }
 
+    /**
+     * Создаёт 4 Input-компонента (login/email/password/repeat_password) по
+     * TYPE_INPUT_CONFIG и монтирует в .form-fields.
+     */
     #createInputs(): void {
         const fieldsContainer = nn(this._element.querySelector('.form-fields'));
         const fieldsConfig = [
@@ -77,6 +105,9 @@ export class Register extends BaseComponent {
         });
     }
 
+    /**
+     * Навешивает submit-обработчик на кнопку.
+     */
     #attachEvents(): void {
         const btn = nn(this._element.querySelector('#register-btn'));
         this._addListener(btn, 'click', (e: Event) => {
@@ -85,6 +116,11 @@ export class Register extends BaseComponent {
         });
     }
 
+    /**
+     * Валидирует поля, отправляет POST /auth/register. При успехе показывает
+     * email-sent заглушку, при ошибке — translateError. Логирует тело ответа
+     * через logError для диагностики неожиданных ошибок.
+     */
     async #submit(): Promise<void> {
         nn(this._element.querySelector('.sign-error-message')).textContent = '';
         if (!this.validateFields()) return;
@@ -115,6 +151,11 @@ export class Register extends BaseComponent {
         this.#showEmailSent(formData.email);
     }
 
+    /**
+     * Заменяет содержимое формы на заглушку "Проверьте почту" с email-адресом
+     * и кнопкой возврата на логин.
+     * @param email - email на который отправлено верификационное письмо
+     */
     #showEmailSent(email: string): void {
         this._element.innerHTML = `
             <div class="email-sent">
@@ -133,6 +174,11 @@ export class Register extends BaseComponent {
             </div>`;
     }
 
+    /**
+     * Прогоняет валидацию каждого Input'а + проверяет совпадение password и
+     * repeat_password (если не совпадают — показывает ошибку на repeat_password).
+     * @returns true если форма валидна целиком
+     */
     public validateFields(): boolean {
         let allValid = true;
         this.#inputs.forEach((input) => {
@@ -148,6 +194,11 @@ export class Register extends BaseComponent {
         return allValid;
     }
 
+    /**
+     * Геттер ссылки "Войти" — родительская страница вешает на неё переключение
+     * формы. Активна как до, так и после успешной регистрации (внутри email-sent).
+     * @returns DOM-элемент ссылки или null если не отрендерено
+     */
     public get goOutBtn(): HTMLElement | null {
         return this._element.querySelector('#go-out-btn');
     }

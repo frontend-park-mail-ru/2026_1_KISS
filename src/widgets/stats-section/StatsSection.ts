@@ -4,26 +4,48 @@ import { renderBarChart, fillDays } from '../../shared/utils/chart.js';
 import { StatsSectionTemplate } from './StatsSection.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Секция статистики на странице профиля. Подгружает StatsApi.getMyStats при
+ * mount и заполняет 5 секций: квота с прогресс-баром, инфо (даты + среднее),
+ * KPI-карточки (notebook'и/блоки/запуски), график запусков за 30 дней,
+ * список storage-категорий.
+ *
+ * Безлимитный план показывает "X — безлимитный план" вместо квоты и скрывает прогресс-бар.
+ */
 export class StatsSection extends BaseComponent {
     #api: StatsApi;
 
+    /**
+     * Создаёт и рендерит секцию. Загрузка данных откладывается до mount.
+     * @param parent - родительский элемент
+     */
     public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#api = new StatsApi();
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tmp = document.createElement('div');
         tmp.innerHTML = StatsSectionTemplate();
         this._element = tmp.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит секцию и асинхронно подгружает данные.
+     */
     public mount(): void {
         super.mount();
         void this.#loadStats();
     }
 
+    /**
+     * Загружает статистику и заполняет все 5 подсекций. Ошибки молча игнорирует
+     * (UI остаётся с прочерками из шаблона).
+     */
     async #loadStats(): Promise<void> {
         try {
             const stats = await this.#api.getMyStats();
@@ -37,6 +59,12 @@ export class StatsSection extends BaseComponent {
         }
     }
 
+    /**
+     * Заполняет блок квоты: бейдж плана с CSS-классом по идентификатору, текст
+     * "Xч Yмин из Zч использовано", прогресс-бар с warning-классом при >=80%.
+     * Для безлимитного плана прячет прогресс-бар.
+     * @param stats - данные пользователя
+     */
     #populateQuota(stats: UserStats): void {
         const badge = nn(this._element.querySelector('.stats-section__plan-badge'));
         const text = nn(this._element.querySelector('.stats-section__quota-text'));
@@ -69,6 +97,11 @@ export class StatsSection extends BaseComponent {
         }
     }
 
+    /**
+     * Заполняет инфо-блок: дата регистрации, последняя активность, среднее время
+     * в день (рассчитывается как total_time / дней с регистрации).
+     * @param stats - данные пользователя
+     */
     #populateInfo(stats: UserStats): void {
         const set = (key: string, value: string): void => {
             const el = this._element.querySelector(`[data-info="${key}"]`);
@@ -91,6 +124,10 @@ export class StatsSection extends BaseComponent {
         }
     }
 
+    /**
+     * Заполняет KPI-карточки: notebook'и, блоки кода, запуски.
+     * @param stats - данные пользователя
+     */
     #populateKPI(stats: UserStats): void {
         const set = (key: string, value: number): void => {
             const el = this._element.querySelector(`[data-kpi="${key}"]`);
@@ -101,12 +138,23 @@ export class StatsSection extends BaseComponent {
         set('executions', stats.resources.total_executions);
     }
 
+    /**
+     * Заполняет SVG-график запусков за 30 дней. Использует fillDays чтобы
+     * добить пропуски нулями и renderBarChart для генерации SVG.
+     * @param stats - данные пользователя
+     */
     #populateChart(stats: UserStats): void {
         const container = nn(this._element.querySelector('.stats-section__chart-container'));
         const filled = fillDays(stats.resources.daily_executions, 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 
+    /**
+     * Заполняет блок storage: карточка на каждую категорию (avatars/feedback/...)
+     * с количеством файлов и суммарным размером + общая карточка "Всего".
+     * При отсутствии файлов — заглушка.
+     * @param stats - данные пользователя
+     */
     #populateStorage(stats: UserStats): void {
         const container = nn(this._element.querySelector('.stats-section__storage-cards'));
         const categories = Object.keys(stats.storage.files_by_category);
@@ -140,12 +188,22 @@ export class StatsSection extends BaseComponent {
         container.innerHTML = html;
     }
 
+    /**
+     * Форматирует секунды в "Xч Yмин".
+     * @param seconds - время в секундах
+     * @returns отформатированная строка
+     */
     #formatTime(seconds: number): string {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
         return `${String(h)}ч ${String(m)}мин`;
     }
 
+    /**
+     * Форматирует байты в B / KB / MB.
+     * @param bytes - размер в байтах
+     * @returns отформатированная строка
+     */
     #formatBytes(bytes: number): string {
         if (bytes < 1024) return `${String(bytes)} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
