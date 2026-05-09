@@ -99,5 +99,5 @@ export interface Comment {
     username: string;
     block_id: number;
     text: string;
-    created_at: number;
+    created_at: string;
 }

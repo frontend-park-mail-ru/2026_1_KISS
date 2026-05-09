@@ -1,4 +1,5 @@
 import { HttpClient } from '../http_client/HttpClient.js';
+import type { ApiEnvelope, IssueDTO, IssueListResponse, IssueMessageDTO } from './types.js';
 
 export class IssueApi {
     #http: HttpClient;
@@ -7,22 +8,22 @@ export class IssueApi {
         this.#http = HttpClient.getInstance();
     }
 
-    async #parse(response: Response): Promise<unknown> {
-        const body = await response.json().catch(() => ({}));
+    async #parse<T>(response: Response): Promise<T> {
+        const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            throw new Error(body?.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${response.status}`);
         }
-        return body.data;
+        return body.data as T;
     }
 
     public async createIssue(
         category: string,
         content: string,
         files: File[] = []
-    ): Promise<unknown> {
+    ): Promise<IssueDTO> {
         if (files.length === 0) {
             const response = await this.#http.post('/issues', { category, content });
-            return this.#parse(response);
+            return this.#parse<IssueDTO>(response);
         }
 
         const formData = new FormData();
@@ -44,31 +45,31 @@ export class IssueApi {
             body: formData,
             credentials: 'include'
         });
-        return this.#parse(response);
+        return this.#parse<IssueDTO>(response);
     }
 
-    public async getIssues(): Promise<unknown> {
+    public async getIssues(): Promise<IssueListResponse> {
         const response = await this.#http.get('/issues');
-        return this.#parse(response);
+        return this.#parse<IssueListResponse>(response);
     }
 
-    public async getIssue(id: string | number): Promise<unknown> {
+    public async getIssue(id: string | number): Promise<IssueDTO> {
         const response = await this.#http.get(`/issues/${id}`);
-        return this.#parse(response);
+        return this.#parse<IssueDTO>(response);
     }
 
-    public async deleteIssue(id: string | number): Promise<unknown> {
+    public async deleteIssue(id: string | number): Promise<null> {
         const response = await this.#http.delete(`/issues/${id}`);
-        return this.#parse(response);
+        return this.#parse<null>(response);
     }
 
     public getAttachmentUrl(issueId: string | number, attachmentId: string | number): string {
         return `${this.#http.baseUrl}/issues/${issueId}/attachments/${attachmentId}`;
     }
 
-    public async addMessage(issueId: string | number, content: string): Promise<unknown> {
+    public async addMessage(issueId: string | number, content: string): Promise<IssueMessageDTO> {
         const response = await this.#http.post(`/issues/${issueId}/messages`, { content });
-        return this.#parse(response);
+        return this.#parse<IssueMessageDTO>(response);
     }
 
     #getCookie(name: string): string {

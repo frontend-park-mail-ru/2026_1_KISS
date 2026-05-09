@@ -189,26 +189,26 @@ export class AdminPage {
         nn(this.#contentArea).appendChild(title);
 
         try {
-            const stats = (await this.#adminApi.getStats()) as Record<string, unknown>;
+            const stats = await this.#adminApi.getStats();
             const cards = [
                 {
                     label: 'Пользователи',
-                    value: stats.total_users ?? 0,
+                    value: stats.total_users,
                     tooltip: 'Общее количество зарегистрированных пользователей на платформе'
                 },
                 {
                     label: 'Блокноты',
-                    value: stats.total_notebooks ?? 0,
+                    value: stats.total_notebooks,
                     tooltip: 'Общее количество блокнотов на платформе'
                 },
                 {
                     label: 'DAU',
-                    value: stats.dau ?? 0,
+                    value: stats.dau,
                     tooltip: 'Daily Active Users — уникальные пользователи за последние 24 часа'
                 },
                 {
                     label: 'MAU',
-                    value: stats.mau ?? 0,
+                    value: stats.mau,
                     tooltip: 'Monthly Active Users — уникальные пользователи за последние 30 дней'
                 }
             ];
@@ -223,25 +223,13 @@ export class AdminPage {
             });
             nn(this.#contentArea).appendChild(grid);
 
-            const activityData = (await this.#adminApi.getActivityStats(30, 12)) as Record<
-                string,
-                unknown
-            >;
-            const dauFilled = this.#fillDays(
-                (activityData.dau as { date: string; count: number }[] | undefined) ?? [],
-                30
-            );
-            const mauFilled = this.#fillMonths(
-                (activityData.mau as { month: string; count: number }[] | undefined) ?? [],
-                12
-            );
+            const activityData = await this.#adminApi.getActivityStats(30, 12);
+            const dauFilled = this.#fillDays(activityData.dau, 30);
+            const mauFilled = this.#fillMonths(activityData.mau, 12);
             this.#renderTimeSeriesChart('DAU (последние 30 дней)', dauFilled, 'date', 'count');
             this.#renderTimeSeriesChart('MAU (последние 12 месяцев)', mauFilled, 'month', 'count');
 
-            const issueStats = (await this.#adminApi.getIssueStats().catch(() => null)) as Record<
-                string,
-                unknown
-            > | null;
+            const issueStats = await this.#adminApi.getIssueStats().catch(() => null);
             if (issueStats) {
                 const issueTitle = document.createElement('h2');
                 issueTitle.className = 'admin-page__section-title';
@@ -252,22 +240,22 @@ export class AdminPage {
                 const issueCards = [
                     {
                         label: 'Всего',
-                        value: issueStats.total ?? 0,
+                        value: issueStats.total,
                         tooltip: 'Общее количество обращений от пользователей'
                     },
                     {
                         label: 'Открыто',
-                        value: issueStats.open ?? 0,
+                        value: issueStats.open,
                         tooltip: 'Обращения, ожидающие рассмотрения'
                     },
                     {
                         label: 'В работе',
-                        value: issueStats.in_progress ?? 0,
+                        value: issueStats.in_progress,
                         tooltip: 'Обращения, находящиеся в работе'
                     },
                     {
                         label: 'Закрыто',
-                        value: issueStats.closed ?? 0,
+                        value: issueStats.closed,
                         tooltip: 'Решённые обращения'
                     }
                 ];
@@ -282,12 +270,12 @@ export class AdminPage {
                 });
                 nn(this.#contentArea).appendChild(issueGrid);
 
-                const cat = (issueStats.by_category as Record<string, number> | undefined) ?? {};
+                const cat = issueStats.by_category;
                 const categoryData = [
-                    { label: 'Ошибки', count: cat.bug || 0 },
-                    { label: 'Предложения', count: cat.idea || 0 },
-                    { label: 'Проблемы', count: cat.problem || 0 },
-                    { label: 'Общее', count: cat.feedback || 0 }
+                    { label: 'Ошибки', count: cat.bug ?? 0 },
+                    { label: 'Предложения', count: cat.idea ?? 0 },
+                    { label: 'Проблемы', count: cat.problem ?? 0 },
+                    { label: 'Общее', count: cat.feedback ?? 0 }
                 ];
                 this.#renderTimeSeriesChart(
                     'Обращения по категориям',
@@ -472,14 +460,13 @@ export class AdminPage {
         const offset = (this.#currentUserPage - 1) * limit;
 
         try {
-            const data = (await this.#adminApi.getUsers(
+            const data = await this.#adminApi.getUsers(
                 limit,
                 offset,
                 this.#currentUserSearch
-            )) as Record<string, unknown>;
-            const users: Record<string, unknown>[] =
-                (data.users as Record<string, unknown>[] | undefined) ?? [];
-            const total: number = (data.total as number) || 0;
+            );
+            const users = data.users as unknown as Record<string, unknown>[];
+            const total = data.total;
             if (countEl)
                 countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
 
@@ -731,14 +718,13 @@ export class AdminPage {
         const offset = (this.#currentNbPage - 1) * limit;
 
         try {
-            const data = (await this.#adminApi.getNotebooks(
+            const data = await this.#adminApi.getNotebooks(
                 limit,
                 offset,
                 this.#currentNbSearch
-            )) as Record<string, unknown>;
-            const notebooks: Record<string, unknown>[] =
-                (data.notebooks as Record<string, unknown>[] | undefined) ?? [];
-            const total: number = (data.total as number) || 0;
+            );
+            const notebooks = data.notebooks as unknown as Record<string, unknown>[];
+            const total = data.total;
             if (countEl)
                 countEl.textContent = `${total} блокнот${this.#plural(total, '', 'а', 'ов')}`;
 
@@ -888,9 +874,9 @@ export class AdminPage {
         return `${mins} мин.`;
     }
 
-    #esc(str: string): string {
+    #esc(value: string | number): string {
         const div = document.createElement('div');
-        div.textContent = str;
+        div.textContent = String(value);
         return div.innerHTML;
     }
 
@@ -952,14 +938,13 @@ export class AdminPage {
         const offset = (this.#currentIssuePage - 1) * limit;
 
         try {
-            const data = (await this.#adminApi.getIssues(
+            const data = await this.#adminApi.getIssues(
                 limit,
                 offset,
                 this.#currentIssueSearch
-            )) as Record<string, unknown>;
-            const issues: Record<string, unknown>[] =
-                (data.issues as Record<string, unknown>[] | undefined) ?? [];
-            const total: number = (data.total as number) || 0;
+            );
+            const issues = data.issues as unknown as Record<string, unknown>[];
+            const total = data.total;
             if (countEl)
                 countEl.textContent = `${total} обращени${this.#plural(total, 'е', 'я', 'й')}`;
 
@@ -1038,7 +1023,10 @@ export class AdminPage {
         nn(this.#contentArea).appendChild(container);
 
         try {
-            const issue = (await this.#adminApi.getIssue(issueId)) as Record<string, unknown>;
+            const issue = (await this.#adminApi.getIssue(issueId)) as unknown as Record<
+                string,
+                unknown
+            >;
             const catBadge = this.#issueBadge(ISSUE_CATEGORY_BADGES, issue.category as string);
             const statusBadge = this.#issueBadge(ISSUE_STATUS_BADGES, issue.status as string);
             const date = new Date(issue.created_at as string).toLocaleDateString('ru-RU', {

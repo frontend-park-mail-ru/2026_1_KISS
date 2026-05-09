@@ -1,4 +1,5 @@
 import { HttpClient } from '../http_client/HttpClient.js';
+import type { ApiEnvelope } from './types.js';
 
 export interface UserStats {
     quota: {
@@ -35,8 +36,10 @@ export class StatsApi {
 
     public async getMyStats(): Promise<UserStats> {
         const response = await this.#http.get('/users/me/stats');
-        const body = await response.json();
-        if (!response.ok) throw new Error(body?.error ?? `HTTP ${response.status}`);
-        return body.data;
+        const body = (await response.json()) as Partial<ApiEnvelope<UserStats>>;
+        if (!response.ok) {
+            throw new Error(body.error ?? `HTTP ${response.status}`);
+        }
+        return body.data as UserStats;
     }
 }

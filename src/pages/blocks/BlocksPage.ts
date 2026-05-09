@@ -503,10 +503,7 @@ export class BlocksPage {
             });
         } else {
             try {
-                const result = (await this.#runnerApi.executeBlock(
-                    this.#notebookId,
-                    position
-                )) as Record<string, unknown>;
+                const result = await this.#runnerApi.executeBlock(this.#notebookId, position);
                 this.#executionCounter += 1;
                 this.#execNumbers.set(blockId, this.#executionCounter);
                 this.#lastOutputs.set(blockId, {
@@ -552,9 +549,9 @@ export class BlocksPage {
             if (!Array.isArray(results)) return;
 
             const resultMap = new Map<number | string, Record<string, unknown>>();
-            results.forEach((r: Record<string, unknown>) =>
-                resultMap.set(r.block_id as number | string, r)
-            );
+            results.forEach((r) => {
+                resultMap.set(r.block_id, r as unknown as Record<string, unknown>);
+            });
 
             codeCells.forEach((c) => {
                 const blockId = c.getBlockId();
