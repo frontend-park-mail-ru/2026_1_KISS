@@ -9,7 +9,7 @@ export class NotebookWS {
     #onConnect: (() => void) | null;
     #onClose: ((code: number) => void) | null;
 
-    constructor(
+    public constructor(
         notebookId: number | string,
         {
             onEvent,
@@ -27,12 +27,12 @@ export class NotebookWS {
         this.#onClose = onClose || null;
     }
 
-    connect(): void {
+    public connect(): void {
         this.#closedByUser = false;
         this.#open();
     }
 
-    close(): void {
+    public close(): void {
         this.#closedByUser = true;
         if (this.#reconnectTimer) {
             clearTimeout(this.#reconnectTimer);
@@ -49,23 +49,23 @@ export class NotebookWS {
         }
     }
 
-    updateBlock(blockId: number, content: string, language?: string): void {
+    public updateBlock(blockId: number, content: string, language?: string): void {
         this.#send({ type: 'update_block', block_id: blockId, content, language });
     }
 
-    addBlock(position: number, blockType: 'code' | 'text', language?: string): void {
+    public addBlock(position: number, blockType: 'code' | 'text', language?: string): void {
         this.#send({ type: 'add_block', position, block_type: blockType, language });
     }
 
-    deleteBlock(blockId: number): void {
+    public deleteBlock(blockId: number): void {
         this.#send({ type: 'delete_block', block_id: blockId });
     }
 
-    executeBlock(blockPosition: number): void {
+    public executeBlock(blockPosition: number): void {
         this.#send({ type: 'execute_block', block_position: blockPosition });
     }
 
-    isOpen(): boolean {
+    public isOpen(): boolean {
         return Boolean(this.#socket) && this.#socket.readyState === WebSocket.OPEN;
     }
 

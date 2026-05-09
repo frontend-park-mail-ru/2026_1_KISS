@@ -34,7 +34,7 @@ export class CodeCell extends BaseComponent {
 
     static #CONTENT_DEBOUNCE_MS = 400;
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         {
             blockData,
@@ -66,7 +66,7 @@ export class CodeCell extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#updateLineNumbers();
@@ -74,7 +74,7 @@ export class CodeCell extends BaseComponent {
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (this.#contentChangeTimer) {
             clearTimeout(this.#contentChangeTimer);
             this.#contentChangeTimer = null;
@@ -92,7 +92,7 @@ export class CodeCell extends BaseComponent {
         }, CodeCell.#CONTENT_DEBOUNCE_MS);
     }
 
-    flushContentChange(): void {
+    public flushContentChange(): void {
         if (!this.#contentChangeTimer) return;
         clearTimeout(this.#contentChangeTimer);
         this.#contentChangeTimer = null;
@@ -151,40 +151,40 @@ export class CodeCell extends BaseComponent {
         textarea.style.height = `${Math.max(scrollH, editorH)  }px`;
     }
 
-    getContent(): string {
+    public getContent(): string {
         return (this._element.querySelector('.code-cell__textarea')!).value;
     }
 
-    setContent(text: string): void {
+    public setContent(text: string): void {
         const textarea = this._element.querySelector('.code-cell__textarea')!;
         textarea.value = text;
         this.#updateLineNumbers();
         this.#autoResize();
     }
 
-    highlightRange(start: number, end: number): void {
+    public highlightRange(start: number, end: number): void {
         const textarea = this._element.querySelector('.code-cell__textarea')!;
         textarea.focus({ preventScroll: true });
         textarea.setSelectionRange(start, end);
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    getBlockId(): string {
+    public getBlockId(): string {
         return this.#blockData.id;
     }
 
-    setRunning(isRunning: boolean): void {
+    public setRunning(isRunning: boolean): void {
         this.#isRunning = isRunning;
         this._element.classList.toggle('code-cell--running', isRunning);
         if (isRunning) this.clearOutput();
     }
 
-    setExecutionNumber(n: number | null): void {
+    public setExecutionNumber(n: number | null): void {
         const el = this._element.querySelector('.code-cell__execution-number');
         if (el) el.textContent = `[${n ?? ' '}]`;
     }
 
-    setOutput(out: CodeCellOutput = {}): void {
+    public setOutput(out: CodeCellOutput = {}): void {
         const el = this._element.querySelector('.code-cell__output')!;
         const stdoutEl = el.querySelector('.code-cell__output-stdout')!;
         const stderrEl = el.querySelector('.code-cell__output-stderr')!;
@@ -227,7 +227,7 @@ export class CodeCell extends BaseComponent {
         this._element.classList.toggle('code-cell--error', Boolean(out.stderr?.length || out.error));
     }
 
-    clearOutput(): void {
+    public clearOutput(): void {
         const el = this._element.querySelector('.code-cell__output');
         if (!el) return;
         (el as HTMLElement).hidden = true;

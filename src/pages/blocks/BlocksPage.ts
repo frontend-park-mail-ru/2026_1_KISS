@@ -44,7 +44,7 @@ export class BlocksPage {
 
     #ws: NotebookWS | null = null;
 
-    constructor(root: HTMLElement, params: { id: string }) {
+    public constructor(root: HTMLElement, params: { id: string }) {
         this.#root = root;
         this.#notebookId = params.id;
         this.#httpClient = HttpClient.getInstance();
@@ -52,7 +52,7 @@ export class BlocksPage {
         this.#notebookApi = new NotebookApi();
     }
 
-    async render(): Promise<void> {
+    public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
         try {
@@ -891,7 +891,7 @@ export class BlocksPage {
         this.#sidebar!.setMatchCount(-1, 0);
     }
 
-    destroy(): void {
+    public destroy(): void {
         if (this.#notebookId) {
             this.#runnerApi.stopSession(this.#notebookId);
         }

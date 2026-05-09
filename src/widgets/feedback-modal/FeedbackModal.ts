@@ -4,7 +4,7 @@ export class FeedbackModal {
     #pendingOpen = false;
     #onMessage: (e: MessageEvent) => void;
 
-    constructor() {
+    public constructor() {
         this.#iframe = document.createElement('iframe');
         this.#iframe.src = '/feedback';
         this.#iframe.className = 'feedback-modal-iframe';
@@ -25,7 +25,7 @@ export class FeedbackModal {
         window.addEventListener('message', this.#onMessage);
     }
 
-    open(): void {
+    public open(): void {
         this.#iframe.classList.add('feedback-modal-iframe--visible');
         document.body.style.overflow = 'hidden';
         if (this.#ready) {
@@ -35,12 +35,12 @@ export class FeedbackModal {
         }
     }
 
-    close(): void {
+    public close(): void {
         this.#iframe.classList.remove('feedback-modal-iframe--visible');
         document.body.style.overflow = '';
     }
 
-    destroy(): void {
+    public destroy(): void {
         window.removeEventListener('message', this.#onMessage);
         this.#iframe.remove();
     }

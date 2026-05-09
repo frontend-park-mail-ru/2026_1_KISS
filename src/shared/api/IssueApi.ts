@@ -3,7 +3,7 @@ import { HttpClient } from '../http_client/HttpClient.js';
 export class IssueApi {
     #http: HttpClient;
 
-    constructor() {
+    public constructor() {
         this.#http = HttpClient.getInstance();
     }
 
@@ -15,7 +15,7 @@ export class IssueApi {
         return body.data;
     }
 
-    async createIssue(category: string, content: string, files: File[] = []): Promise<unknown> {
+    public async createIssue(category: string, content: string, files: File[] = []): Promise<unknown> {
         if (files.length === 0) {
             const response = await this.#http.post('/issues', { category, content });
             return this.#parse(response);
@@ -41,26 +41,26 @@ export class IssueApi {
         return this.#parse(response);
     }
 
-    async getIssues(): Promise<unknown> {
+    public async getIssues(): Promise<unknown> {
         const response = await this.#http.get('/issues');
         return this.#parse(response);
     }
 
-    async getIssue(id: string | number): Promise<unknown> {
+    public async getIssue(id: string | number): Promise<unknown> {
         const response = await this.#http.get(`/issues/${id}`);
         return this.#parse(response);
     }
 
-    async deleteIssue(id: string | number): Promise<unknown> {
+    public async deleteIssue(id: string | number): Promise<unknown> {
         const response = await this.#http.delete(`/issues/${id}`);
         return this.#parse(response);
     }
 
-    getAttachmentUrl(issueId: string | number, attachmentId: string | number): string {
+    public getAttachmentUrl(issueId: string | number, attachmentId: string | number): string {
         return `${this.#http.baseUrl}/issues/${issueId}/attachments/${attachmentId}`;
     }
 
-    async addMessage(issueId: string | number, content: string): Promise<unknown> {
+    public async addMessage(issueId: string | number, content: string): Promise<unknown> {
         const response = await this.#http.post(`/issues/${issueId}/messages`, { content });
         return this.#parse(response);
     }

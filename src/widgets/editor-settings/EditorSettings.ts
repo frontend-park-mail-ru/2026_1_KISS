@@ -4,7 +4,7 @@ import { EditorSettingsTemplate } from './EditorSettings.template.js';
 const STORAGE_KEY = 'kisscolab_editor';
 
 export class EditorSettings extends BaseComponent {
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#render();
     }
@@ -15,7 +15,7 @@ export class EditorSettings extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#loadSettings();

@@ -30,7 +30,7 @@ export class NotebookHeader extends BaseComponent {
     #isDropdownOpen = false;
     #isMenuOpen = false;
 
-    constructor(parent: HTMLElement, config: NotebookHeaderConfig = {}) {
+    public constructor(parent: HTMLElement, config: NotebookHeaderConfig = {}) {
         super(null, parent);
         this.#config = config;
         this.#onRename = config.onRename || null;
@@ -49,18 +49,18 @@ export class NotebookHeader extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
 
-    setFilename(filename: string): void {
+    public setFilename(filename: string): void {
         if (this.#isEditing) return;
         const span = this._element.querySelector('.notebook-header__filename');
         if (span) span.textContent = filename;
@@ -149,7 +149,7 @@ export class NotebookHeader extends BaseComponent {
         }
     }
 
-    showSaveIndicator(): void {
+    public showSaveIndicator(): void {
         const cloudBtn = this._element.querySelector('[title="Облако"]');
         if (!cloudBtn) return;
         cloudBtn.classList.add('notebook-header__icon-btn--saving');

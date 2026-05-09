@@ -6,21 +6,21 @@ export class BaseComponent {
     protected _listeners: EventListenerRecord[] = [];
     protected _isMounted = false;
 
-    constructor(element: HTMLElement | null, parent: HTMLElement) {
+    public constructor(element: HTMLElement | null, parent: HTMLElement) {
         this._element = element!;
         this._parent = parent;
     }
 
-    getElement(): HTMLElement {
+    public getElement(): HTMLElement {
         return this._element;
     }
 
-    mount(): void {
+    public mount(): void {
         this._parent.appendChild(this._element);
         this._isMounted = true;
     }
 
-    unmount(): void {
+    public unmount(): void {
         this._clearListeners();
         if (this._element && this._parent) {
             this._parent.removeChild(this._element);

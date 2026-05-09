@@ -19,7 +19,7 @@ export class TextCell extends BaseComponent {
     #onDelete?: (id: string) => void;
     #onContentChange?: (id: string, content: string) => void;
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         { blockData, onMoveUp, onMoveDown, onCopy, onDelete, onContentChange }: TextCellOptions
     ) {
@@ -42,13 +42,13 @@ export class TextCell extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
@@ -73,15 +73,15 @@ export class TextCell extends BaseComponent {
         });
     }
 
-    getContent(): string {
+    public getContent(): string {
         return this._element.querySelector('.text-cell__content')!.textContent;
     }
 
-    setContent(text: string): void {
+    public setContent(text: string): void {
         this._element.querySelector('.text-cell__content')!.textContent = text;
     }
 
-    highlightMatch(_matchIndex: number, start: number, end: number): void {
+    public highlightMatch(_matchIndex: number, start: number, end: number): void {
         const el = this._element.querySelector('.text-cell__content')!;
         const raw = el.textContent;
         const before = raw.substring(0, start);
@@ -97,7 +97,7 @@ export class TextCell extends BaseComponent {
         this._element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    clearHighlights(): void {
+    public clearHighlights(): void {
         const el = this._element.querySelector('.text-cell__content')!;
         el.querySelectorAll('mark.find-match').forEach((m) => {
             m.replaceWith(document.createTextNode(m.textContent));
@@ -105,7 +105,7 @@ export class TextCell extends BaseComponent {
         el.normalize();
     }
 
-    getBlockId(): string {
+    public getBlockId(): string {
         return this.#blockData.id;
     }
 }

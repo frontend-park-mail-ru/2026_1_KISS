@@ -8,7 +8,7 @@ export class NotebookToolbar extends BaseComponent {
     #onToggleComments: ((visible: boolean) => void) | null = null;
     #commentsVisible: boolean;
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         {
             onAddCode,
@@ -39,13 +39,13 @@ export class NotebookToolbar extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }

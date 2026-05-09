@@ -6,7 +6,7 @@ import { StatsSectionTemplate } from './StatsSection.template.js';
 export class StatsSection extends BaseComponent {
     #api: StatsApi;
 
-    constructor(parent: HTMLElement) {
+    public constructor(parent: HTMLElement) {
         super(null, parent);
         this.#api = new StatsApi();
         this.#render();
@@ -18,7 +18,7 @@ export class StatsSection extends BaseComponent {
         this._element = tmp.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         super.mount();
         this.#loadStats();
     }

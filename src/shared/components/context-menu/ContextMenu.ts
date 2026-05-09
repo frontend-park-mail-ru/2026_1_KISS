@@ -9,7 +9,7 @@ interface ContextMenuAction {
 export class ContextMenu extends BaseComponent {
     #isVisible = false;
 
-    constructor() {
+    public constructor() {
         const el = document.createElement('div');
         el.className = 'context-menu';
         super(el, document.body);
@@ -23,7 +23,7 @@ export class ContextMenu extends BaseComponent {
         });
     }
 
-    show(x: number, y: number, actions: ContextMenuAction[]): void {
+    public show(x: number, y: number, actions: ContextMenuAction[]): void {
         this._element.innerHTML = '';
         actions.forEach(({ label, handler, danger }) => {
             const item = document.createElement('button');
@@ -54,7 +54,7 @@ export class ContextMenu extends BaseComponent {
         });
     }
 
-    hide(): void {
+    public hide(): void {
         this._element.classList.remove('context-menu--visible');
         this.#isVisible = false;
     }

@@ -43,12 +43,12 @@ export class FilesPage {
 
     #httpClient: HttpClient;
 
-    constructor(root: HTMLElement) {
+    public constructor(root: HTMLElement) {
         this.#root = root;
         this.#httpClient = HttpClient.getInstance();
     }
 
-    async render(): Promise<void> {
+    public async render(): Promise<void> {
         this.#root.innerHTML = '';
 
         try {
@@ -120,7 +120,7 @@ export class FilesPage {
         await this.#loadNotebooks(1);
     }
 
-    destroy(): void {
+    public destroy(): void {
         if (this.#filterBar) this.#filterBar.unmount();
         if (this.#filesTable) this.#filesTable.unmount();
         if (this.#pagination) this.#pagination.unmount();

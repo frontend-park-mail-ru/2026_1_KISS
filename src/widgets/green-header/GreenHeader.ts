@@ -24,7 +24,7 @@ export class GreenHeader {
     #isDropdownOpen = false;
     #listeners: EventListenerRecord[] = [];
 
-    constructor(parent: HTMLElement, config: GreenHeaderConfig = {}) {
+    public constructor(parent: HTMLElement, config: GreenHeaderConfig = {}) {
         this.#parent = parent;
         this.#config = {
             logo: '/images/NewLogoTransparentWhite.svg'
@@ -45,7 +45,7 @@ export class GreenHeader {
         this.#config.onFeedback = config.onFeedback || null;
     }
 
-    render(): void {
+    public render(): void {
         this.#parent.insertAdjacentHTML(
             'afterbegin',
             GreenHeaderTemplate(this.#config as Parameters<typeof GreenHeaderTemplate>[0])
@@ -115,18 +115,18 @@ export class GreenHeader {
         this.#listeners.push({ element, event, handler });
     }
 
-    destroy(): void {
+    public destroy(): void {
         this.#listeners.forEach(({ element, event, handler }) => {
             element.removeEventListener(event, handler);
         });
         this.#listeners = [];
     }
 
-    get loginBtn(): HTMLElement | null {
+    public get loginBtn(): HTMLElement | null {
         return this.#header.querySelector('[data-action="login"]');
     }
 
-    get registerBtn(): HTMLElement | null {
+    public get registerBtn(): HTMLElement | null {
         return this.#header.querySelector('[data-action="register"]');
     }
 }

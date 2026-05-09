@@ -13,7 +13,7 @@ export class RegisterPage {
     #register: Register | null;
     #login: Login | null;
 
-    constructor(root: HTMLElement) {
+    public constructor(root: HTMLElement) {
         this.#root = root;
         this.#elements = {
             header: null,
@@ -24,7 +24,7 @@ export class RegisterPage {
         this.#login = null;
     }
 
-    render(): void {
+    public render(): void {
         this.#root.innerHTML = '';
 
         this.#elements.header = new GreenHeader(this.#root);
@@ -73,7 +73,7 @@ export class RegisterPage {
         }
     }
 
-    update(): void {
+    public update(): void {
         this.#activeElement!.update();
     }
 
@@ -108,7 +108,7 @@ export class RegisterPage {
         }
     }
 
-    destroy(): void {
+    public destroy(): void {
         if (this.#login) this.#login.unmount();
         if (this.#register) this.#register.unmount();
         this.#root.innerHTML = '';

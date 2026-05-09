@@ -8,16 +8,16 @@ export class Router {
     #currentPage: { destroy?: () => void } | null = null;
     #defaultPath!: string;
 
-    constructor(rootElement: HTMLElement) {
+    public constructor(rootElement: HTMLElement) {
         this.#rootElement = rootElement;
         Router.#instance = this;
     }
 
-    static getInstance(): Router | null {
+    public static getInstance(): Router | null {
         return Router.#instance;
     }
 
-    addRoute(pattern: string, PageClass: PageConstructor): void {
+    public addRoute(pattern: string, PageClass: PageConstructor): void {
         const paramNames: string[] = [];
         const regexpStr = pattern.replace(/:([^/]+)/g, (_match, name: string) => {
             paramNames.push(name);
@@ -31,11 +31,11 @@ export class Router {
         });
     }
 
-    setDefault(path: string): void {
+    public setDefault(path: string): void {
         this.#defaultPath = path;
     }
 
-    start(): void {
+    public start(): void {
         window.addEventListener('popstate', () => {
             this.#handleRoute(window.location.pathname);
         });
@@ -48,7 +48,7 @@ export class Router {
         }
     }
 
-    navigate(path: string): void {
+    public navigate(path: string): void {
         history.pushState(null, '', path);
         this.#handleRoute(path);
     }

@@ -50,7 +50,7 @@ export class Input extends BaseComponent {
     #config: InputConfig;
     #state: InputState;
 
-    constructor(parent: HTMLElement, config: InputConfig) {
+    public constructor(parent: HTMLElement, config: InputConfig) {
         super(null, parent);
         this.#config = config;
         this.#state = {
@@ -70,7 +70,7 @@ export class Input extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
 
@@ -92,7 +92,7 @@ export class Input extends BaseComponent {
         }
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
         this.#input = null;
@@ -102,7 +102,7 @@ export class Input extends BaseComponent {
         };
     }
 
-    update(): void {
+    public update(): void {
         if (!this._isMounted) return;
         this.#state.value = '';
         this.#calmDown();
@@ -127,7 +127,7 @@ export class Input extends BaseComponent {
         }
     }
 
-    validate(): boolean {
+    public validate(): boolean {
         if (this.#input) {
             this.#state.value = this.#input.value;
         }
@@ -186,16 +186,16 @@ export class Input extends BaseComponent {
         }
     }
 
-    showError(errorMessage: string): void {
+    public showError(errorMessage: string): void {
         this.#state.isValid = false;
         this.#updateUI(errorMessage);
     }
 
-    getValue(): string {
+    public getValue(): string {
         return this.#state.value;
     }
 
-    clear(): void {
+    public clear(): void {
         this.#state = {
             isValid: true,
             value: ''

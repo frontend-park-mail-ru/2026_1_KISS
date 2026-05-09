@@ -7,7 +7,7 @@ export class Heartbeat {
     #intervalId: ReturnType<typeof setInterval> | null = null;
     #eventApi!: EventApi;
 
-    constructor() {
+    public constructor() {
         if (Heartbeat.#instance) {
             return Heartbeat.#instance;
         }
@@ -15,14 +15,14 @@ export class Heartbeat {
         Heartbeat.#instance = this;
     }
 
-    static getInstance(): Heartbeat {
+    public static getInstance(): Heartbeat {
         if (!Heartbeat.#instance) {
             new Heartbeat();
         }
         return Heartbeat.#instance!;
     }
 
-    start(): void {
+    public start(): void {
         if (this.#intervalId) {
             return;
         }
@@ -32,7 +32,7 @@ export class Heartbeat {
         window.addEventListener('beforeunload', this.#onUnload);
     }
 
-    stop(): void {
+    public stop(): void {
         if (this.#intervalId) {
             clearInterval(this.#intervalId);
             this.#intervalId = null;

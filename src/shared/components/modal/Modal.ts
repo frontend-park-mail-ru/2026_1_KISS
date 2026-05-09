@@ -16,7 +16,7 @@ interface ModalField {
 export class Modal extends BaseComponent {
     #resolve: ((value: Record<string, string> | null) => void) | null = null;
 
-    constructor() {
+    public constructor() {
         const el = document.createElement('div');
         el.className = 'modal-overlay';
         super(el, document.body);
@@ -30,7 +30,7 @@ export class Modal extends BaseComponent {
         });
     }
 
-    open(title: string, fields: ModalField[]): Promise<Record<string, string> | null> {
+    public open(title: string, fields: ModalField[]): Promise<Record<string, string> | null> {
         return new Promise((resolve) => {
             this.#resolve = resolve;
             this._element.innerHTML = '';
@@ -121,7 +121,7 @@ export class Modal extends BaseComponent {
         });
     }
 
-    close(result: Record<string, string> | null): void {
+    public close(result: Record<string, string> | null): void {
         this._element.classList.remove('modal-overlay--visible');
         if (this.#resolve) {
             this.#resolve(result);

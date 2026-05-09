@@ -30,7 +30,7 @@ export class NotebookSidebar extends BaseComponent {
     #ramHistory: number[] = [];
     #cpuHistory: number[] = [];
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         {
             onFind,
@@ -58,25 +58,25 @@ export class NotebookSidebar extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         this.#stopContainerPolling();
         super.unmount();
     }
 
-    setMatchCount(currentIdx: number, total: number): void {
+    public setMatchCount(currentIdx: number, total: number): void {
         const el = this._element.querySelector('.notebook-sidebar__match-count');
         if (!el) return;
         el.textContent = total === 0 ? '0 / 0' : `${currentIdx + 1} / ${total}`;
     }
 
-    getFindQuery(): FindQuery {
+    public getFindQuery(): FindQuery {
         const findInput = this._element.querySelector(
             '.notebook-sidebar__find-input'
         );

@@ -15,7 +15,7 @@ export class FilterBar extends BaseComponent {
     #ownerOpen = false;
     #searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         {
             onCreate,
@@ -37,18 +37,18 @@ export class FilterBar extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
 
-    setOwners(owners: string[]): void {
+    public setOwners(owners: string[]): void {
         const dropdown = this._element.querySelector('.filter-bar__owner-dropdown')!;
         dropdown.innerHTML = '';
         owners.forEach((name) => {

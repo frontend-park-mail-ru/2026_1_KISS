@@ -18,7 +18,7 @@ export class FilesTable extends BaseComponent {
     #sortDir = 'asc';
     #sortOpen = false;
 
-    constructor(
+    public constructor(
         parent: HTMLElement,
         {
             onDelete,
@@ -43,20 +43,20 @@ export class FilesTable extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachSortEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         this.#kebabMenus.forEach((m) => { m.unmount(); });
         this.#kebabMenus = [];
         if (!this._isMounted) return;
         super.unmount();
     }
 
-    setData(notebooks: FilesTableNotebook[], ownerName: string): void {
+    public setData(notebooks: FilesTableNotebook[], ownerName: string): void {
         this.#notebooks = [...notebooks];
         this.#ownerName = ownerName;
 

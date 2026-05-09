@@ -24,7 +24,7 @@ export class ProfileSection extends BaseComponent {
     #httpClient: HttpClient;
     #usernameInput!: Input;
 
-    constructor(parent: HTMLElement, config: ProfileSectionConfig) {
+    public constructor(parent: HTMLElement, config: ProfileSectionConfig) {
         super(null, parent);
         this.#config = config;
         this.#httpClient = HttpClient.getInstance();
@@ -44,7 +44,7 @@ export class ProfileSection extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
-    mount(): void {
+    public mount(): void {
         if (this._isMounted) return;
         super.mount();
 
@@ -67,7 +67,7 @@ export class ProfileSection extends BaseComponent {
         this.#attachEmailEvents();
     }
 
-    unmount(): void {
+    public unmount(): void {
         if (!this._isMounted) return;
         if (this.#usernameInput) {
             this.#usernameInput.unmount();

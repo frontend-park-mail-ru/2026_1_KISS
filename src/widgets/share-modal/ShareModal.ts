@@ -15,12 +15,12 @@ export class ShareModal extends BaseComponent {
     #isPublic = false;
     #collaborators: Collaborator[] = [];
 
-    constructor() {
+    public constructor() {
         super(null, document.body);
         this.#http = HttpClient.getInstance();
     }
 
-    async open(
+    public async open(
         notebookId: string | number,
         notebookTitle: string,
         isPublic: boolean
@@ -37,15 +37,15 @@ export class ShareModal extends BaseComponent {
         (this._element.querySelector('.share-modal__input'))?.focus();
     }
 
-    close(): void {
+    public close(): void {
         if (!this._isMounted) return;
         super.unmount();
         document.body.style.overflow = '';
     }
 
-    mount(): void {}
+    public mount(): void {}
 
-    unmount(): void {
+    public unmount(): void {
         this.close();
     }
 

@@ -3,7 +3,7 @@ import { HttpClient } from '../http_client/HttpClient.js';
 export class AdminApi {
     #http: HttpClient;
 
-    constructor() {
+    public constructor() {
         this.#http = HttpClient.getInstance();
     }
 
@@ -15,63 +15,63 @@ export class AdminApi {
         return body.data;
     }
 
-    async getUsers(limit = 20, offset = 0, search = ''): Promise<unknown> {
+    public async getUsers(limit = 20, offset = 0, search = ''): Promise<unknown> {
         const response = await this.#http.get(
             `/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`
         );
         return this.#parse(response);
     }
 
-    async banUser(id: string | number): Promise<unknown> {
+    public async banUser(id: string | number): Promise<unknown> {
         const response = await this.#http.post(`/admin/users/${id}/ban`);
         return this.#parse(response);
     }
 
-    async unbanUser(id: string | number): Promise<unknown> {
+    public async unbanUser(id: string | number): Promise<unknown> {
         const response = await this.#http.post(`/admin/users/${id}/unban`);
         return this.#parse(response);
     }
 
-    async updateUser(id: string | number, data: Record<string, unknown>): Promise<unknown> {
+    public async updateUser(id: string | number, data: Record<string, unknown>): Promise<unknown> {
         const response = await this.#http.put(`/admin/users/${id}`, data);
         return this.#parse(response);
     }
 
-    async resetPassword(id: string | number, password: string): Promise<unknown> {
+    public async resetPassword(id: string | number, password: string): Promise<unknown> {
         const response = await this.#http.put(`/admin/users/${id}/password`, { password });
         return this.#parse(response);
     }
 
-    async setPlan(id: string | number, plan: string): Promise<unknown> {
+    public async setPlan(id: string | number, plan: string): Promise<unknown> {
         const response = await this.#http.put(`/admin/users/${id}/plan`, { plan });
         return this.#parse(response);
     }
 
-    async getNotebooks(limit = 20, offset = 0, search = ''): Promise<unknown> {
+    public async getNotebooks(limit = 20, offset = 0, search = ''): Promise<unknown> {
         const response = await this.#http.get(
             `/admin/notebooks?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`
         );
         return this.#parse(response);
     }
 
-    async deleteNotebook(id: string | number): Promise<unknown> {
+    public async deleteNotebook(id: string | number): Promise<unknown> {
         const response = await this.#http.delete(`/admin/notebooks/${id}`);
         return this.#parse(response);
     }
 
-    async getStats(): Promise<unknown> {
+    public async getStats(): Promise<unknown> {
         const response = await this.#http.get('/admin/stats');
         return this.#parse(response);
     }
 
-    async getActivityStats(dauDays = 30, mauMonths = 12): Promise<unknown> {
+    public async getActivityStats(dauDays = 30, mauMonths = 12): Promise<unknown> {
         const response = await this.#http.get(
             `/admin/stats/activity?dau_days=${dauDays}&mau_months=${mauMonths}`
         );
         return this.#parse(response);
     }
 
-    async getIssues(
+    public async getIssues(
         limit = 20,
         offset = 0,
         search = '',
@@ -84,29 +84,29 @@ export class AdminApi {
         return this.#parse(response);
     }
 
-    async getIssue(id: string | number): Promise<unknown> {
+    public async getIssue(id: string | number): Promise<unknown> {
         const response = await this.#http.get(`/admin/issues/${id}`);
         return this.#parse(response);
     }
 
-    async updateIssueStatus(id: string | number, status: string): Promise<unknown> {
+    public async updateIssueStatus(id: string | number, status: string): Promise<unknown> {
         const response = await this.#http.patch(`/admin/issues/${id}/status`, { status });
         return this.#parse(response);
     }
 
-    async respondToIssue(id: string | number, text: string): Promise<unknown> {
+    public async respondToIssue(id: string | number, text: string): Promise<unknown> {
         const response = await this.#http.post(`/admin/issues/${id}/response`, {
             content: text
         });
         return this.#parse(response);
     }
 
-    async getIssueStats(): Promise<unknown> {
+    public async getIssueStats(): Promise<unknown> {
         const response = await this.#http.get('/admin/issues/stats');
         return this.#parse(response);
     }
 
-    async sendEmail(to: string, subject: string, body: string): Promise<unknown> {
+    public async sendEmail(to: string, subject: string, body: string): Promise<unknown> {
         const response = await this.#http.post('/admin/send-email', { to, subject, body });
         return this.#parse(response);
     }
