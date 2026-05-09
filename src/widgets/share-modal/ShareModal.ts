@@ -185,7 +185,7 @@ export class ShareModal extends BaseComponent {
             );
             if (res.ok || res.status === 204) {
                 this.#collaborators = this.#collaborators.filter(
-                    (c) => String(c.id) !== String(userId)
+                    (c) => String(c.id) !== userId
                 );
                 this.#rerenderList();
             }
@@ -195,7 +195,7 @@ export class ShareModal extends BaseComponent {
     }
 
     async #handleLevelChange(userId: string, level: string): Promise<void> {
-        const collaborator = this.#collaborators.find((c) => String(c.id) === String(userId));
+        const collaborator = this.#collaborators.find((c) => String(c.id) === userId);
         if (!collaborator) return;
 
         const prev = collaborator.permission_level;
@@ -314,7 +314,7 @@ export class ShareModal extends BaseComponent {
     }
 
     #escape(str: string): string {
-        return String(str)
+        return str
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
