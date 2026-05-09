@@ -104,7 +104,7 @@ export class NotebookHeader extends BaseComponent {
         if (fileDropdown) {
             this._addListener(fileDropdown, 'click', (e: Event) => {
                 e.stopPropagation();
-                const item = (e.target as HTMLElement).closest('[data-action]');
+                const item = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
                 if (!item) return;
                 const action = item.dataset.action;
                 if (action === 'save' && this.#config.onSave) this.#config.onSave();
@@ -159,7 +159,9 @@ export class NotebookHeader extends BaseComponent {
     async #finishEditing(): Promise<void> {
         if (!this.#isEditing) return;
 
-        const filenameSpan = nn(this._element.querySelector('.notebook-header__filename'));
+        const filenameSpan = nn(
+            this._element.querySelector<HTMLElement>('.notebook-header__filename')
+        );
         this.#isEditing = false;
         filenameSpan.contentEditable = 'false';
         filenameSpan.classList.remove('notebook-header__filename--editing');
@@ -223,7 +225,9 @@ export class NotebookHeader extends BaseComponent {
     }
 
     #startRename(): void {
-        const filenameSpan = nn(this._element.querySelector('.notebook-header__filename'));
+        const filenameSpan = nn(
+            this._element.querySelector<HTMLElement>('.notebook-header__filename')
+        );
         this.#originalText = filenameSpan.textContent || '';
         this.#isEditing = true;
 

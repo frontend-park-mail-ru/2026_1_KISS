@@ -131,8 +131,8 @@ export class CellList extends BaseComponent {
         this.#clearCells();
         this.#blocks = [...blocks];
 
-        const container = nn(this._element.querySelector('.cell-list__cells'));
-        const emptyState = nn(this._element.querySelector('.cell-list__empty-state'));
+        const container = nn(this._element.querySelector<HTMLElement>('.cell-list__cells'));
+        const emptyState = nn(this._element.querySelector<HTMLElement>('.cell-list__empty-state'));
 
         if (blocks.length === 0) {
             container.style.display = 'none';
@@ -301,8 +301,8 @@ export class CellList extends BaseComponent {
         this.#syncTextCellsToBlocks();
         this.#blocks.splice(insertAt, 0, block);
 
-        const container = nn(this._element.querySelector('.cell-list__cells'));
-        const emptyState = nn(this._element.querySelector('.cell-list__empty-state'));
+        const container = nn(this._element.querySelector<HTMLElement>('.cell-list__cells'));
+        const emptyState = nn(this._element.querySelector<HTMLElement>('.cell-list__empty-state'));
         container.style.display = '';
         emptyState.style.display = 'none';
 
@@ -332,8 +332,8 @@ export class CellList extends BaseComponent {
         }
 
         if (this.#blocks.length === 0) {
-            const container = nn(this._element.querySelector('.cell-list__cells'));
-            const emptyState = nn(this._element.querySelector('.cell-list__empty-state'));
+            const container = nn(this._element.querySelector<HTMLElement>('.cell-list__cells'));
+            const emptyState = nn(this._element.querySelector<HTMLElement>('.cell-list__empty-state'));
             container.style.display = 'none';
             emptyState.style.display = '';
         }
