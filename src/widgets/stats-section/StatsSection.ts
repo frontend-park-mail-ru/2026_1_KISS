@@ -70,7 +70,7 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateInfo(stats: UserStats): void {
-        const set = (key: string, value: string) => {
+        const set = (key: string, value: string): void => {
             const el = this._element.querySelector(`[data-info="${key}"]`);
             if (el) el.textContent = value;
         };
@@ -92,7 +92,7 @@ export class StatsSection extends BaseComponent {
     }
 
     #populateKPI(stats: UserStats): void {
-        const set = (key: string, value: number) => {
+        const set = (key: string, value: number): void => {
             const el = this._element.querySelector(`[data-kpi="${key}"]`);
             if (el) el.textContent = String(value);
         };

@@ -194,7 +194,7 @@ export class FilesTable extends BaseComponent {
         });
 
         let saved = false;
-        const save = () => {
+        const save = (): void => {
             if (saved) return;
             saved = true;
             nameSpan.contentEditable = 'false';
@@ -207,7 +207,7 @@ export class FilesTable extends BaseComponent {
             }
         };
 
-        const cancel = () => {
+        const cancel = (): void => {
             if (saved) return;
             saved = true;
             nameSpan.contentEditable = 'false';

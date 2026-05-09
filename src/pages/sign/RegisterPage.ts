@@ -48,7 +48,7 @@ export class RegisterPage {
     }
 
     #attachEvents(): void {
-        const moveToRegister = (e: Event) => {
+        const moveToRegister = (e: Event): void => {
             e.preventDefault();
             nn(this.#register).mount();
             nn(this.#login).unmount();
@@ -56,7 +56,7 @@ export class RegisterPage {
             this.#saveState();
             this.update();
         };
-        const moveToLogin = (e: Event) => {
+        const moveToLogin = (e: Event): void => {
             e.preventDefault();
             nn(this.#register).unmount();
             nn(this.#login).mount();
