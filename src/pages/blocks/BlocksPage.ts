@@ -246,7 +246,7 @@ export class BlocksPage {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
                 if (cell && cell instanceof CodeCell) {
-                    cell.setOutput({ error: String(event.message ?? 'execution error') });
+                    cell.setOutput({ error: typeof event.message === 'string' ? event.message : 'execution error' });
                     cell.setRunning(false);
                 }
                 this.#streamingBlockId = null;
@@ -270,7 +270,7 @@ export class BlocksPage {
                 break;
             case 'stdout_chunk':
                 if (this.#streamingBlockId !== null) {
-                    this.#streamingStdout.push(String(event.message ?? ''));
+                    this.#streamingStdout.push(typeof event.message === 'string' ? event.message : '');
                     if (this.#streamingStdout.length > BlocksPage.#MAX_STREAM_LINES) {
                         this.#streamingStdout = this.#streamingStdout.slice(
                             -BlocksPage.#MAX_STREAM_LINES
@@ -281,7 +281,7 @@ export class BlocksPage {
                 break;
             case 'stderr_chunk':
                 if (this.#streamingBlockId !== null) {
-                    this.#streamingStderr.push(String(event.message ?? ''));
+                    this.#streamingStderr.push(typeof event.message === 'string' ? event.message : '');
                     if (this.#streamingStderr.length > BlocksPage.#MAX_STREAM_LINES) {
                         this.#streamingStderr = this.#streamingStderr.slice(
                             -BlocksPage.#MAX_STREAM_LINES

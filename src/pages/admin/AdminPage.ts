@@ -207,7 +207,7 @@ export class AdminPage {
             cards.forEach(({ label, value, tooltip }) => {
                 const card = document.createElement('div');
                 card.className = 'admin-stat-card';
-                card.innerHTML = `<div class="admin-stat-card__value">${value}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
+                card.innerHTML = `<div class="admin-stat-card__value">${this.#esc(value)}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
                 grid.appendChild(card);
             });
             nn(this.#contentArea).appendChild(grid);
@@ -266,7 +266,7 @@ export class AdminPage {
                 issueCards.forEach(({ label, value, tooltip }) => {
                     const card = document.createElement('div');
                     card.className = 'admin-stat-card';
-                    card.innerHTML = `<div class="admin-stat-card__value">${value}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
+                    card.innerHTML = `<div class="admin-stat-card__value">${this.#esc(value)}</div><div class="admin-stat-card__label">${this.#esc(label)} <span class="admin-stat-card__hint">?<span class="admin-stat-card__tooltip">${this.#esc(tooltip)}</span></span></div>`;
                     issueGrid.appendChild(card);
                 });
                 nn(this.#contentArea).appendChild(issueGrid);

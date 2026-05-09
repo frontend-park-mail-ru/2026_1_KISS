@@ -8,5 +8,6 @@ const ESCAPE_MAP: Record<string, string> = {
 
 export function escapeHtml(str: unknown): string {
     if (str === null || str === undefined) return '';
-    return String(str).replace(/[&<>"']/g, (ch) => ESCAPE_MAP[ch]);
+    const s = typeof str === 'string' ? str : JSON.stringify(str);
+    return s.replace(/[&<>"']/g, (ch) => ESCAPE_MAP[ch]);
 }
