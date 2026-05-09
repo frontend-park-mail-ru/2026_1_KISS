@@ -184,7 +184,13 @@ export class FilesTable extends BaseComponent {
         nameSpan.addEventListener('paste', (e: ClipboardEvent) => {
             e.preventDefault();
             const text = nn(e.clipboardData).getData('text/plain');
-            document.execCommand('insertText', false, text);
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                const r = selection.getRangeAt(0);
+                r.deleteContents();
+                r.insertNode(document.createTextNode(text));
+                r.collapse(false);
+            }
         });
 
         let saved = false;
