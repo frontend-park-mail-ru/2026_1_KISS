@@ -48,7 +48,7 @@ export class FeedbackPage {
     }
 
     public init(): void {
-        window.addEventListener('message', (e: MessageEvent) => {
+        window.addEventListener('message', (e: MessageEvent<{ type?: string } | undefined>) => {
             if (e.data?.type === 'feedback:open') {
                 this.#selectedCategory = null;
                 this.#renderForm();
@@ -134,7 +134,7 @@ export class FeedbackPage {
 
         const categoriesContainer = nn(modal.querySelector('.feedback-modal__categories'));
         categoriesContainer.addEventListener('click', (e: Event) => {
-            const card = (e.target as HTMLElement).closest('[data-category]');
+            const card = (e.target as HTMLElement).closest<HTMLElement>('[data-category]');
             if (!card) return;
             categoriesContainer.querySelectorAll('.feedback-modal__category-card').forEach((c) => {
                 c.classList.remove('feedback-modal__category-card--selected');
@@ -143,7 +143,7 @@ export class FeedbackPage {
             this.#selectedCategory = nn(card.dataset.category);
         });
 
-        const textarea = nn(modal.querySelector('.feedback-modal__textarea'));
+        const textarea = nn(modal.querySelector<HTMLTextAreaElement>('.feedback-modal__textarea'));
         const charCount = nn(modal.querySelector('.feedback-modal__char-count'));
         textarea.addEventListener('input', () => {
             charCount.textContent = `${textarea.value.length} / ${MAX_CONTENT_LENGTH}`;
@@ -158,9 +158,9 @@ export class FeedbackPage {
     }
 
     async #handleSubmit(modal: HTMLElement): Promise<void> {
-        const errorEl = nn(modal.querySelector('.feedback-modal__error'));
-        const submitBtn = nn(modal.querySelector('.feedback-modal__submit-btn'));
-        const textarea = nn(modal.querySelector('.feedback-modal__textarea'));
+        const errorEl = nn(modal.querySelector<HTMLElement>('.feedback-modal__error'));
+        const submitBtn = nn(modal.querySelector<HTMLButtonElement>('.feedback-modal__submit-btn'));
+        const textarea = nn(modal.querySelector<HTMLTextAreaElement>('.feedback-modal__textarea'));
         errorEl.hidden = true;
 
         if (!this.#selectedCategory) {
@@ -434,10 +434,14 @@ export class FeedbackPage {
                 this.#renderList()
             );
 
-            const replyTextarea = nn(body.querySelector('.feedback-modal__reply-textarea'));
+            const replyTextarea = nn(
+                body.querySelector<HTMLTextAreaElement>('.feedback-modal__reply-textarea')
+            );
             const replyCount = nn(body.querySelector('.feedback-modal__reply-count'));
-            const replyBtn = nn(body.querySelector('.feedback-modal__reply-btn'));
-            const replyError = nn(body.querySelector('.feedback-modal__reply-error'));
+            const replyBtn = nn(
+                body.querySelector<HTMLButtonElement>('.feedback-modal__reply-btn')
+            );
+            const replyError = nn(body.querySelector<HTMLElement>('.feedback-modal__reply-error'));
 
             replyTextarea.addEventListener('input', () => {
                 replyCount.textContent = `${replyTextarea.value.length} / 2000`;

@@ -107,8 +107,8 @@ export class FilterBar extends BaseComponent {
         const ownerDropdown = nn(this._element.querySelector('.filter-bar__owner-dropdown'));
         this._addListener(ownerDropdown, 'click', (e: Event) => {
             e.stopPropagation();
-            const item = (e.target as HTMLElement).closest('[data-owner]');
-            if (!item) return;
+            const item = (e.target as HTMLElement).closest<HTMLElement>('[data-owner]');
+            if (!item?.dataset.owner) return;
             this.#selectOwner(item.dataset.owner);
             this.#closeOwnerDropdown();
         });
@@ -176,8 +176,12 @@ export class FilterBar extends BaseComponent {
     }
 
     #onDateChange(): void {
-        const dateFrom = nn(this._element.querySelector('.filter-bar__date-from')).value ?? null;
-        const dateTo = nn(this._element.querySelector('.filter-bar__date-to')).value ?? null;
+        const dateFrom =
+            nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-from')).value ||
+            null;
+        const dateTo =
+            nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-to')).value ||
+            null;
         const dateBtn = nn(this._element.querySelector('.filter-bar__date-btn'));
 
         if (dateFrom || dateTo) {

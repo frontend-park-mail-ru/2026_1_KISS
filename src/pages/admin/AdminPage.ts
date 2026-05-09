@@ -1116,8 +1116,12 @@ export class AdminPage {
                     </div>
                 </div>`;
 
-            const statusSelect = nn(container.querySelector('[data-role="status-select"]'));
-            const updateBtn = nn(container.querySelector('[data-role="update-status"]'));
+            const statusSelect = nn(
+                container.querySelector<HTMLSelectElement>('[data-role="status-select"]')
+            );
+            const updateBtn = nn(
+                container.querySelector<HTMLButtonElement>('[data-role="update-status"]')
+            );
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             updateBtn.addEventListener('click', async () => {
                 try {
@@ -1128,8 +1132,12 @@ export class AdminPage {
                 }
             });
 
-            const responseTextarea = nn(container.querySelector('.admin-issue-detail__textarea'));
-            const sendBtn = nn(container.querySelector('[data-role="send-response"]'));
+            const responseTextarea = nn(
+                container.querySelector<HTMLTextAreaElement>('.admin-issue-detail__textarea')
+            );
+            const sendBtn = nn(
+                container.querySelector<HTMLButtonElement>('[data-role="send-response"]')
+            );
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             sendBtn.addEventListener('click', async () => {
                 const text = responseTextarea.value.trim();

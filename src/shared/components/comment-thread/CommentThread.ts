@@ -56,8 +56,8 @@ export class CommentThread extends BaseComponent {
     }
 
     #attachEvents(): void {
-        const form = nn(this._element.querySelector('.comment-thread__form'));
-        const textarea = nn(form.querySelector('.comment-thread__textarea'));
+        const form = nn(this._element.querySelector<HTMLFormElement>('.comment-thread__form'));
+        const textarea = nn(form.querySelector<HTMLTextAreaElement>('.comment-thread__textarea'));
 
         if (this.#canComment) {
             form.hidden = false;
@@ -96,10 +96,10 @@ export class CommentThread extends BaseComponent {
 
         this._addListener(this._element, 'click', (e: unknown) => {
             const target = (e as MouseEvent).target as HTMLElement;
-            const deleteBtn = target.closest('.comment-thread__delete');
+            const deleteBtn = target.closest<HTMLElement>('.comment-thread__delete');
             if (deleteBtn) {
                 const commentId = deleteBtn.dataset.commentId;
-                if (commentId) void this.#deleteComment(Number(commentId));
+                if (commentId !== undefined) void this.#deleteComment(Number(commentId));
             }
         });
     }
