@@ -2,13 +2,29 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { FilterBarTemplate } from './FilterBar.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Изменения фильтров — частичное обновление (не задаёт значит "не трогать").
+ * onFilterChange родителя получает только изменённые поля.
+ */
 interface FilterChange {
+    /** Имя владельца (null — снять фильтр) */
     owner?: string | null;
+    /** Дата начала диапазона ISO-формат (null — снять) */
     dateFrom?: string | null;
+    /** Дата конца диапазона ISO-формат (null — снять) */
     dateTo?: string | null;
+    /** Поисковая строка по названию */
     search?: string;
 }
 
+/**
+ * Панель фильтров для FilesPage: поиск с debounce 200ms, dropdown "Изменено"
+ * с двумя date-input (от-до), dropdown "Владелец" с динамическим списком,
+ * кнопка "Очистить фильтр", кнопка "+ Создать файл".
+ *
+ * Открытие одного dropdown'а закрывает другой. Любой клик вне dropdown'а закрывает оба.
+ * Активные фильтры подсвечивают свою кнопку (CSS-класс _active).
+ */
 export class FilterBar extends BaseComponent {
     #onCreate: () => void;
     #onFilterChange: (filters: FilterChange) => void;
@@ -16,6 +32,11 @@ export class FilterBar extends BaseComponent {
     #ownerOpen = false;
     #searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
+    /**
+     * Создаёт панель с двумя callback'ами.
+     * @param parent - родительский элемент
+     * @param options - onCreate (нажата "+ Создать файл") и onFilterChange (изменены фильтры)
+     */
     public constructor(
         parent: HTMLElement,
         {
@@ -32,23 +53,37 @@ export class FilterBar extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = FilterBarTemplate();
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит панель и навешивает все обработчики.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM. Слушатели снимаются автоматически.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         super.unmount();
     }
 
+    /**
+     * Заполняет dropdown владельцев списком имён. Вызывается родителем после
+     * загрузки notebook'ов (чтобы знать какие владельцы вообще доступны).
+     * @param owners - имена владельцев для dropdown'а
+     */
     public setOwners(owners: string[]): void {
         const dropdown = nn(this._element.querySelector('.filter-bar__owner-dropdown'));
         dropdown.innerHTML = '';
@@ -61,6 +96,11 @@ export class FilterBar extends BaseComponent {
         });
     }
 
+    /**
+     * Навешивает обработчики: создать-кнопка, поиск с debounce, открытие/закрытие
+     * date/owner dropdown'ов, change для date-input'ов, click по owner-item для
+     * выбора фильтра, очистка, document-click для закрытия dropdown'ов.
+     */
     #attachEvents(): void {
         const createBtn = nn(this._element.querySelector('.filter-bar__create-btn'));
         this._addListener(createBtn, 'click', () => {
@@ -124,6 +164,9 @@ export class FilterBar extends BaseComponent {
         });
     }
 
+    /**
+     * Переключает состояние dropdown'а дат.
+     */
     #toggleDateDropdown(): void {
         if (this.#dateOpen) {
             this.#closeDateDropdown();
@@ -132,6 +175,9 @@ export class FilterBar extends BaseComponent {
         }
     }
 
+    /**
+     * Открывает dropdown дат (CSS-класс).
+     */
     #openDateDropdown(): void {
         this.#dateOpen = true;
         nn(this._element.querySelector('.filter-bar__date-dropdown')).classList.add(
@@ -139,6 +185,9 @@ export class FilterBar extends BaseComponent {
         );
     }
 
+    /**
+     * Закрывает dropdown дат.
+     */
     #closeDateDropdown(): void {
         this.#dateOpen = false;
         nn(this._element.querySelector('.filter-bar__date-dropdown')).classList.remove(
@@ -146,6 +195,9 @@ export class FilterBar extends BaseComponent {
         );
     }
 
+    /**
+     * Переключает состояние dropdown'а владельцев.
+     */
     #toggleOwnerDropdown(): void {
         if (this.#ownerOpen) {
             this.#closeOwnerDropdown();
@@ -154,6 +206,9 @@ export class FilterBar extends BaseComponent {
         }
     }
 
+    /**
+     * Открывает dropdown владельцев.
+     */
     #openOwnerDropdown(): void {
         this.#ownerOpen = true;
         nn(this._element.querySelector('.filter-bar__owner-dropdown')).classList.add(
@@ -161,6 +216,9 @@ export class FilterBar extends BaseComponent {
         );
     }
 
+    /**
+     * Закрывает dropdown владельцев.
+     */
     #closeOwnerDropdown(): void {
         this.#ownerOpen = false;
         nn(this._element.querySelector('.filter-bar__owner-dropdown')).classList.remove(
@@ -168,6 +226,11 @@ export class FilterBar extends BaseComponent {
         );
     }
 
+    /**
+     * Применяет выбранного владельца как фильтр: меняет текст кнопки,
+     * подсвечивает её и уведомляет родителя через onFilterChange.
+     * @param owner - имя владельца
+     */
     #selectOwner(owner: string): void {
         const btn = nn(this._element.querySelector('.filter-bar__owner-btn'));
         btn.textContent = `${owner} - Владелец`;
@@ -175,6 +238,10 @@ export class FilterBar extends BaseComponent {
         this.#onFilterChange({ owner });
     }
 
+    /**
+     * Применяет выбранный диапазон дат: формирует подпись на кнопке ("с DD.MM.YYYY
+     * по DD.MM.YYYY"), подсвечивает её, уведомляет родителя.
+     */
     #onDateChange(): void {
         const dateFrom =
             nn(this._element.querySelector<HTMLInputElement>('.filter-bar__date-from')).value ||
@@ -197,11 +264,21 @@ export class FilterBar extends BaseComponent {
         this.#onFilterChange({ dateFrom, dateTo });
     }
 
+    /**
+     * Форматирует ISO-дату YYYY-MM-DD в DD.MM.YYYY для UI.
+     * @param isoDate - дата в ISO-формате
+     * @returns дата в локальном формате
+     */
     #formatDate(isoDate: string): string {
         const [y, m, d] = isoDate.split('-');
         return `${d}.${m}.${y}`;
     }
 
+    /**
+     * Сбрасывает все фильтры: возвращает дефолтные подписи кнопок, очищает
+     * date-input'ы и search-input, отменяет ожидающий debounce, уведомляет
+     * родителя что все фильтры сняты.
+     */
     #clearFilters(): void {
         const ownerBtn = nn(this._element.querySelector('.filter-bar__owner-btn'));
         ownerBtn.textContent = 'Владелец';
