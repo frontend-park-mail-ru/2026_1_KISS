@@ -3,6 +3,7 @@ import { CommentThreadTemplate, CommentItemTemplate } from './CommentThread.temp
 import type { Comment } from '../../types.js';
 import type { NotebookApi } from '../../api/NotebookApi.js';
 import { nn } from '../../utils/notNull.js';
+import { logError } from '../../utils/logger.js';
 
 export interface CommentThreadOptions {
     notebookId: number | string;
@@ -81,7 +82,7 @@ export class CommentThread extends BaseComponent {
                 textarea.style.height = '';
                 this.appendComment(comment);
             } catch (err: unknown) {
-                console.error('Failed to add comment:', err);
+                logError('Failed to add comment:', err);
             }
         });
 
@@ -109,7 +110,7 @@ export class CommentThread extends BaseComponent {
             this.#comments = comments;
             this.#renderComments();
         } catch (err: unknown) {
-            console.error('Failed to load comments:', err);
+            logError('Failed to load comments:', err);
         }
     }
 
@@ -127,7 +128,7 @@ export class CommentThread extends BaseComponent {
             await this.#api.deleteComment(this.#notebookId, this.#blockId, commentId);
             this.removeComment(commentId);
         } catch (err: unknown) {
-            console.error('Failed to delete comment:', err);
+            logError('Failed to delete comment:', err);
         }
     }
 

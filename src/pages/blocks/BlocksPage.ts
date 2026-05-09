@@ -13,6 +13,7 @@ import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { logError } from '../../shared/utils/logger.js';
 
 export class BlocksPage {
     #root: HTMLElement;
@@ -440,7 +441,7 @@ export class BlocksPage {
             this.#notebook = notebook;
             nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
         } catch (e: unknown) {
-            console.error('Failed to create block:', e);
+            logError('Failed to create block:', e);
         }
     }
 
@@ -461,7 +462,7 @@ export class BlocksPage {
             this.#execNumbers.delete(blockId);
             this.#lastOutputs.delete(blockId);
         } catch (e: unknown) {
-            console.error('Failed to delete block:', e);
+            logError('Failed to delete block:', e);
         }
     }
 
@@ -804,7 +805,7 @@ export class BlocksPage {
                     nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
                 }
             } catch (err: unknown) {
-                console.error('Failed to import notebook:', err);
+                logError('Failed to import notebook:', err);
             }
         };
         input.click();
@@ -841,7 +842,7 @@ export class BlocksPage {
                 Object.assign(nn(this.#notebook), notebook);
             }
         } catch (e: unknown) {
-            console.error('Failed to rename notebook:', e);
+            logError('Failed to rename notebook:', e);
         }
     }
 
