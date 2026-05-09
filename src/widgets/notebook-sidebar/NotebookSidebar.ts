@@ -3,21 +3,44 @@ import { RunnerApi } from '../../shared/api/RunnerApi.js';
 import { NotebookSidebarTemplate } from './NotebookSidebar.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Параметры одного запроса find/replace в notebook'е.
+ */
 interface FindQuery {
+    /** Что искать */
     query: string;
+    /** На что заменить (для replace/replace-all) */
     replacement: string;
+    /** Учитывать регистр */
     caseSensitive: boolean;
 }
 
+/**
+ * Опциональные обработчики и контекст для NotebookSidebar.
+ */
 interface NotebookSidebarCallbacks {
+    /** Старт нового поиска */
     onFind?: (q: FindQuery) => void;
+    /** Перейти к следующему совпадению */
     onNext?: (q: FindQuery) => void;
+    /** Перейти к предыдущему совпадению */
     onPrev?: (q: FindQuery) => void;
+    /** Заменить текущее совпадение */
     onReplace?: (q: FindQuery) => void;
+    /** Заменить все совпадения */
     onReplaceAll?: (q: FindQuery) => void;
+    /** ID notebook'а — нужен для resources-панели (поллинг RunnerApi) */
     notebookId?: string | number;
 }
 
+/**
+ * Сайдбар notebook'а с 4 переключаемыми панелями (search/toc/files/resources).
+ * Только одна панель активна одновременно.
+ *
+ * При открытии resources-панели стартует поллинг RunnerApi.getContainerStats
+ * каждые 3 секунды; при закрытии — останавливает. Хранит историю последних 20
+ * значений RAM/CPU для рендера sparkline-графиков (SVG inline).
+ */
 export class NotebookSidebar extends BaseComponent {
     #activePanel: string | null = null;
     #onFind: NotebookSidebarCallbacks['onFind'];
@@ -31,6 +54,12 @@ export class NotebookSidebar extends BaseComponent {
     #ramHistory: number[] = [];
     #cpuHistory: number[] = [];
 
+    /**
+     * Создаёт сайдбар. Все callback'и опциональны — их отсутствие просто значит
+     * что соответствующие кнопки не будут реагировать.
+     * @param parent - родительский элемент
+     * @param callbacks - обработчики find/replace и notebookId для resources-панели
+     */
     public constructor(
         parent: HTMLElement,
         {
@@ -53,30 +82,49 @@ export class NotebookSidebar extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = NotebookSidebarTemplate();
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит сайдбар и навешивает обработчики.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
     }
 
+    /**
+     * Снимает с DOM. Перед этим останавливает поллинг (если активен).
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         this.#stopContainerPolling();
         super.unmount();
     }
 
+    /**
+     * Обновляет счётчик "X / N" в search-панели после изменения матчей в FindEngine.
+     * @param currentIdx - индекс текущего совпадения (0-based)
+     * @param total - общее количество совпадений
+     */
     public setMatchCount(currentIdx: number, total: number): void {
         const el = this._element.querySelector('.notebook-sidebar__match-count');
         if (!el) return;
         el.textContent = total === 0 ? '0 / 0' : `${String(currentIdx + 1)} / ${String(total)}`;
     }
 
+    /**
+     * Снимает текущие значения из find/replace input'ов в виде структуры FindQuery.
+     * Используется внутри обработчиков и снаружи (родитель может вызвать вручную).
+     * @returns текущие параметры поиска
+     */
     public getFindQuery(): FindQuery {
         const findInput = this._element.querySelector<HTMLInputElement>(
             '.notebook-sidebar__find-input'
@@ -94,6 +142,11 @@ export class NotebookSidebar extends BaseComponent {
         };
     }
 
+    /**
+     * Навешивает обработчики: переключение панелей по icon-кнопкам, Enter в
+     * find-input для next/prev (Shift+Enter — назад), делегированные клики по
+     * data-action кнопкам (find/next/prev/replace/replace-all).
+     */
     #attachEvents(): void {
         this._element.querySelectorAll('.notebook-sidebar__icon-btn').forEach((btn) => {
             this._addListener(btn, 'click', () => {
@@ -135,6 +188,12 @@ export class NotebookSidebar extends BaseComponent {
         });
     }
 
+    /**
+     * Открывает указанную панель: подсвечивает icon-кнопку, делает панель видимой,
+     * предварительно закрывая текущую активную. Для resources-панели стартует
+     * поллинг контейнера.
+     * @param panelName - имя панели ('search', 'toc', 'files', 'resources')
+     */
     #openPanel(panelName: string): void {
         this.#closePanel();
         this.#activePanel = panelName;
@@ -148,6 +207,10 @@ export class NotebookSidebar extends BaseComponent {
         }
     }
 
+    /**
+     * Закрывает текущую активную панель (если есть). Если это была resources —
+     * останавливает поллинг.
+     */
     #closePanel(): void {
         if (this.#activePanel === null) return;
         if (this.#activePanel === 'resources') this.#stopContainerPolling();
@@ -158,11 +221,18 @@ export class NotebookSidebar extends BaseComponent {
         this.#activePanel = null;
     }
 
+    /**
+     * Запускает периодический поллинг container stats (первый запрос — сразу,
+     * потом каждые 3 секунды).
+     */
     #startContainerPolling(): void {
         void this.#pollContainer();
         this.#containerPollTimer = setInterval(() => this.#pollContainer(), 3000);
     }
 
+    /**
+     * Останавливает поллинг container stats.
+     */
     #stopContainerPolling(): void {
         if ((this.#containerPollTimer ?? 0) !== 0) {
             clearInterval(this.#containerPollTimer);
@@ -170,6 +240,11 @@ export class NotebookSidebar extends BaseComponent {
         }
     }
 
+    /**
+     * Один тик поллинга: запрашивает RunnerApi.getContainerStats и обновляет
+     * 5 значений (RAM/CPU/Cores/Disk/GPU) + прогресс-бар + sparkline'ы.
+     * При ошибке — добавляет --inactive класс.
+     */
     async #pollContainer(): Promise<void> {
         if (this.#notebookId === undefined) return;
         const panel = this._element.querySelector('.container-stats--sidebar');
@@ -213,6 +288,11 @@ export class NotebookSidebar extends BaseComponent {
         }
     }
 
+    /**
+     * Рендерит sparkline-графики для RAM (зелёный) и CPU (оранжевый) в их
+     * соответствующие data-sparkline контейнеры.
+     * @param panel - корневой элемент resources-панели
+     */
     #renderSparklines(panel: HTMLElement): void {
         const ramContainer = panel.querySelector('[data-sparkline="ram"]');
         const cpuContainer = panel.querySelector('[data-sparkline="cpu"]');
@@ -222,6 +302,14 @@ export class NotebookSidebar extends BaseComponent {
             cpuContainer.innerHTML = this.#sparklineSvg(this.#cpuHistory, 100, '#ff9800');
     }
 
+    /**
+     * Генерирует SVG-разметку sparkline-графика: тонкая линия + полупрозрачная
+     * заливка под линией. Возвращает пустую строку если данных меньше 2.
+     * @param data - массив значений (обычно 0-100)
+     * @param maxVal - максимум для нормализации (обычно 100)
+     * @param color - CSS-цвет линии и заливки
+     * @returns строка SVG или пустая строка
+     */
     #sparklineSvg(data: number[], maxVal: number, color: string): string {
         if (data.length < 2) return '';
         const w = 218;

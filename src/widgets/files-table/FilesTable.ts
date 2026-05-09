@@ -4,10 +4,25 @@ import { KebabMenu } from '../../shared/components/kebab-menu/KebabMenu.js';
 import type { Notebook } from '../../shared/types.js';
 import { nn } from '../../shared/utils/notNull.js';
 
+/**
+ * Notebook с дополнительным флагом _isShared: true если открыт через
+ * "shared with me" (показывается owner_username вместо текущего пользователя
+ * в колонке Владелец, и kebab-меню скрывается).
+ */
 interface FilesTableNotebook extends Notebook {
+    /** true если notebook расшарен мне (а не мой собственный) */
     _isShared?: boolean;
 }
 
+/**
+ * Таблица файлов в FilesPage. Поддерживает сортировку (через dropdown в
+ * правой колонке заголовка) по дате/названию в asc/desc, inline-rename
+ * на contenteditable span, kebab-меню действий (rename/delete) для своих
+ * файлов, клик по строке → onOpen.
+ *
+ * Для расшаренных notebook'ов скрывает kebab (нельзя ни переименовать ни
+ * удалить чужой файл) и показывает имя владельца в колонке Владелец.
+ */
 export class FilesTable extends BaseComponent {
     #onDelete: (id: string) => void;
     #onRename: ((id: string, newTitle: string) => void) | null;
@@ -19,6 +34,13 @@ export class FilesTable extends BaseComponent {
     #sortDir = 'asc';
     #sortOpen = false;
 
+    /**
+     * Создаёт таблицу с обязательным onDelete и опциональными onRename/onOpen.
+     * Без onRename — kebab не покажет пункт "Переименовать"; без onOpen — клик
+     * по строке ничего не делает.
+     * @param parent - родительский элемент
+     * @param callbacks - обработчики действий
+     */
     public constructor(
         parent: HTMLElement,
         {
@@ -38,18 +60,29 @@ export class FilesTable extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон в detached-контейнер.
+     */
     #render(): void {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = FilesTableTemplate();
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит таблицу и навешивает обработчики сортировки. Реальные строки
+     * появляются после первого setData().
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
         this.#attachSortEvents();
     }
 
+    /**
+     * Размонтирует все kebab-меню (важно — иначе утечка обработчиков document)
+     * и снимает с DOM.
+     */
     public unmount(): void {
         this.#kebabMenus.forEach((m) => {
             m.unmount();
@@ -59,6 +92,12 @@ export class FilesTable extends BaseComponent {
         super.unmount();
     }
 
+    /**
+     * Заменяет данные таблицы и перерисовывает строки. Управляет видимостью
+     * empty-state vs самой таблицы.
+     * @param notebooks - массив notebook'ов для отображения
+     * @param ownerName - имя текущего пользователя (для колонки Владелец у не-shared)
+     */
     public setData(notebooks: FilesTableNotebook[], ownerName: string): void {
         this.#notebooks = [...notebooks];
         this.#ownerName = ownerName;
@@ -79,6 +118,10 @@ export class FilesTable extends BaseComponent {
         this.#renderRows();
     }
 
+    /**
+     * Перерисовывает все строки таблицы с учётом текущей сортировки.
+     * Размонтирует все старые kebab-меню перед рендером новых (предотвращает утечки).
+     */
     #renderRows(): void {
         this.#kebabMenus.forEach((m) => {
             m.unmount();
@@ -176,6 +219,14 @@ export class FilesTable extends BaseComponent {
         });
     }
 
+    /**
+     * Запускает inline-переименование: делает name-span contenteditable, выделяет
+     * текст, перехватывает paste (только plain-text), Enter (commit) и Escape (cancel).
+     * При commit — обрезает до 54 символов и вызывает onRename если что-то изменилось.
+     * @param row - строка таблицы (используется в области видимости callback'ов)
+     * @param nameSpan - editable span с именем
+     * @param notebook - данные notebook'а для onRename
+     */
     #startRename(
         row: HTMLTableRowElement,
         nameSpan: HTMLElement,
@@ -238,6 +289,10 @@ export class FilesTable extends BaseComponent {
         nameSpan.addEventListener('blur', save);
     }
 
+    /**
+     * Навешивает обработчики sort-trigger (toggle dropdown), document-click
+     * (закрытие dropdown), click по arrow в dropdown (применить сортировку).
+     */
     #attachSortEvents(): void {
         const trigger = this._element.querySelector('.files-table__sort-trigger');
         if (!trigger) return;
@@ -271,6 +326,9 @@ export class FilesTable extends BaseComponent {
         });
     }
 
+    /**
+     * Переключает состояние dropdown'а сортировки.
+     */
     #toggleSortDropdown(): void {
         if (this.#sortOpen) {
             this.#closeSortDropdown();
@@ -279,6 +337,9 @@ export class FilesTable extends BaseComponent {
         }
     }
 
+    /**
+     * Открывает dropdown сортировки.
+     */
     #openSortDropdown(): void {
         this.#sortOpen = true;
         nn(this._element.querySelector('.files-table__sort-dropdown')).classList.add(
@@ -286,6 +347,9 @@ export class FilesTable extends BaseComponent {
         );
     }
 
+    /**
+     * Закрывает dropdown сортировки.
+     */
     #closeSortDropdown(): void {
         this.#sortOpen = false;
         nn(this._element.querySelector('.files-table__sort-dropdown')).classList.remove(
@@ -293,6 +357,10 @@ export class FilesTable extends BaseComponent {
         );
     }
 
+    /**
+     * Обновляет визуальную подсветку active-стрелки в dropdown'е сортировки
+     * (показывает текущее активное направление по полю и asc/desc).
+     */
     #updateSortArrows(): void {
         this._element.querySelectorAll('.files-table__sort-arrow').forEach((el) => {
             el.classList.remove('files-table__sort-arrow_active');

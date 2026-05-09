@@ -6,26 +6,54 @@ import { ProfileSectionTemplate } from './ProfileSection.template.js';
 import { nn } from '../../shared/utils/notNull.js';
 import type { ApiEnvelope, UserDTO } from '../../shared/api/types.js';
 
+/**
+ * Локальный тип пользователя для виджета. Содержит обязательные поля для UI
+ * и индексную сигнатуру `[key: string]: unknown` чтобы принимать частичные
+ * UserDTO-ответы от сервера без потери информации.
+ */
 interface ProfileUser {
+    /** Логин */
     username: string;
+    /** Email */
     email: string;
+    /** ISO-дата создания аккаунта */
     created_at: string;
+    /** URL аватара (опционально) */
     avatar_url?: string;
+    /** Статус-строка */
     status: string;
+    /** Описание профиля */
     description: string;
+    /** Принимает любые дополнительные поля от UserDTO */
     [key: string]: unknown;
 }
 
+/**
+ * Конфиг ProfileSection.
+ */
 interface ProfileSectionConfig {
+    /** Текущие данные пользователя */
     user: ProfileUser;
+    /** Вызывается после успешного обновления (avatar/profile/email) */
     onUserUpdate?: (user: ProfileUser) => void;
 }
 
+/**
+ * Секция профиля: аватар с upload-кнопкой (валидация формата + 2MB лимит),
+ * поля username/status/description с кнопкой "Сохранить профиль", секция
+ * смены email (требует подтверждения текущим паролем). Каждое сохранение
+ * вызывает API и при успехе уведомляет родителя через onUserUpdate.
+ */
 export class ProfileSection extends BaseComponent {
     #config: ProfileSectionConfig;
     #httpClient: HttpClient;
     #usernameInput!: Input;
 
+    /**
+     * Создаёт секцию с переданными данными пользователя.
+     * @param parent - родительский элемент
+     * @param config - данные пользователя и onUserUpdate callback
+     */
     public constructor(parent: HTMLElement, config: ProfileSectionConfig) {
         super(null, parent);
         this.#config = config;
@@ -33,6 +61,10 @@ export class ProfileSection extends BaseComponent {
         this.#render();
     }
 
+    /**
+     * Рендерит шаблон с подготовленными данными (createdAt в локальном формате,
+     * initials = первые 2 символа username).
+     */
     #render(): void {
         const user = this.#config.user;
         const createdAt = new Date(user.created_at).toLocaleDateString('ru-RU', {
@@ -46,6 +78,10 @@ export class ProfileSection extends BaseComponent {
         this._element = tempContainer.firstElementChild as HTMLElement;
     }
 
+    /**
+     * Маунтит секцию, создаёт и монтирует Input для username с уникальным id,
+     * выставляет начальное значение, подключает обработчики аватара/сохранения/email.
+     */
     public mount(): void {
         if (this._isMounted) return;
         super.mount();
@@ -69,12 +105,22 @@ export class ProfileSection extends BaseComponent {
         this.#attachEmailEvents();
     }
 
+    /**
+     * Снимает с DOM включая Input.
+     */
     public unmount(): void {
         if (!this._isMounted) return;
         this.#usernameInput.unmount();
         super.unmount();
     }
 
+    /**
+     * Навешивает обработчики upload-кнопки и change-обработчик на input[type=file].
+     * Перед отправкой проверяет что файл — реальное изображение (загружает через
+     * объект Image и URL.createObjectURL для валидации). При успешной загрузке
+     * заменяет аватар через нового img (а не создаёт новый — чтобы избежать
+     * race с сохранением старого URL в кэше браузера).
+     */
     #attachAvatarEvents(): void {
         const fileInput = nn(
             this._element.querySelector<HTMLInputElement>('.profile-section__file-input')
@@ -138,6 +184,12 @@ export class ProfileSection extends BaseComponent {
         });
     }
 
+    /**
+     * Навешивает обработчик кнопки "Сохранить профиль": валидирует username
+     * через Input, собирает status/description из data-field input'ов,
+     * шлёт PUT /users/me. При успехе обновляет #config.user и вызывает
+     * onUserUpdate; при ошибке — translateError + красное сообщение.
+     */
     #attachSaveEvents(): void {
         const saveBtn = nn(this._element.querySelector('.profile-section__save-btn'));
         const msgEl = nn(this._element.querySelector('.profile-section__save-msg'));
@@ -186,6 +238,12 @@ export class ProfileSection extends BaseComponent {
         });
     }
 
+    /**
+     * Навешивает обработчики секции смены email: toggle формы (показ/скрытие
+     * с переключением текста кнопки), подтверждение пароля через отдельный
+     * Input, валидация (новый ≠ текущий, оба обязательны), PUT /users/me/email.
+     * При успехе — обновляет email-current span, скрывает форму.
+     */
     #attachEmailEvents(): void {
         const changeBtn = nn(this._element.querySelector('.profile-section__email-change-btn'));
         const emailForm = nn(this._element.querySelector('.profile-section__email-form'));
