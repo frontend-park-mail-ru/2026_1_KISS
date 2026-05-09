@@ -4,6 +4,7 @@ import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { ProfileSectionTemplate } from './ProfileSection.template.js';
 import { nn } from '../../shared/utils/notNull.js';
+import type { ApiEnvelope, UserDTO } from '../../shared/api/types.js';
 
 interface ProfileUser {
     username: string;
@@ -49,14 +50,16 @@ export class ProfileSection extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
 
-        const usernameWrap = nn(this._element.querySelector('.profile-section__username-wrap'));
+        const usernameWrap = nn(
+            this._element.querySelector<HTMLElement>('.profile-section__username-wrap')
+        );
         this.#usernameInput = new Input(usernameWrap, {
             ...TYPE_INPUT_CONFIG.LOGIN,
             id: `profile-username-${Date.now()}`,
             placeholder: 'Имя пользователя'
         });
         this.#usernameInput.mount();
-        const inputEl = usernameWrap.querySelector('.input-field');
+        const inputEl = usernameWrap.querySelector<HTMLInputElement>('.input-field');
         if (inputEl) {
             inputEl.value = this.#config.user.username;
         }
@@ -73,7 +76,9 @@ export class ProfileSection extends BaseComponent {
     }
 
     #attachAvatarEvents(): void {
-        const fileInput = nn(this._element.querySelector('.profile-section__file-input'));
+        const fileInput = nn(
+            this._element.querySelector<HTMLInputElement>('.profile-section__file-input')
+        );
         const uploadBtn = nn(this._element.querySelector('.profile-section__upload-btn'));
         const errorEl = nn(this._element.querySelector('.profile-section__upload-error'));
 
@@ -82,35 +87,37 @@ export class ProfileSection extends BaseComponent {
         });
 
         this._addListener(fileInput, 'change', () => {
-            const file = nn(fileInput.files)[0];
+            const files = nn(fileInput.files);
+            const file = files[0];
             if (!file) return;
 
             errorEl.textContent = '';
             const objectUrl = URL.createObjectURL(file);
             const img = new Image();
 
-            img.onload = async () => {
+            img.onload = async (): Promise<void> => {
                 URL.revokeObjectURL(objectUrl);
 
                 try {
                     const response = await this.#httpClient.upload('/users/me/avatar', file);
-                    const result = await response.json();
+                    const result = (await response.json()) as Partial<ApiEnvelope<UserDTO>>;
 
                     if (!response.ok) {
                         errorEl.textContent = translateError(result.error);
                         return;
                     }
 
-                    this.#config.user = result.data;
+                    const updated = result.data as UserDTO;
+                    this.#config.user = updated as unknown as ProfileUser;
                     if (this.#config.onUserUpdate) {
-                        this.#config.onUserUpdate(result.data);
+                        this.#config.onUserUpdate(updated as unknown as ProfileUser);
                     }
 
                     const avatarEl = nn(this._element.querySelector('.profile-section__avatar'));
                     avatarEl.innerHTML = '';
                     const imgEl = document.createElement('img');
                     imgEl.className = 'profile-section__avatar-img';
-                    imgEl.src = result.data.avatar_url;
+                    imgEl.src = updated.avatar_url;
                     imgEl.alt = 'Avatar';
                     avatarEl.appendChild(imgEl);
                 } catch (_e) {
@@ -120,7 +127,7 @@ export class ProfileSection extends BaseComponent {
                 fileInput.value = '';
             };
 
-            img.onerror = () => {
+            img.onerror = (): void => {
                 URL.revokeObjectURL(objectUrl);
                 errorEl.textContent = 'Не удалось прочитать изображение';
                 fileInput.value = '';
@@ -134,13 +141,17 @@ export class ProfileSection extends BaseComponent {
         const saveBtn = nn(this._element.querySelector('.profile-section__save-btn'));
         const msgEl = nn(this._element.querySelector('.profile-section__save-msg'));
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async event handler
         this._addListener(saveBtn, 'click', async () => {
             if (!this.#usernameInput.validate()) return;
 
             const username = this.#usernameInput.getValue();
-            const status = nn(this._element.querySelector('[data-field="status"]')).value;
-            const description = nn(this._element.querySelector('[data-field="description"]')).value;
+            const status = nn(
+                this._element.querySelector<HTMLInputElement>('[data-field="status"]')
+            ).value;
+            const description = nn(
+                this._element.querySelector<HTMLInputElement>('[data-field="description"]')
+            ).value;
 
             msgEl.textContent = '';
             msgEl.className = 'profile-section__save-msg';
@@ -151,7 +162,7 @@ export class ProfileSection extends BaseComponent {
                     status,
                     description
                 });
-                const result = await response.json();
+                const result = (await response.json()) as Partial<ApiEnvelope<UserDTO>>;
 
                 if (!response.ok) {
                     msgEl.textContent = translateError(result.error);
@@ -159,9 +170,10 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                this.#config.user = result.data;
+                const updated = result.data as UserDTO;
+                this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
-                    this.#config.onUserUpdate(result.data);
+                    this.#config.onUserUpdate(updated as unknown as ProfileUser);
                 }
                 msgEl.textContent = 'Профиль обновлен';
                 msgEl.classList.add('profile-section__save-msg--success');
@@ -176,10 +188,12 @@ export class ProfileSection extends BaseComponent {
         const changeBtn = nn(this._element.querySelector('.profile-section__email-change-btn'));
         const emailForm = nn(this._element.querySelector('.profile-section__email-form'));
         const emailSaveBtn = nn(this._element.querySelector('.profile-section__email-save-btn'));
-        const emailMsg = nn(this._element.querySelector('.profile-section__email-msg'));
+        const emailMsg = nn(
+            this._element.querySelector<HTMLElement>('.profile-section__email-msg')
+        );
 
         const passwordWrap = nn(
-            this._element.querySelector('.profile-section__email-password-wrap')
+            this._element.querySelector<HTMLElement>('.profile-section__email-password-wrap')
         );
         const passwordInput = new Input(passwordWrap, {
             ...TYPE_INPUT_CONFIG.PASSWORD,
@@ -201,9 +215,11 @@ export class ProfileSection extends BaseComponent {
             }
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async event handler
         this._addListener(emailSaveBtn, 'click', async () => {
-            const newEmailInput = nn(this._element.querySelector('[data-field="new_email"]'));
+            const newEmailInput = nn(
+                this._element.querySelector<HTMLInputElement>('[data-field="new_email"]')
+            );
             const newEmail = newEmailInput.value;
             const password = passwordInput.getValue();
 
@@ -231,7 +247,7 @@ export class ProfileSection extends BaseComponent {
                     new_email: newEmail,
                     password
                 });
-                const result = await response.json();
+                const result = (await response.json()) as Partial<ApiEnvelope<UserDTO>>;
 
                 if (!response.ok) {
                     emailMsg.textContent = translateError(result.error);
@@ -239,15 +255,16 @@ export class ProfileSection extends BaseComponent {
                     return;
                 }
 
-                this.#config.user = result.data;
+                const updated = result.data as UserDTO;
+                this.#config.user = updated as unknown as ProfileUser;
                 if (this.#config.onUserUpdate) {
-                    this.#config.onUserUpdate(result.data);
+                    this.#config.onUserUpdate(updated as unknown as ProfileUser);
                 }
 
                 const currentEl = nn(
                     this._element.querySelector('.profile-section__email-current')
                 );
-                currentEl.textContent = result.data.email;
+                currentEl.textContent = updated.email;
                 emailForm.classList.add('profile-section__email-form--hidden');
                 passwordInput.unmount();
                 emailMsg.textContent = 'Email обновлен';
