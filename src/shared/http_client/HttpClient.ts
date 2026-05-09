@@ -60,7 +60,7 @@ export class HttpClient {
     }
 
     public upload(url: string, file: File, fieldName = 'avatar'): Promise<Response> {
-        const boundary = `----FormBoundary${Date.now()}${Math.random().toString(36).slice(2)}`;
+        const boundary = `----FormBoundary${String(Date.now())}${Math.random().toString(36).slice(2)}`;
         const safeName = file.name.replace(/["\r\n]/g, '_');
         const body = new Blob([
             `--${boundary}\r\nContent-Disposition: form-data; name="${fieldName}"; filename="${safeName}"\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,

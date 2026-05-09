@@ -256,7 +256,7 @@ export class FilesPage {
             });
             if (response.ok) {
                 const body = (await response.json()) as ApiEnvelope<NotebookDTO>;
-                nn(Router.getInstance()).navigate(`/notebooks/${body.data.id}`);
+                nn(Router.getInstance()).navigate(`/notebooks/${String(body.data.id)}`);
             }
         } catch (e: unknown) {
             logError('Failed to create notebook:', e);

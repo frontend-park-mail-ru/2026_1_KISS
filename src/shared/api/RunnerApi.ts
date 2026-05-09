@@ -19,7 +19,7 @@ export class RunnerApi {
     async #parse<T>(response: Response): Promise<T> {
         const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            const err = body.error ?? `HTTP ${response.status}`;
+            const err = body.error ?? `HTTP ${String(response.status)}`;
             throw new Error(this.#formatError(err));
         }
         return body.data as T;
@@ -48,7 +48,7 @@ export class RunnerApi {
         blockPosition: number
     ): Promise<ExecutionResultDTO> {
         const response = await this.#http.post(
-            `/runner/${notebookId}/block?block_position=${blockPosition}`
+            `/runner/${String(notebookId)}/block?block_position=${String(blockPosition)}`
         );
         return this.#parse<ExecutionResultDTO>(response);
     }
@@ -58,14 +58,14 @@ export class RunnerApi {
         startPosition = 0
     ): Promise<ExecutionResultDTO[]> {
         const response = await this.#http.post(
-            `/runner/${notebookId}?block_position=${startPosition}`
+            `/runner/${String(notebookId)}?block_position=${String(startPosition)}`
         );
         return this.#parse<ExecutionResultDTO[]>(response);
     }
 
     public stopSession(notebookId: number | string): Promise<void> {
         try {
-            return this.#http.post(`/runner/${notebookId}/stop`).then(
+            return this.#http.post(`/runner/${String(notebookId)}/stop`).then(
                 () => undefined,
                 () => undefined
             );
@@ -76,12 +76,12 @@ export class RunnerApi {
 
     public stopSessionBeacon(notebookId: number | string): void {
         if (typeof navigator !== 'undefined') {
-            navigator.sendBeacon(`/api/v1/runner/${notebookId}/stop`);
+            navigator.sendBeacon(`/api/v1/runner/${String(notebookId)}/stop`);
         }
     }
 
     public async getContainerStats(notebookId: number | string): Promise<ContainerStatsDTO> {
-        const response = await this.#http.get(`/runner/${notebookId}/stats`);
+        const response = await this.#http.get(`/runner/${String(notebookId)}/stats`);
         return this.#parse<ContainerStatsDTO>(response);
     }
 }

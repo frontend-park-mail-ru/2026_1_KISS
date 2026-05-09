@@ -31,20 +31,20 @@ export class PasswordSection extends BaseComponent {
             nn(this._element.querySelector('.password-section__current-wrap')),
             {
                 ...TYPE_INPUT_CONFIG.PASSWORD,
-                id: `pwd-current-${Date.now()}`,
+                id: `pwd-current-${String(Date.now())}`,
                 placeholder: 'Текущий пароль'
             }
         );
         this.#newInput = new Input(nn(this._element.querySelector('.password-section__new-wrap')), {
             ...TYPE_INPUT_CONFIG.PASSWORD,
-            id: `pwd-new-${Date.now()}`,
+            id: `pwd-new-${String(Date.now())}`,
             placeholder: 'Новый пароль'
         });
         this.#confirmInput = new Input(
             nn(this._element.querySelector('.password-section__confirm-wrap')),
             {
                 ...TYPE_INPUT_CONFIG.REPEAT_PASSWORD,
-                id: `pwd-confirm-${Date.now()}`,
+                id: `pwd-confirm-${String(Date.now())}`,
                 placeholder: 'Повторите новый пароль'
             }
         );

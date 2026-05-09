@@ -388,7 +388,7 @@ export class BlocksPage {
 
     async #saveCodeCellContent(blockId: number | string, content: string): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
                 content
             });
         } catch {
@@ -398,7 +398,7 @@ export class BlocksPage {
 
     async #saveTextCellContent(blockId: number | string, content: string): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
                 content
             });
         } catch {
@@ -450,7 +450,7 @@ export class BlocksPage {
     async #deleteBlock(blockId: number | string): Promise<void> {
         try {
             const response = await this.#httpClient.delete(
-                `/notebooks/${this.#notebookId}/blocks/${blockId}`
+                `/notebooks/${this.#notebookId}/blocks/${String(blockId)}`
             );
             if (!response.ok) return;
 
@@ -619,7 +619,7 @@ export class BlocksPage {
         cell: { getContent(): string }
     ): Promise<void> {
         try {
-            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${blockId}`, {
+            await this.#httpClient.put(`/notebooks/${this.#notebookId}/blocks/${String(blockId)}`, {
                 content: cell.getContent()
             });
         } catch {

@@ -21,25 +21,25 @@ export class AdminApi {
     async #parse<T>(response: Response): Promise<T> {
         const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            throw new Error(body.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
         return body.data as T;
     }
 
     public async getUsers(limit = 20, offset = 0, search = ''): Promise<AdminUserListResponse> {
         const response = await this.#http.get(
-            `/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`
+            `/admin/users?limit=${String(limit)}&offset=${String(offset)}&search=${encodeURIComponent(search)}`
         );
         return this.#parse<AdminUserListResponse>(response);
     }
 
     public async banUser(id: string | number): Promise<null> {
-        const response = await this.#http.post(`/admin/users/${id}/ban`);
+        const response = await this.#http.post(`/admin/users/${String(id)}/ban`);
         return this.#parse<null>(response);
     }
 
     public async unbanUser(id: string | number): Promise<null> {
-        const response = await this.#http.post(`/admin/users/${id}/unban`);
+        const response = await this.#http.post(`/admin/users/${String(id)}/unban`);
         return this.#parse<null>(response);
     }
 
@@ -47,17 +47,17 @@ export class AdminApi {
         id: string | number,
         data: Record<string, unknown>
     ): Promise<UserDTO> {
-        const response = await this.#http.put(`/admin/users/${id}`, data);
+        const response = await this.#http.put(`/admin/users/${String(id)}`, data);
         return this.#parse<UserDTO>(response);
     }
 
     public async resetPassword(id: string | number, password: string): Promise<null> {
-        const response = await this.#http.put(`/admin/users/${id}/password`, { password });
+        const response = await this.#http.put(`/admin/users/${String(id)}/password`, { password });
         return this.#parse<null>(response);
     }
 
     public async setPlan(id: string | number, plan: string): Promise<null> {
-        const response = await this.#http.put(`/admin/users/${id}/plan`, { plan });
+        const response = await this.#http.put(`/admin/users/${String(id)}/plan`, { plan });
         return this.#parse<null>(response);
     }
 
@@ -67,13 +67,13 @@ export class AdminApi {
         search = ''
     ): Promise<AdminNotebookListResponse> {
         const response = await this.#http.get(
-            `/admin/notebooks?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}`
+            `/admin/notebooks?limit=${String(limit)}&offset=${String(offset)}&search=${encodeURIComponent(search)}`
         );
         return this.#parse<AdminNotebookListResponse>(response);
     }
 
     public async deleteNotebook(id: string | number): Promise<null> {
-        const response = await this.#http.delete(`/admin/notebooks/${id}`);
+        const response = await this.#http.delete(`/admin/notebooks/${String(id)}`);
         return this.#parse<null>(response);
     }
 
@@ -87,7 +87,7 @@ export class AdminApi {
         mauMonths = 12
     ): Promise<AdminActivityStatsResponse> {
         const response = await this.#http.get(
-            `/admin/stats/activity?dau_days=${dauDays}&mau_months=${mauMonths}`
+            `/admin/stats/activity?dau_days=${String(dauDays)}&mau_months=${String(mauMonths)}`
         );
         return this.#parse<AdminActivityStatsResponse>(response);
     }
@@ -98,29 +98,29 @@ export class AdminApi {
         search = '',
         userId: string | number | null = null
     ): Promise<IssueListResponse> {
-        let url = `/admin/issues?limit=${limit}&offset=${offset}`;
+        let url = `/admin/issues?limit=${String(limit)}&offset=${String(offset)}`;
         if (search) {
             url += `&q=${encodeURIComponent(search)}`;
         }
         if (userId !== null) {
-            url += `&userid=${userId}`;
+            url += `&userid=${String(userId)}`;
         }
         const response = await this.#http.get(url);
         return this.#parse<IssueListResponse>(response);
     }
 
     public async getIssue(id: string | number): Promise<IssueDTO> {
-        const response = await this.#http.get(`/admin/issues/${id}`);
+        const response = await this.#http.get(`/admin/issues/${String(id)}`);
         return this.#parse<IssueDTO>(response);
     }
 
     public async updateIssueStatus(id: string | number, status: string): Promise<IssueDTO> {
-        const response = await this.#http.patch(`/admin/issues/${id}/status`, { status });
+        const response = await this.#http.patch(`/admin/issues/${String(id)}/status`, { status });
         return this.#parse<IssueDTO>(response);
     }
 
     public async respondToIssue(id: string | number, text: string): Promise<IssueDTO> {
-        const response = await this.#http.post(`/admin/issues/${id}/response`, {
+        const response = await this.#http.post(`/admin/issues/${String(id)}/response`, {
             content: text
         });
         return this.#parse<IssueDTO>(response);

@@ -144,7 +144,7 @@ export class CodeCell extends BaseComponent {
         );
         const lineNumbers = nn(this._element.querySelector('.code-cell__line-numbers'));
         const lines = textarea.value.split('\n');
-        lineNumbers.innerHTML = lines.map((_: string, i: number) => `<div>${i + 1}</div>`).join('');
+        lineNumbers.innerHTML = lines.map((_: string, i: number) => `<div>${String(i + 1)}</div>`).join('');
     }
 
     #autoResize(): void {
@@ -152,7 +152,7 @@ export class CodeCell extends BaseComponent {
         textarea.style.height = 'auto';
         const scrollH = textarea.scrollHeight;
         const editorH = nn(this._element.querySelector<HTMLElement>('.code-cell__editor')).clientHeight;
-        textarea.style.height = `${Math.max(scrollH, editorH)}px`;
+        textarea.style.height = `${String(Math.max(scrollH, editorH))}px`;
     }
 
     public getContent(): string {
@@ -185,7 +185,7 @@ export class CodeCell extends BaseComponent {
 
     public setExecutionNumber(n: number | null): void {
         const el = this._element.querySelector('.code-cell__execution-number');
-        if (el) el.textContent = `[${n ?? ' '}]`;
+        if (el) el.textContent = `[${String(n ?? ' ')}]`;
     }
 
     public setOutput(out: CodeCellOutput = {}): void {

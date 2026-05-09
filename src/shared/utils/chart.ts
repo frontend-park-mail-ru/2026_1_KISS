@@ -63,14 +63,14 @@ export function renderBarChart(
 
     const ticks = calcYTicks(maxVal);
 
-    let svg = `<svg viewBox="0 0 ${width} ${height}" class="${cssClass}__svg">`;
-    svg += `<line x1="${padding.left}" y1="${padding.top + chartH}" x2="${padding.left + chartW}" y2="${padding.top + chartH}" stroke="var(--cell-border)" stroke-width="1"/>`;
+    let svg = `<svg viewBox="0 0 ${String(width)} ${String(height)}" class="${cssClass}__svg">`;
+    svg += `<line x1="${String(padding.left)}" y1="${String(padding.top + chartH)}" x2="${String(padding.left + chartW)}" y2="${String(padding.top + chartH)}" stroke="var(--cell-border)" stroke-width="1"/>`;
 
     ticks.forEach(({ value, label }) => {
         const y = padding.top + chartH - (value / maxVal) * chartH;
-        svg += `<text x="${padding.left - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--accent)">${label}</text>`;
+        svg += `<text x="${String(padding.left - 6)}" y="${String(y + 4)}" text-anchor="end" font-size="10" fill="var(--accent)">${label}</text>`;
         if (value > 0)
-            svg += `<line x1="${padding.left}" y1="${y}" x2="${padding.left + chartW}" y2="${y}" stroke="var(--light-grey)" stroke-width="1" stroke-dasharray="4,3"/>`;
+            svg += `<line x1="${String(padding.left)}" y1="${String(y)}" x2="${String(padding.left + chartW)}" y2="${String(y)}" stroke="var(--light-grey)" stroke-width="1" stroke-dasharray="4,3"/>`;
     });
 
     const labelStep = Math.max(1, Math.ceil(data.length / 12));
@@ -82,13 +82,13 @@ export function renderBarChart(
         const y = padding.top + chartH - barH;
 
         const opacity = val > 0 ? 1 : 0.15;
-        svg += `<rect x="${x}" y="${val > 0 ? y : padding.top + chartH - 2}" width="${barW}" height="${val > 0 ? barH : 2}" fill="var(--teal-green)" opacity="${opacity}" rx="1"><title>${escapeHtml(formatDateLabel(entry.date))}: ${val}</title></rect>`;
+        svg += `<rect x="${String(x)}" y="${String(val > 0 ? y : padding.top + chartH - 2)}" width="${String(barW)}" height="${String(val > 0 ? barH : 2)}" fill="var(--teal-green)" opacity="${String(opacity)}" rx="1"><title>${escapeHtml(formatDateLabel(entry.date))}: ${String(val)}</title></rect>`;
 
         if (i % labelStep === 0) {
             const lbl = formatDateLabel(entry.date);
             const tx = x + barW / 2;
             const ty = padding.top + chartH + 10;
-            svg += `<text x="${tx}" y="${ty}" text-anchor="end" font-size="9" fill="var(--accent)" transform="rotate(-45 ${tx} ${ty})">${escapeHtml(lbl)}</text>`;
+            svg += `<text x="${String(tx)}" y="${String(ty)}" text-anchor="end" font-size="9" fill="var(--accent)" transform="rotate(-45 ${String(tx)} ${String(ty)})">${escapeHtml(lbl)}</text>`;
         }
     });
 

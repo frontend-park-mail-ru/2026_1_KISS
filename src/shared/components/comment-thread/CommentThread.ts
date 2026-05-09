@@ -65,7 +65,7 @@ export class CommentThread extends BaseComponent {
 
         const autoResize = (): void => {
             textarea.style.height = 'auto';
-            textarea.style.height = `${textarea.scrollHeight}px`;
+            textarea.style.height = `${String(textarea.scrollHeight)}px`;
         };
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -150,7 +150,7 @@ export class CommentThread extends BaseComponent {
     public removeComment(commentId: number): void {
         this.#comments = this.#comments.filter((c) => c.id !== commentId);
         const el = this._element.querySelector(
-            `.comment-thread__item[data-comment-id="${commentId}"]`
+            `.comment-thread__item[data-comment-id="${String(commentId)}"]`
         );
         if (el) el.remove();
     }

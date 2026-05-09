@@ -74,7 +74,7 @@ export class NotebookSidebar extends BaseComponent {
     public setMatchCount(currentIdx: number, total: number): void {
         const el = this._element.querySelector('.notebook-sidebar__match-count');
         if (!el) return;
-        el.textContent = total === 0 ? '0 / 0' : `${currentIdx + 1} / ${total}`;
+        el.textContent = total === 0 ? '0 / 0' : `${String(currentIdx + 1)} / ${String(total)}`;
     }
 
     public getFindQuery(): FindQuery {
@@ -197,7 +197,7 @@ export class NotebookSidebar extends BaseComponent {
             gpuEl.textContent = stats.gpu_available ? 'доступна' : 'недоступна';
 
             const pct = Math.min(100, stats.memory_percent);
-            fill.style.width = `${pct}%`;
+            fill.style.width = `${String(pct)}%`;
             fill.className = 'container-stats__bar-fill';
             if (pct < 60) fill.classList.add('container-stats__bar-fill--ok');
             else if (pct < 85) fill.classList.add('container-stats__bar-fill--warn');
@@ -230,7 +230,7 @@ export class NotebookSidebar extends BaseComponent {
         const points = data
             .map((v, i) => `${(i * step).toFixed(1)},${(h - (v / maxVal) * h).toFixed(1)}`)
             .join(' ');
-        const areaPoints = `0,${h} ${points} ${((data.length - 1) * step).toFixed(1)},${h}`;
-        return `<svg viewBox="0 0 ${w} ${h}" class="container-stats__sparkline-svg"><polygon points="${areaPoints}" fill="${color}" opacity="0.15"/><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+        const areaPoints = `0,${String(h)} ${points} ${((data.length - 1) * step).toFixed(1)},${String(h)}`;
+        return `<svg viewBox="0 0 ${String(w)} ${String(h)}" class="container-stats__sparkline-svg"><polygon points="${areaPoints}" fill="${color}" opacity="0.15"/><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
     }
 }

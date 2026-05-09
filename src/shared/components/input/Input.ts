@@ -6,7 +6,7 @@ import { nn } from '../../utils/notNull.js';
 export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     PASSWORD: {
         type: 'password',
-        id: `input-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        id: `input-${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}`,
         placeholder: 'Пароль',
         required: true,
         pattern: null,
@@ -16,7 +16,7 @@ export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     },
     REPEAT_PASSWORD: {
         type: 'password',
-        id: `input-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        id: `input-${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}`,
         placeholder: 'Пароль (повторно)',
         required: true,
         pattern: null,
@@ -26,7 +26,7 @@ export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     },
     EMAIL: {
         type: 'email',
-        id: `input-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        id: `input-${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}`,
         placeholder: 'Почта',
         required: true,
         pattern: '^\\S+@\\S+\\.\\S+$',
@@ -36,7 +36,7 @@ export const TYPE_INPUT_CONFIG: Record<string, InputConfig> = {
     },
     LOGIN: {
         type: 'text',
-        id: `input-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        id: `input-${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}`,
         placeholder: 'Логин',
         required: true,
         pattern: '^[a-zA-Z0-9_]{3,20}$',
@@ -156,7 +156,7 @@ export class Input extends BaseComponent {
             this.#state.value.length < this.#config.minlength
         ) {
             isValid = false;
-            errorMessage = `Минимум ${this.#config.minlength} символов`;
+            errorMessage = `Минимум ${String(this.#config.minlength)} символов`;
         }
 
         if (
@@ -165,7 +165,7 @@ export class Input extends BaseComponent {
             this.#state.value.length > this.#config.maxlength
         ) {
             isValid = false;
-            errorMessage = `Максимум ${this.#config.maxlength} символов`;
+            errorMessage = `Максимум ${String(this.#config.maxlength)} символов`;
         }
 
         this.#state.isValid = isValid;

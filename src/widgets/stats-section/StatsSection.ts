@@ -58,7 +58,7 @@ export class StatsSection extends BaseComponent {
             text.textContent = `${used} из ${limit} использовано`;
 
             const pct = Math.min(100, stats.quota.usage_percent);
-            fill.style.width = `${pct}%`;
+            fill.style.width = `${String(pct)}%`;
             if (pct >= 80) fill.classList.add('stats-section__progress-fill--warning');
         } else {
             text.textContent = `${this.#formatTime(stats.quota.total_time_seconds)} — безлимитный план`;
@@ -85,7 +85,7 @@ export class StatsSection extends BaseComponent {
             const daysSince = Math.max(1, Math.floor((Date.now() - regDate.getTime()) / 86400000));
             const avgSeconds = Math.floor(stats.quota.total_time_seconds / daysSince);
             const m = Math.floor(avgSeconds / 60);
-            set('avg-daily', `${m} мин`);
+            set('avg-daily', `${String(m)} мин`);
         }
     }
 
@@ -128,12 +128,12 @@ export class StatsSection extends BaseComponent {
             const size = stats.storage.size_by_category[cat] || 0;
             html += `<div class="stats-section__storage-card">
                 <div class="stats-section__storage-cat">${catNames[cat] || cat}</div>
-                <div class="stats-section__storage-info">${files} файл. / ${this.#formatBytes(size)}</div>
+                <div class="stats-section__storage-info">${String(files)} файл. / ${this.#formatBytes(size)}</div>
             </div>`;
         });
         html += `<div class="stats-section__storage-card stats-section__storage-card--total">
             <div class="stats-section__storage-cat">Всего</div>
-            <div class="stats-section__storage-info">${stats.storage.total_files} файл. / ${this.#formatBytes(stats.storage.total_size_bytes)}</div>
+            <div class="stats-section__storage-info">${String(stats.storage.total_files)} файл. / ${this.#formatBytes(stats.storage.total_size_bytes)}</div>
         </div>`;
         container.innerHTML = html;
     }
@@ -141,11 +141,11 @@ export class StatsSection extends BaseComponent {
     #formatTime(seconds: number): string {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
-        return `${h}ч ${m}мин`;
+        return `${String(h)}ч ${String(m)}мин`;
     }
 
     #formatBytes(bytes: number): string {
-        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024) return `${String(bytes)} B`;
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }

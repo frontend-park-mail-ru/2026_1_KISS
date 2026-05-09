@@ -27,11 +27,11 @@ function escapeHtml(text: string): string {
 export function CommentItemTemplate(comment: Comment, canDelete: boolean): string {
     const date = new Date(comment.created_at);
     const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return `<div class="comment-thread__item" data-comment-id="${comment.id}">
+    return `<div class="comment-thread__item" data-comment-id="${String(comment.id)}">
         <div class="comment-thread__header">
             <span class="comment-thread__author">${escapeHtml(comment.username)}</span>
             <span class="comment-thread__time">${time}</span>
-            ${canDelete ? `<button class="comment-thread__delete" data-comment-id="${comment.id}" title="Удалить">&times;</button>` : ''}
+            ${canDelete ? `<button class="comment-thread__delete" data-comment-id="${String(comment.id)}" title="Удалить">&times;</button>` : ''}
         </div>
         <div class="comment-thread__text">${escapeHtml(comment.text)}</div>
     </div>`;

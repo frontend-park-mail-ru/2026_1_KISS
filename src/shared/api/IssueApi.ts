@@ -11,7 +11,7 @@ export class IssueApi {
     async #parse<T>(response: Response): Promise<T> {
         const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            throw new Error(body.error ?? `HTTP ${response.status}`);
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }
         return body.data as T;
     }
@@ -54,21 +54,21 @@ export class IssueApi {
     }
 
     public async getIssue(id: string | number): Promise<IssueDTO> {
-        const response = await this.#http.get(`/issues/${id}`);
+        const response = await this.#http.get(`/issues/${String(id)}`);
         return this.#parse<IssueDTO>(response);
     }
 
     public async deleteIssue(id: string | number): Promise<null> {
-        const response = await this.#http.delete(`/issues/${id}`);
+        const response = await this.#http.delete(`/issues/${String(id)}`);
         return this.#parse<null>(response);
     }
 
     public getAttachmentUrl(issueId: string | number, attachmentId: string | number): string {
-        return `${this.#http.baseUrl}/issues/${issueId}/attachments/${attachmentId}`;
+        return `${this.#http.baseUrl}/issues/${String(issueId)}/attachments/${String(attachmentId)}`;
     }
 
     public async addMessage(issueId: string | number, content: string): Promise<IssueMessageDTO> {
-        const response = await this.#http.post(`/issues/${issueId}/messages`, { content });
+        const response = await this.#http.post(`/issues/${String(issueId)}/messages`, { content });
         return this.#parse<IssueMessageDTO>(response);
     }
 

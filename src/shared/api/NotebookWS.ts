@@ -76,7 +76,7 @@ export class NotebookWS {
 
     #open(): void {
         const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const url = `${proto}//${window.location.host}/api/v1/ws/notebooks/${this.#notebookId}`;
+        const url = `${proto}//${window.location.host}/api/v1/ws/notebooks/${String(this.#notebookId)}`;
         let socket: WebSocket;
         try {
             socket = new WebSocket(url);

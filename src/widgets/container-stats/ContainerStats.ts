@@ -72,7 +72,7 @@ export class ContainerStats extends BaseComponent {
         cpuEl.textContent = `${stats.cpu_percent.toFixed(1)}%`;
 
         const pct = Math.min(100, stats.memory_percent);
-        fill.style.width = `${pct}%`;
+        fill.style.width = `${String(pct)}%`;
 
         fill.classList.remove(
             'container-stats__bar-fill--ok',
