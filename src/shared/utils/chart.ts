@@ -1,18 +1,41 @@
+/**
+ * Локальный HTML-эскейп для безопасной вставки лейблов в SVG.
+ * Дублирует логику из escapeHtml.ts, но через DOM API чтобы не тащить зависимость.
+ * @param text - текст для эскейпа
+ * @returns текст с экранированными HTML-символами
+ */
 function escapeHtml(text: string): string {
     const el = document.createElement('span');
     el.textContent = text;
     return el.innerHTML;
 }
 
-function calcYTicks(maxVal: number): { value: number; label: string }[] {
+/**
+ * Описание одной отметки на оси Y графика.
+ */
+interface YTick {
+    /** Числовое значение отметки */
+    value: number;
+    /** Подпись отметки в UI */
+    label: string;
+}
+
+/**
+ * Подбирает разумный набор делений по оси Y для столбчатой диаграммы.
+ * Для маленьких значений (≤5) генерирует целочисленные деления 0..maxVal,
+ * для больших — 5 равномерных делений с округлённым шагом.
+ * @param maxVal - максимальное значение в данных
+ * @returns массив отметок для оси Y
+ */
+function calcYTicks(maxVal: number): YTick[] {
     if (maxVal <= 0) return [{ value: 0, label: '0' }];
     if (maxVal <= 5) {
-        const ticks: { value: number; label: string }[] = [];
+        const ticks: YTick[] = [];
         for (let i = 0; i <= maxVal; i++) ticks.push({ value: i, label: String(i) });
         return ticks;
     }
     const step = Math.ceil(maxVal / 4);
-    const ticks: { value: number; label: string }[] = [];
+    const ticks: YTick[] = [];
     for (let i = 0; i <= 4; i++) {
         const v = step * i;
         ticks.push({ value: Math.min(v, maxVal), label: String(Math.min(v, maxVal)) });
@@ -20,6 +43,12 @@ function calcYTicks(maxVal: number): { value: number; label: string }[] {
     return ticks;
 }
 
+/**
+ * Форматирует дату YYYY-MM-DD в короткую подпись с днём недели на русском.
+ * Например, "2026-05-09" → "09.05(сб)".
+ * @param raw - дата в ISO-формате YYYY-MM-DD
+ * @returns короткая подпись для оси X
+ */
 function formatDateLabel(raw: string): string {
     const DAYS = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
     const parts = raw.split('-');
@@ -30,6 +59,14 @@ function formatDateLabel(raw: string): string {
     return raw;
 }
 
+/**
+ * Дополняет разреженные данные (только дни с активностью) полным окном
+ * последних N дней, заполняя пропуски нулями. Нужно для корректного отображения
+ * "пустых" дней на графике активности.
+ * @param entries - имеющиеся точки {date, count}
+ * @param count - желаемое количество дней в результате (включая сегодня)
+ * @returns массив длины count, отсортированный от старых к новым
+ */
 export function fillDays(
     entries: { date: string; count: number }[],
     count: number
@@ -47,6 +84,15 @@ export function fillDays(
     return result;
 }
 
+/**
+ * Рендерит SVG столбчатой диаграммы по точкам {date, count}. Возвращает готовую
+ * строку SVG для вставки в innerHTML. Размеры и палитра зашиты под фирменный
+ * стиль (var(--teal-green) и т.п.). Под каждым столбцом — повёрнутый лейбл даты.
+ * Используется на админских и пользовательских страницах статистики.
+ * @param data - точки данных в порядке от старых к новым
+ * @param cssClass - CSS-класс корневого контейнера (для скоупинга стилей)
+ * @returns строка SVG-разметки
+ */
 export function renderBarChart(
     data: { date: string; count: number }[],
     cssClass = 'stats-chart'
