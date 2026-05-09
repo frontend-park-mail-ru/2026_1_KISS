@@ -39,10 +39,10 @@ export class GreenHeader {
             ];
         }
 
-        this.#config.onProfile = config.onProfile || null;
-        this.#config.onLogout = config.onLogout || null;
-        this.#config.onAdmin = config.onAdmin || null;
-        this.#config.onFeedback = config.onFeedback || null;
+        this.#config.onProfile = config.onProfile ?? null;
+        this.#config.onLogout = config.onLogout ?? null;
+        this.#config.onAdmin = config.onAdmin ?? null;
+        this.#config.onFeedback = config.onFeedback ?? null;
     }
 
     public render(): void {

@@ -274,7 +274,7 @@ export class CellList extends BaseComponent {
             'function'
         ) {
             (cell as unknown as { setContent: (c: string) => void }).setContent(
-                block.content || ''
+                block.content ?? ''
             );
         }
     }

@@ -32,8 +32,8 @@ export class FilesTable extends BaseComponent {
     ) {
         super(null, parent);
         this.#onDelete = onDelete;
-        this.#onRename = onRename || null;
-        this.#onOpen = onOpen || null;
+        this.#onRename = onRename ?? null;
+        this.#onOpen = onOpen ?? null;
         this.#render();
     }
 
@@ -123,7 +123,7 @@ export class FilesTable extends BaseComponent {
 
             const ownerCell = document.createElement('td');
             ownerCell.className = 'files-table__cell';
-            ownerCell.textContent = nb._isShared ? nb.owner_username || '\u2014' : this.#ownerName;
+            ownerCell.textContent = nb._isShared ? nb.owner_username ?? '\u2014' : this.#ownerName;
 
             const kebabCell = document.createElement('td');
             kebabCell.className = 'files-table__cell files-table__kebab-cell';

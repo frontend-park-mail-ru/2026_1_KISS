@@ -22,9 +22,9 @@ export class NotebookWS {
         } = {}
     ) {
         this.#notebookId = notebookId;
-        this.#onEvent = onEvent || (() => {});
-        this.#onConnect = onConnect || null;
-        this.#onClose = onClose || null;
+        this.#onEvent = onEvent ?? (() => {});
+        this.#onConnect = onConnect ?? null;
+        this.#onClose = onClose ?? null;
     }
 
     public connect(): void {

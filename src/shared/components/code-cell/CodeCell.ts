@@ -53,7 +53,7 @@ export class CodeCell extends BaseComponent {
         this.#onCopy = onCopy;
         this.#onDelete = onDelete;
         this.#onRun = onRun;
-        this.#onContentChange = onContentChange || null;
+        this.#onContentChange = onContentChange ?? null;
         this.#render();
     }
 
@@ -207,14 +207,14 @@ export class CodeCell extends BaseComponent {
         const stdoutText = out.stdout?.length ? out.stdout.join('\n') : '';
         stdoutEl.innerHTML = stdoutText ? ansiToHtml(handleCarriageReturns(stdoutText)) : '';
 
-        const stderrText = [out.stderr?.join('\n') || '', out.error || '']
+        const stderrText = [out.stderr?.join('\n') ?? '', out.error ?? '']
             .filter(Boolean)
             .join('\n');
         stderrEl.innerHTML = stderrText
             ? ansiToHtml(handleCarriageReturns(stripTracebackDashes(stderrText)))
             : '';
 
-        resultEl.textContent = imageOutputs.length ? '' : out.result || '';
+        resultEl.textContent = imageOutputs.length ? '' : out.result ?? '';
 
         imagesEl.innerHTML = '';
         for (const output of imageOutputs) {
@@ -224,7 +224,7 @@ export class CodeCell extends BaseComponent {
             imagesEl.appendChild(img);
         }
 
-        this._element.classList.toggle('code-cell--error', Boolean(out.stderr?.length || out.error));
+        this._element.classList.toggle('code-cell--error', Boolean(out.stderr?.length ?? out.error));
     }
 
     public clearOutput(): void {

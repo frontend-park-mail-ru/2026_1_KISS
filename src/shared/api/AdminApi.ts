@@ -10,7 +10,7 @@ export class AdminApi {
     async #parse(response: Response): Promise<unknown> {
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body?.error || `HTTP ${response.status}`);
+            throw new Error(body?.error ?? `HTTP ${response.status}`);
         }
         return body.data;
     }
