@@ -64,7 +64,7 @@ export class ContainerStats extends BaseComponent {
 
         const ramEl = nn(this._element.querySelector('[data-metric="ram"]'));
         const cpuEl = nn(this._element.querySelector('[data-metric="cpu"]'));
-        const fill = nn(this._element.querySelector('.container-stats__bar-fill'));
+        const fill = nn(this._element.querySelector<HTMLElement>('.container-stats__bar-fill'));
 
         const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
         const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);

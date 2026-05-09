@@ -78,9 +78,15 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     public getFindQuery(): FindQuery {
-        const findInput = this._element.querySelector('.notebook-sidebar__find-input');
-        const replaceInput = this._element.querySelector('.notebook-sidebar__replace-input');
-        const caseToggle = this._element.querySelector('.notebook-sidebar__case-toggle');
+        const findInput = this._element.querySelector<HTMLInputElement>(
+            '.notebook-sidebar__find-input'
+        );
+        const replaceInput = this._element.querySelector<HTMLInputElement>(
+            '.notebook-sidebar__replace-input'
+        );
+        const caseToggle = this._element.querySelector<HTMLInputElement>(
+            '.notebook-sidebar__case-toggle'
+        );
         return {
             query: findInput ? findInput.value : '',
             replacement: replaceInput ? replaceInput.value : '',
@@ -178,7 +184,7 @@ export class NotebookSidebar extends BaseComponent {
             const coresEl = nn(panel.querySelector('[data-metric="cores"]'));
             const diskEl = nn(panel.querySelector('[data-metric="disk"]'));
             const gpuEl = nn(panel.querySelector('[data-metric="gpu"]'));
-            const fill = nn(panel.querySelector('.container-stats__bar-fill'));
+            const fill = nn(panel.querySelector<HTMLElement>('.container-stats__bar-fill'));
 
             const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
             const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);

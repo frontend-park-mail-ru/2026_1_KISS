@@ -43,8 +43,8 @@ export class ProfilePage {
                 nn(Router.getInstance()).navigate('/sign');
                 return;
             }
-            const { data: user } = await response.json();
-            this.#user = user;
+            const body = (await response.json()) as { data: Record<string, unknown> };
+            this.#user = body.data;
         } catch (_e) {
             nn(Router.getInstance()).navigate('/sign');
             return;

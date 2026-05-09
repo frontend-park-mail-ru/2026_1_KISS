@@ -129,7 +129,7 @@ export class NotebookHeader extends BaseComponent {
             if (dropdown) {
                 this._addListener(dropdown, 'click', (e: Event) => {
                     e.stopPropagation();
-                    const item = (e.target as HTMLElement).closest('[data-action]');
+                    const item = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
                     if (!item) return;
                     const action = item.dataset.action;
                     if (action === 'profile' && this.#config.onProfile) {

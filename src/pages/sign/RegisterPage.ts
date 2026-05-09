@@ -99,8 +99,10 @@ export class RegisterPage {
         const savedState = sessionStorage.getItem(SESSION_ACTIVE_STATE);
         if (savedState) {
             try {
-                const { activeView } = JSON.parse(savedState);
-                return activeView === LOGIN_STATE ? nn(this.#login) : nn(this.#register);
+                const parsed = JSON.parse(savedState) as { activeView?: string };
+                return parsed.activeView === LOGIN_STATE
+                    ? nn(this.#login)
+                    : nn(this.#register);
             } catch (_e) {
                 return nn(this.#register);
             }

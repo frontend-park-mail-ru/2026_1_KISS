@@ -2,7 +2,7 @@ export class FeedbackModal {
     #iframe: HTMLIFrameElement;
     #ready = false;
     #pendingOpen = false;
-    #onMessage: (e: MessageEvent) => void;
+    #onMessage: (e: MessageEvent<{ type?: string } | undefined>) => void;
 
     public constructor() {
         this.#iframe = document.createElement('iframe');
@@ -11,7 +11,7 @@ export class FeedbackModal {
         this.#iframe.setAttribute('allowtransparency', 'true');
         document.body.appendChild(this.#iframe);
 
-        this.#onMessage = (e: MessageEvent) => {
+        this.#onMessage = (e: MessageEvent<{ type?: string } | undefined>) => {
             if (e.data?.type === 'feedback:close') {
                 this.close();
             } else if (e.data?.type === 'feedback:ready') {
