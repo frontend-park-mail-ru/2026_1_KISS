@@ -4,18 +4,7 @@ import globals from 'globals';
 import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
 
-const jsdocRequiredFiles = [
-    'src/sw.ts',
-    'src/shared/**/*.ts',
-    'src/app/**/*.ts',
-    'src/widgets/**/*.ts',
-    'src/pages/**/*.template.ts',
-    'src/pages/landing/**/*.ts',
-    'src/pages/sign/**/*.ts',
-    'src/pages/profile/**/*.ts',
-    'src/pages/files/**/*.ts',
-    'src/feedback/**/*.ts'
-];
+const jsdocRequiredFiles = ['src/**/*.ts'];
 
 const jsdocRules = {
     'jsdoc/require-jsdoc': [
