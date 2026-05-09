@@ -2,11 +2,7 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { ShareModalTemplate } from './ShareModal.template.js';
 import { nn } from '../../shared/utils/notNull.js';
-import type {
-    ApiEnvelope,
-    PermissionDTO,
-    PermissionListResponse
-} from '../../shared/api/types.js';
+import type { ApiEnvelope, PermissionDTO, PermissionListResponse } from '../../shared/api/types.js';
 
 interface Collaborator {
     id: number;
@@ -102,9 +98,7 @@ export class ShareModal extends BaseComponent {
         });
 
         const input = nn(this._element.querySelector<HTMLInputElement>('.share-modal__input'));
-        const addBtn = nn(
-            this._element.querySelector<HTMLButtonElement>('.share-modal__add-btn')
-        );
+        const addBtn = nn(this._element.querySelector<HTMLButtonElement>('.share-modal__add-btn'));
         // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async event handler
         this._addListener(addBtn, 'click', () => this.#handleAdd(input));
         this._addListener(input, 'keydown', (e: Event) => {
@@ -156,19 +150,20 @@ export class ShareModal extends BaseComponent {
             return;
         }
 
-        const addBtn = nn(
-            this._element.querySelector<HTMLButtonElement>('.share-modal__add-btn')
-        );
+        const addBtn = nn(this._element.querySelector<HTMLButtonElement>('.share-modal__add-btn'));
         addBtn.disabled = true;
         this.#clearError();
 
         try {
             const level = 'readonly';
 
-            const res = await this.#http.post(`/notebooks/${String(this.#notebookId)}/permissions/invite`, {
-                identifier: email,
-                level
-            });
+            const res = await this.#http.post(
+                `/notebooks/${String(this.#notebookId)}/permissions/invite`,
+                {
+                    identifier: email,
+                    level
+                }
+            );
 
             if (res.ok) {
                 const body = (await res.json()) as Partial<ApiEnvelope<PermissionDTO>>;

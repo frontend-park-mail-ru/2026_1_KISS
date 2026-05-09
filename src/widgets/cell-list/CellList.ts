@@ -333,7 +333,9 @@ export class CellList extends BaseComponent {
 
         if (this.#blocks.length === 0) {
             const container = nn(this._element.querySelector<HTMLElement>('.cell-list__cells'));
-            const emptyState = nn(this._element.querySelector<HTMLElement>('.cell-list__empty-state'));
+            const emptyState = nn(
+                this._element.querySelector<HTMLElement>('.cell-list__empty-state')
+            );
             container.style.display = 'none';
             emptyState.style.display = '';
         }

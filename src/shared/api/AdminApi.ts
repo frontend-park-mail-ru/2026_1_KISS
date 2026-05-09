@@ -43,10 +43,7 @@ export class AdminApi {
         return this.#parse<null>(response);
     }
 
-    public async updateUser(
-        id: string | number,
-        data: Record<string, unknown>
-    ): Promise<UserDTO> {
+    public async updateUser(id: string | number, data: Record<string, unknown>): Promise<UserDTO> {
         const response = await this.#http.put(`/admin/users/${String(id)}`, data);
         return this.#parse<UserDTO>(response);
     }

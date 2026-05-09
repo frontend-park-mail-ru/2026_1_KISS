@@ -124,7 +124,8 @@ export class FilesPage {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onDelete: (id: string): Promise<void> => this.#deleteNotebook(id),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRename: (id: string, newTitle: string): Promise<void> => this.#renameNotebook(id, newTitle),
+            onRename: (id: string, newTitle: string): Promise<void> =>
+                this.#renameNotebook(id, newTitle),
             onOpen: (id: string): void => {
                 nn(Router.getInstance()).navigate(`/notebooks/${id}`);
             }

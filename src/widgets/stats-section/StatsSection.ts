@@ -63,7 +63,9 @@ export class StatsSection extends BaseComponent {
         } else {
             text.textContent = `${this.#formatTime(stats.quota.total_time_seconds)} — безлимитный план`;
             fill.style.width = '0%';
-            nn(this._element.querySelector<HTMLElement>('.stats-section__progress-bar')).style.display = 'none';
+            nn(
+                this._element.querySelector<HTMLElement>('.stats-section__progress-bar')
+            ).style.display = 'none';
         }
     }
 

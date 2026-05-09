@@ -460,11 +460,7 @@ export class AdminPage {
         const offset = (this.#currentUserPage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getUsers(
-                limit,
-                offset,
-                this.#currentUserSearch
-            );
+            const data = await this.#adminApi.getUsers(limit, offset, this.#currentUserSearch);
             const users = data.users as unknown as Record<string, unknown>[];
             const total = data.total;
             if (countEl)
@@ -727,11 +723,7 @@ export class AdminPage {
         const offset = (this.#currentNbPage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getNotebooks(
-                limit,
-                offset,
-                this.#currentNbSearch
-            );
+            const data = await this.#adminApi.getNotebooks(limit, offset, this.#currentNbSearch);
             const notebooks = data.notebooks as unknown as Record<string, unknown>[];
             const total = data.total;
             if (countEl)
@@ -755,9 +747,10 @@ export class AdminPage {
             const tbody = document.createElement('tbody');
             notebooks.forEach((nb) => {
                 const tr = document.createElement('tr');
-                const accessBadge = nb.is_public !== undefined && nb.is_public !== null
-                    ? '<span class="admin-badge admin-badge--active">public</span>'
-                    : '<span class="admin-badge">private</span>';
+                const accessBadge =
+                    nb.is_public !== undefined && nb.is_public !== null
+                        ? '<span class="admin-badge admin-badge--active">public</span>'
+                        : '<span class="admin-badge">private</span>';
 
                 tr.innerHTML = `
                     <td class="admin-table__muted">${String(nb.id)}</td>
@@ -949,11 +942,7 @@ export class AdminPage {
         const offset = (this.#currentIssuePage - 1) * limit;
 
         try {
-            const data = await this.#adminApi.getIssues(
-                limit,
-                offset,
-                this.#currentIssueSearch
-            );
+            const data = await this.#adminApi.getIssues(limit, offset, this.#currentIssueSearch);
             const issues = data.issues as unknown as Record<string, unknown>[];
             const total = data.total;
             if (countEl)
@@ -1077,12 +1066,14 @@ export class AdminPage {
                             hour: '2-digit',
                             minute: '2-digit'
                         });
-                        const author = m.is_admin !== undefined && m.is_admin !== null
-                            ? 'Администратор'
-                            : (m.username as string) || `User #${String(m.user_id)}`;
-                        const cls = m.is_admin !== undefined && m.is_admin !== null
-                            ? 'admin-issue-detail__message--admin'
-                            : 'admin-issue-detail__message--user';
+                        const author =
+                            m.is_admin !== undefined && m.is_admin !== null
+                                ? 'Администратор'
+                                : (m.username as string) || `User #${String(m.user_id)}`;
+                        const cls =
+                            m.is_admin !== undefined && m.is_admin !== null
+                                ? 'admin-issue-detail__message--admin'
+                                : 'admin-issue-detail__message--user';
                         return `<div class="admin-issue-detail__message ${cls}">
                             <div class="admin-issue-detail__message-meta">
                                 <span class="admin-issue-detail__message-author">${this.#esc(author)}</span>
