@@ -233,9 +233,7 @@ export class CellList extends BaseComponent {
                 if (event.block) this.#applyBlockAdded(event.block);
                 break;
             case 'block_deleted':
-                if (event.block_id !== undefined && event.block_id !== null) {
-                    this.#applyBlockDeleted(event.block_id);
-                }
+                this.#applyBlockDeleted(nn(event.block_id));
                 break;
             case 'comment_added':
                 if (event.comment) {
@@ -264,10 +262,9 @@ export class CellList extends BaseComponent {
         }
         this.#blocks[idx] = { ...this.#blocks[idx], ...block };
         const row = this.#cells[idx];
-        if (!row) return;
 
         const cellEl = row.getCell().getElement();
-        if (cellEl && cellEl.contains(document.activeElement)) return;
+        if (cellEl.contains(document.activeElement)) return;
 
         const cell = row.getCell();
         if (
@@ -410,7 +407,6 @@ export class CellList extends BaseComponent {
     }
 
     public toggleComments(visible: boolean): void {
-        if (!this._element) return;
         this._element.classList.toggle('cell-list--hide-comments', !visible);
     }
 }

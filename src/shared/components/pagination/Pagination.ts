@@ -143,15 +143,11 @@ export class Pagination extends BaseComponent {
     }
 
     public show(): void {
-        if (this._element) {
-            this._element.style.display = '';
-        }
+        this._element.style.display = '';
     }
 
     public hide(): void {
-        if (this._element) {
-            this._element.style.display = 'none';
-        }
+        this._element.style.display = 'none';
     }
 
     public mount(): void {
@@ -167,7 +163,6 @@ export class Pagination extends BaseComponent {
     }
 
     #attachEvents(): void {
-        if (!this._element) return;
         this._addListener(this._element, 'click', (e: unknown) => {
             const btn = ((e as MouseEvent).target as HTMLElement).closest(
                 '[data-page]'

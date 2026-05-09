@@ -203,7 +203,7 @@ export class BlocksPage {
 
         this.#root.appendChild(page);
 
-        const blocks = (nn(this.#notebook).blocks as BlockData[]) || [];
+        const blocks = (nn(this.#notebook).blocks as BlockData[] | undefined) ?? [];
         this.#loadSavedOutputs(blocks as unknown as Record<string, unknown>[]);
         this.#cellList.updateBlocks(blocks);
         this.#cellList.toggleComments(commentsVisible);
@@ -241,7 +241,7 @@ export class BlocksPage {
     static readonly #STREAM_THROTTLE_MS = 200;
 
     #handleWSEvent(event: Record<string, unknown>): void {
-        if (!event?.type) return;
+        if (!event.type) return;
         if (event.type === 'error' || event.type === 'execute_error') {
             if (this.#streamingBlockId !== null) {
                 const cell = this.#cellList?.getCellByBlockId(this.#streamingBlockId);
@@ -298,8 +298,8 @@ export class BlocksPage {
                         this.#executionCounter += 1;
                         this.#execNumbers.set(this.#streamingBlockId, this.#executionCounter);
                         const output = {
-                            stdout: (result.stdout as string[]) || this.#streamingStdout,
-                            stderr: (result.stderr as string[]) || this.#streamingStderr,
+                            stdout: (result.stdout as string[] | undefined) ?? this.#streamingStdout,
+                            stderr: (result.stderr as string[] | undefined) ?? this.#streamingStderr,
                             result: result.result as string
                         };
                         this.#lastOutputs.set(this.#streamingBlockId, output);
@@ -332,9 +332,9 @@ export class BlocksPage {
             this.#notebook = notebook;
             if (!nn(this.#cellList).containsActiveElement()) {
                 this.#loadSavedOutputs(
-                    ((notebook.blocks as BlockData[]) || []) as unknown as Record<string, unknown>[]
+                    ((notebook.blocks as BlockData[] | undefined) ?? []) as unknown as Record<string, unknown>[]
                 );
-                nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[]) || []);
+                nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
             }
         } catch {
             /* tolerate */
@@ -396,7 +396,7 @@ export class BlocksPage {
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;
-            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[]) || []);
+            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
         } catch (e: unknown) {
             console.error('Failed to create block:', e);
         }
@@ -415,7 +415,7 @@ export class BlocksPage {
             if (!reloadResponse.ok) return;
             const { data: notebook } = await reloadResponse.json();
             this.#notebook = notebook;
-            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[]) || []);
+            nn(this.#cellList).updateBlocks((notebook.blocks as BlockData[] | undefined) ?? []);
             this.#execNumbers.delete(blockId);
             this.#lastOutputs.delete(blockId);
         } catch (e: unknown) {
@@ -623,14 +623,14 @@ export class BlocksPage {
             const out = this.#lastOutputs.get(blockId);
             const outputs: Record<string, unknown>[] = [];
             if (out) {
-                if ((out.stdout as string[])?.length) {
+                if ((out.stdout as string[]).length) {
                     outputs.push({
                         output_type: 'stream',
                         name: 'stdout',
                         text: (out.stdout as string[]).map((s: string) => `${s  }\n`)
                     });
                 }
-                if ((out.stderr as string[])?.length) {
+                if ((out.stderr as string[]).length) {
                     outputs.push({
                         output_type: 'stream',
                         name: 'stderr',
@@ -781,7 +781,7 @@ export class BlocksPage {
         this.#shareModal.open(
             this.#notebookId,
             (this.#notebook?.title as string) || 'Untitled',
-            (this.#notebook?.is_public as boolean) ?? false
+            (this.#notebook?.is_public as boolean | undefined) ?? false
         );
     }
 

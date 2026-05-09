@@ -70,9 +70,7 @@ export class ProfileSection extends BaseComponent {
 
     public unmount(): void {
         if (!this._isMounted) return;
-        if (this.#usernameInput) {
-            this.#usernameInput.unmount();
-        }
+        this.#usernameInput.unmount();
         super.unmount();
     }
 

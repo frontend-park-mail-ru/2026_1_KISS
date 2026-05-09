@@ -105,7 +105,7 @@ export class StatsSection extends BaseComponent {
         const container = nn(this._element.querySelector(
             '.stats-section__chart-container'
         ));
-        const filled = fillDays(stats.resources.daily_executions || [], 30);
+        const filled = fillDays(stats.resources.daily_executions, 30);
         container.innerHTML = renderBarChart(filled, 'stats-section');
     }
 
@@ -113,7 +113,7 @@ export class StatsSection extends BaseComponent {
         const container = nn(this._element.querySelector(
             '.stats-section__storage-cards'
         ));
-        const categories = Object.keys(stats.storage.files_by_category || {});
+        const categories = Object.keys(stats.storage.files_by_category);
 
         if (categories.length === 0) {
             container.innerHTML =

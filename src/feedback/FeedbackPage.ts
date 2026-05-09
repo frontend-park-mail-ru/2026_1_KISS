@@ -262,7 +262,7 @@ export class FeedbackPage {
             const data = await this.#issueApi.getIssues();
             const issues: Record<string, unknown>[] = Array.isArray(data)
                 ? data
-                : ((data as Record<string, unknown>)?.issues as Record<string, unknown>[]) || [];
+                : ((data as Record<string, unknown>).issues as Record<string, unknown>[] | undefined) ?? [];
 
             if (issues.length === 0) {
                 listContent.innerHTML =

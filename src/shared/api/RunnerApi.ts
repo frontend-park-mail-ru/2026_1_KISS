@@ -57,7 +57,7 @@ export class RunnerApi {
     }
 
     public stopSessionBeacon(notebookId: number | string): void {
-        if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        if (typeof navigator !== 'undefined') {
             navigator.sendBeacon(`/api/v1/runner/${notebookId}/stop`);
         }
     }

@@ -109,7 +109,7 @@ export class ProfilePage {
         }
 
         this.#activeKey = key;
-        const SectionClass = SECTION_MAP[key];
+        const SectionClass = SECTION_MAP[key] as (typeof SECTION_MAP)[keyof typeof SECTION_MAP] | undefined;
         if (!SectionClass) return;
 
         this.#activeSection = new SectionClass(this.#contentArea, {

@@ -217,11 +217,11 @@ export class AdminPage {
                 unknown
             >;
             const dauFilled = this.#fillDays(
-                (activityData.dau as { date: string; count: number }[]) || [],
+                (activityData.dau as { date: string; count: number }[] | undefined) ?? [],
                 30
             );
             const mauFilled = this.#fillMonths(
-                (activityData.mau as { month: string; count: number }[]) || [],
+                (activityData.mau as { month: string; count: number }[] | undefined) ?? [],
                 12
             );
             this.#renderTimeSeriesChart('DAU (последние 30 дней)', dauFilled, 'date', 'count');
@@ -271,7 +271,7 @@ export class AdminPage {
                 });
                 nn(this.#contentArea).appendChild(issueGrid);
 
-                const cat = (issueStats.by_category as Record<string, number>) || {};
+                const cat = (issueStats.by_category as Record<string, number> | undefined) ?? {};
                 const categoryData = [
                     { label: 'Ошибки', count: cat.bug || 0 },
                     { label: 'Предложения', count: cat.idea || 0 },
@@ -467,7 +467,7 @@ export class AdminPage {
                 this.#currentUserSearch
             )) as Record<string, unknown>;
             const users: Record<string, unknown>[] =
-                (data.users as Record<string, unknown>[]) || [];
+                (data.users as Record<string, unknown>[] | undefined) ?? [];
             const total: number = (data.total as number) || 0;
             if (countEl)
                 countEl.textContent = `${total} пользовател${this.#plural(total, 'ь', 'я', 'ей')}`;
@@ -719,7 +719,7 @@ export class AdminPage {
                 this.#currentNbSearch
             )) as Record<string, unknown>;
             const notebooks: Record<string, unknown>[] =
-                (data.notebooks as Record<string, unknown>[]) || [];
+                (data.notebooks as Record<string, unknown>[] | undefined) ?? [];
             const total: number = (data.total as number) || 0;
             if (countEl)
                 countEl.textContent = `${total} блокнот${this.#plural(total, '', 'а', 'ов')}`;
@@ -836,7 +836,7 @@ export class AdminPage {
     }
 
     #planBadge(plan: string): string {
-        const b = PLAN_BADGES[plan] || PLAN_BADGES.free;
+        const b = (PLAN_BADGES[plan] as typeof PLAN_BADGES.free | undefined) ?? PLAN_BADGES.free;
         return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 
@@ -933,7 +933,7 @@ export class AdminPage {
                 this.#currentIssueSearch
             )) as Record<string, unknown>;
             const issues: Record<string, unknown>[] =
-                (data.issues as Record<string, unknown>[]) || [];
+                (data.issues as Record<string, unknown>[] | undefined) ?? [];
             const total: number = (data.total as number) || 0;
             if (countEl)
                 countEl.textContent = `${total} обращени${this.#plural(total, 'е', 'я', 'й')}`;
@@ -1137,7 +1137,7 @@ export class AdminPage {
     }
 
     #issueBadge(badges: Record<string, { cls: string; label: string }>, key: string): string {
-        const b = badges[key] || { cls: '', label: key };
+        const b = (badges[key] as { cls: string; label: string } | undefined) ?? { cls: '', label: key };
         return `<span class="admin-badge ${b.cls}">${b.label}</span>`;
     }
 

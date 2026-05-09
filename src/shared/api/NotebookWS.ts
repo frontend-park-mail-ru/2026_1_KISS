@@ -95,7 +95,7 @@ export class NotebookWS {
             } catch {
                 return;
             }
-            if (msg?.type === 'pong') return;
+            if (msg.type === 'pong') return;
             this.#onEvent(msg);
         });
 
