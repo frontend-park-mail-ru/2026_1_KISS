@@ -401,6 +401,80 @@ export interface AdminActivityStatsResponse {
     mau: AdminMonthlyPoint[];
 }
 
+// ===== Payments / Subscriptions =====
+
+/**
+ * DTO одного тарифного плана подписки. Возвращается /subscription/plans.
+ * Цена хранится в копейках (целые числа) для точности.
+ */
+export interface PlanDTO {
+    /** ID плана в БД */
+    id: number;
+    /** Название (служебный идентификатор: 'pro' / 'max') */
+    name: string;
+    /** Цена в копейках (например 99900 = 999 ₽) */
+    price_kopeks: number;
+    /** Лимит запусков кода на период подписки */
+    execution_quota: number;
+    /** Длительность подписки в днях */
+    duration_days: number;
+}
+
+/**
+ * Ответ /subscription/plans — список доступных планов.
+ */
+export interface PlanListResponse {
+    /** Найденные планы */
+    plans: PlanDTO[];
+}
+
+/**
+ * Ответ /payments/subscription — параметры созданного платежа.
+ * confirmation_token нужен для рендера ЮKassa Checkout-виджета на клиенте.
+ */
+export interface CreatePaymentResponse {
+    /** Внутренний ID платежа (UUID) для последующего поллинга статуса */
+    payment_id: string;
+    /** Одноразовый токен для конструктора YooMoneyCheckoutWidget */
+    confirmation_token: string;
+    /** Сумма списания в копейках (для UI-отображения) */
+    amount_kopeks: number;
+    /** Имя плана ('pro' / 'max') для UI-отображения */
+    plan: string;
+}
+
+/**
+ * Ответ /payments/{id}/status — текущий статус платежа.
+ * status: 'pending' | 'waiting_for_capture' | 'succeeded' | 'canceled'.
+ */
+export interface PaymentStatusResponse {
+    /** Внутренний ID платежа */
+    payment_id: string;
+    /** Текущий статус */
+    status: string;
+    /** Сумма платежа в копейках */
+    amount_kopeks: number;
+    /** UNIX-таймстамп создания платежа */
+    created_at: number;
+    /** UNIX-таймстамп успешной оплаты (0 если ещё не оплачен) */
+    paid_at: number;
+}
+
+/**
+ * Ответ /subscription/me — текущая активная подписка пользователя.
+ * Если has_active=false, started_at/expires_at отсутствуют.
+ */
+export interface MySubscriptionResponse {
+    /** true если у пользователя есть непросроченная подписка */
+    has_active: boolean;
+    /** Текущий план (из user.plan, заполняется всегда) */
+    plan: string;
+    /** UNIX-таймстамп начала подписки */
+    started_at?: number;
+    /** UNIX-таймстамп окончания подписки */
+    expires_at?: number;
+}
+
 // ===== WebSocket events =====
 
 /**
