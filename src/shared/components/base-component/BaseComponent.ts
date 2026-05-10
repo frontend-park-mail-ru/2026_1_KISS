@@ -1,5 +1,4 @@
 import type { EventListenerRecord } from '../../types.js';
-import { nn } from '../../utils/notNull.js';
 
 /**
  * Базовый класс всех UI-компонентов проекта. Реализует жизненный цикл
@@ -23,7 +22,8 @@ export class BaseComponent {
      * @param parent - родительский элемент в который компонент будет вмонтирован
      */
     public constructor(element: HTMLElement | null, parent: HTMLElement) {
-        this._element = nn(element);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- subclasses set _element in their own #render() before mount; runtime nn() check broke FilterBar/SubscriptionSection/ProfileSection (introduced in a7eb4da)
+        this._element = element!;
         this._parent = parent;
     }
 
