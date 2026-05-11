@@ -87,7 +87,13 @@ export class RegisterPage {
         const params = new URLSearchParams(window.location.search);
         const error = params.get('error');
         const verified = params.get('verified');
+        const oauthError = params.get('oauth_error');
 
+        if (oauthError !== null && oauthError !== '') {
+            this.#showBanner(translateError(oauthError), 'error');
+            this.#cleanQueryString();
+            return nn(this.#login);
+        }
         if (error !== null && error !== '') {
             this.#showBanner(translateError(error), 'error');
             this.#cleanQueryString();
@@ -123,7 +129,8 @@ export class RegisterPage {
      * прочитанной ошибке/успехе подтверждения email.
      */
     #cleanQueryString(): void {
-        history.replaceState(null, '', '/sign');
+        const pathname = window.location.pathname || '/sign';
+        history.replaceState(null, '', pathname);
     }
 
     /**
@@ -188,6 +195,10 @@ export class RegisterPage {
      * @returns форма для показа
      */
     #restoreState(): Login | Register {
+        const pathname = window.location.pathname;
+        if (pathname === '/login') return nn(this.#login);
+        if (pathname === '/register') return nn(this.#register);
+
         const urlMode = new URLSearchParams(window.location.search).get('mode');
         if (urlMode === LOGIN_STATE) return nn(this.#login);
         if (urlMode === REGISTER_STATE) return nn(this.#register);
