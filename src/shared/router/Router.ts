@@ -1,4 +1,10 @@
-import type { RouteDefinition, RouteMatch, PageConstructor } from '../types.js';
+import type {
+    RouteDefinition,
+    RouteMatch,
+    PageConstructor,
+    RouteOptions
+} from '../types.js';
+import { HttpClient } from '../http_client/HttpClient.js';
 
 /**
  * SPA-роутер на History API. Поддерживает параметризованные пути (`/notebook/:id`),
@@ -39,10 +45,20 @@ export class Router {
      * Регистрирует маршрут с привязкой к классу страницы. Поддерживает параметры
      * вида ':name' — они будут переданы в конструктор PageClass как Record<string,string>.
      * Например, addRoute('/notebook/:id', BlocksPage) даст params = { id: '42' }.
+     *
+     * Через options.guard можно указать, что маршрут доступен только гостям
+     * ('guestOnly') или только авторизованным ('authOnly'). При несоответствии
+     * текущему снимку авторизации (HttpClient.getAuthSnapshot()) роутер
+     * перенаправит на безопасный путь (см. #handleRoute).
      * @param pattern - паттерн пути (например '/files', '/notebook/:id')
      * @param PageClass - класс страницы с методами render() и опциональным destroy()
+     * @param options - опции маршрута (например guard)
      */
-    public addRoute(pattern: string, PageClass: PageConstructor): void {
+    public addRoute(
+        pattern: string,
+        PageClass: PageConstructor,
+        options?: RouteOptions
+    ): void {
         const paramNames: string[] = [];
         const regexpStr = pattern.replace(/:([^/]+)/g, (_match, name: string) => {
             paramNames.push(name);
@@ -52,7 +68,8 @@ export class Router {
             pattern,
             regexp: new RegExp(`^${regexpStr}$`),
             paramNames,
-            PageClass
+            PageClass,
+            guard: options?.guard
         });
     }
 
@@ -93,9 +110,11 @@ export class Router {
     }
 
     /**
-     * Обрабатывает путь: находит подходящий маршрут, уничтожает текущую страницу
-     * (вызывая destroy), создаёт и рендерит новую. Если ни один маршрут не подошёл —
-     * редиректит на defaultPath.
+     * Обрабатывает путь: находит подходящий маршрут, проверяет guard, уничтожает
+     * текущую страницу (вызывая destroy), создаёт и рендерит новую. Если ни один
+     * маршрут не подошёл — редиректит на defaultPath. Если guard не совпадает
+     * с состоянием сессии (HttpClient.getAuthSnapshot()) — редиректит на
+     * безопасный путь: 'guestOnly' под authed → /files; 'authOnly' под guest → /.
      * @param path - путь (может содержать query-string, query отбрасывается)
      */
     #handleRoute(path: string): void {
@@ -103,6 +122,16 @@ export class Router {
         const matched = this.#matchRoute(pathname);
         if (!matched) {
             this.navigate(this.#defaultPath);
+            return;
+        }
+
+        const auth = HttpClient.getInstance().getAuthSnapshot();
+        if (matched.guard === 'guestOnly' && auth === 'authed') {
+            this.navigate('/files');
+            return;
+        }
+        if (matched.guard === 'authOnly' && auth === 'guest') {
+            this.navigate('/');
             return;
         }
 
@@ -129,7 +158,7 @@ export class Router {
                 route.paramNames.forEach((name, i) => {
                     params[name] = match[i + 1];
                 });
-                return { PageClass: route.PageClass, params };
+                return { PageClass: route.PageClass, params, guard: route.guard };
             }
         }
         return null;
