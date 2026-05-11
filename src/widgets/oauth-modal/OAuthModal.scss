@@ -1,0 +1,50 @@
+.oauth-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.oauth-modal {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    padding: 28px 24px 24px;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+
+    &__close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #6b7280;
+        font-size: 26px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+
+        &:hover {
+            background: #f1f5f9;
+            color: #111827;
+        }
+    }
+
+    &__title {
+        margin: 4px 0 20px;
+        font-size: 22px;
+        font-weight: 700;
+        text-align: center;
+        color: #111827;
+    }
+}

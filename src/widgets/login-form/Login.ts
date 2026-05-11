@@ -5,10 +5,7 @@ import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { LoginTemplate } from './Login.template.js';
 import { nn } from '../../shared/utils/notNull.js';
-import { OAuthButton } from '../oauth-button/OAuthButton.js';
-import type { OAuthProviderName } from '../oauth-button/OAuthButton.icons.js';
-
-const OAUTH_PROVIDERS: OAuthProviderName[] = ['google', 'yandex', 'vkid'];
+import { OAuthModal } from '../oauth-modal/OAuthModal.js';
 
 const FIELD_NAMES = {
     email: 'email',
@@ -23,7 +20,7 @@ const FIELD_NAMES = {
 export class Login extends BaseComponent {
     #inputs: Input[] = [];
     #httpClient: HttpClient;
-    #oauthButtons: OAuthButton[] = [];
+    #oauthModal: OAuthModal | null = null;
 
     /**
      * Создаёт форму, рендерит шаблон и подготавливает поля.
@@ -57,19 +54,19 @@ export class Login extends BaseComponent {
         this.#inputs.forEach((input) => {
             input.mount();
         });
-        this.#mountOAuthButtons();
         this.#attachEvents();
     }
 
     /**
-     * Снимает с DOM (включая Input'ы и OAuth-кнопки).
+     * Снимает с DOM, демонтирует Input'ы и закрывает модалку OAuth, если она
+     * была открыта на момент ухода со страницы.
      */
     public unmount(): void {
         if (!this._isMounted) return;
-        this.#oauthButtons.forEach((btn) => {
-            btn.unmount();
-        });
-        this.#oauthButtons = [];
+        if (this.#oauthModal !== null) {
+            this.#oauthModal.unmount();
+            this.#oauthModal = null;
+        }
         super.unmount();
         this.#inputs.forEach((input) => {
             input.unmount();
@@ -77,19 +74,15 @@ export class Login extends BaseComponent {
     }
 
     /**
-     * Инстанцирует и монтирует OAuth-кнопки трёх провайдеров в контейнер
-     * `.oauth-providers`. Контейнер создаётся шаблоном `LoginTemplate`.
+     * Открывает модалку выбора OAuth-провайдера. Модалка создаётся лениво
+     * и монтируется в `document.body`; повторный клик после закрытия
+     * создаёт новый инстанс, поэтому ссылка обнуляется в unmount().
      */
-    #mountOAuthButtons(): void {
-        const container = this._element.querySelector<HTMLElement>('#login-oauth-providers');
-        if (!container) return;
-        container.innerHTML = '';
-        this.#oauthButtons = OAUTH_PROVIDERS.map(
-            (provider) => new OAuthButton(container, provider)
-        );
-        this.#oauthButtons.forEach((btn) => {
-            btn.mount();
-        });
+    #openOAuthModal(): void {
+        if (this.#oauthModal !== null) return;
+        const modal = new OAuthModal();
+        this.#oauthModal = modal;
+        modal.mount();
     }
 
     /**
@@ -135,6 +128,13 @@ export class Login extends BaseComponent {
             e.preventDefault();
             void this.#submit();
         });
+        const oauthToggle = this._element.querySelector<HTMLElement>('#oauth-open-modal-btn');
+        if (oauthToggle !== null) {
+            this._addListener(oauthToggle, 'click', (e: Event) => {
+                e.preventDefault();
+                this.#openOAuthModal();
+            });
+        }
     }
 
     /**

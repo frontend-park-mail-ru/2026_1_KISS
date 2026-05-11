@@ -16,8 +16,12 @@ export const OAUTH_ICONS = {
  */
 export type OAuthProviderName = keyof typeof OAUTH_ICONS;
 
+/**
+ * Подписи провайдеров для модалки выбора сервиса. Короткие — только название,
+ * без префикса «Войти через», так как заголовок модалки уже задаёт контекст.
+ */
 export const OAUTH_PROVIDER_LABELS: Record<OAuthProviderName, string> = {
-    google: 'Войти через Google',
-    yandex: 'Войти через Яндекс',
-    vkid: 'Войти через VK ID'
+    google: 'Google',
+    yandex: 'Яндекс',
+    vkid: 'VK ID'
 };

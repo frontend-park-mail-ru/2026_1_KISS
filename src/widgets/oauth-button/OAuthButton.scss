@@ -1,50 +1,47 @@
-.oauth-providers {
+.oauth-providers-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.oauth-divider {
-    display: flex;
-    align-items: center;
     gap: 12px;
-    margin: 16px 0 8px;
-    color: #6b7280;
-    font-size: 13px;
-
-    &::before,
-    &::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: #e5e7eb;
-    }
+    width: 100%;
 }
 
 .oauth-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    justify-content: space-between;
     width: 100%;
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: 1px solid transparent;
+    padding: 16px 20px;
+    border-radius: 14px;
+    border: 0;
     background: var(--white, #ffffff);
     cursor: pointer;
     font-family: inherit;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     line-height: 1.2;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+    transition: filter 0.15s ease, transform 0.05s ease;
+
+    &__label {
+        text-align: left;
+    }
 
     &__icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 22px;
-        height: 22px;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.92);
+
+        svg {
+            width: 22px;
+            height: 22px;
+        }
+    }
+
+    &:hover {
+        filter: brightness(1.05);
     }
 
     &:active {
@@ -52,31 +49,64 @@
     }
 
     &--google {
-        background: #ffffff;
-        color: #3c4043;
-        border-color: #dadce0;
-
-        &:hover {
-            background: #f8f9fa;
-            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.16);
-        }
+        background: #000000;
+        color: #ffffff;
     }
 
     &--yandex {
-        background: #000000;
+        background: #fc3f1d;
         color: #ffffff;
 
-        &:hover {
-            background: #1a1a1a;
+        .oauth-btn__icon {
+            background: #ffffff;
         }
     }
 
     &--vkid {
-        background: #0077ff;
+        background: #4680ff;
         color: #ffffff;
+    }
+}
 
-        &:hover {
-            background: #0061d2;
+.oauth-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 0;
+    background: #eef2f7;
+    color: #1f2937;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: #e5ebf3;
+    }
+
+    &__icons {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    &__icon-preview {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: #ffffff;
+
+        svg {
+            width: 18px;
+            height: 18px;
         }
     }
 }
