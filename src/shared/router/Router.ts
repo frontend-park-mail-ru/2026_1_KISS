@@ -1,9 +1,4 @@
-import type {
-    RouteDefinition,
-    RouteMatch,
-    PageConstructor,
-    RouteOptions
-} from '../types.js';
+import type { RouteDefinition, RouteMatch, PageConstructor, RouteOptions } from '../types.js';
 import { HttpClient } from '../http_client/HttpClient.js';
 
 /**
@@ -54,11 +49,7 @@ export class Router {
      * @param PageClass - класс страницы с методами render() и опциональным destroy()
      * @param options - опции маршрута (например guard)
      */
-    public addRoute(
-        pattern: string,
-        PageClass: PageConstructor,
-        options?: RouteOptions
-    ): void {
+    public addRoute(pattern: string, PageClass: PageConstructor, options?: RouteOptions): void {
         const paramNames: string[] = [];
         const regexpStr = pattern.replace(/:([^/]+)/g, (_match, name: string) => {
             paramNames.push(name);
