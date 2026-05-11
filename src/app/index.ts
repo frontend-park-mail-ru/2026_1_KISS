@@ -9,54 +9,47 @@ import { HttpClient } from '../shared/http_client/HttpClient.js';
 import { Heartbeat } from '../shared/heartbeat/Heartbeat.js';
 import { nn } from '../shared/utils/notNull.js';
 
-const GUEST_ONLY_PATHS = new Set<string>(['/', '/sign', '/login', '/register']);
-
 const rootElement = nn(document.getElementById('root'));
 const httpClient = new HttpClient();
 
 const router = new Router(rootElement);
-router.addRoute('/', LandingPage);
-router.addRoute('/sign', RegisterPage);
-router.addRoute('/login', RegisterPage);
-router.addRoute('/register', RegisterPage);
-router.addRoute('/files', FilesPage);
-router.addRoute('/notebooks/:id', BlocksPage);
-router.addRoute('/profile', ProfilePage);
-router.addRoute('/admin', AdminPage);
+router.addRoute('/', LandingPage, { guard: 'guestOnly' });
+router.addRoute('/sign', RegisterPage, { guard: 'guestOnly' });
+router.addRoute('/login', RegisterPage, { guard: 'guestOnly' });
+router.addRoute('/register', RegisterPage, { guard: 'guestOnly' });
+router.addRoute('/files', FilesPage, { guard: 'authOnly' });
+router.addRoute('/notebooks/:id', BlocksPage, { guard: 'authOnly' });
+router.addRoute('/profile', ProfilePage, { guard: 'authOnly' });
+router.addRoute('/admin', AdminPage, { guard: 'authOnly' });
 
 /**
- * Определяет defaultPath роутера на основе текущей сессии: для авторизованного
- * пользователя — '/files', для гостя — '/' (landing). Используется для редиректа
- * при заходе на корень сайта или ненайденный путь.
- * @returns промис с дефолтным путём
+ * Опрашивает /auth/me и обновляет snapshot авторизации внутри HttpClient.
+ * После возврата getAuthSnapshot() гарантированно вернёт 'authed' или 'guest'
+ * (никогда 'unknown'), что позволяет роутеру синхронно проверять guard'ы.
  */
-async function getDefaultPath(): Promise<string> {
+async function probeAuth(): Promise<void> {
     try {
-        const response = await httpClient.get('/auth/me');
-        if (response.ok) return '/files';
-        return '/';
+        await httpClient.get('/auth/me', { noCache: true });
     } catch (_e) {
-        return '/';
+        httpClient.setAuthSnapshot('guest');
     }
 }
 
 /**
- * Точка входа SPA: проверяет авторизацию, для авторизованных запускает
- * heartbeat-сервис и редиректит с гостевых страниц (/, /sign, /login,
- * /register) на /files, затем стартует роутер.
+ * Точка входа SPA: уточняет статус сессии (HttpClient обновляет snapshot
+ * автоматически по ответу /auth/me), запускает heartbeat для авторизованных
+ * и стартует роутер. Редиректы между гостевой и приватной зоной выполняются
+ * декларативно через route guard'ы — отдельной логики в bootstrap'е больше нет.
  */
 async function bootstrap(): Promise<void> {
-    const defaultPath = await getDefaultPath();
+    await probeAuth();
+    const isAuthed = httpClient.getAuthSnapshot() === 'authed';
 
-    if (defaultPath === '/files') {
+    if (isAuthed) {
         Heartbeat.getInstance().start();
-
-        if (GUEST_ONLY_PATHS.has(window.location.pathname)) {
-            history.replaceState(null, '', '/files');
-        }
     }
 
-    router.setDefault(defaultPath);
+    router.setDefault(isAuthed ? '/files' : '/');
     router.start();
 }
 

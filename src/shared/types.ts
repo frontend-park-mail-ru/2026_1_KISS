@@ -120,6 +120,22 @@ export interface PageInstance {
 export type PageConstructor = new (...args: any[]) => PageInstance;
 
 /**
+ * Доступ к маршруту с точки зрения сессии пользователя.
+ * 'guestOnly' — только неавторизованные (логин/регистрация/лендинг);
+ * 'authOnly' — только авторизованные (профиль, файлы и т.п.);
+ * undefined — доступ без ограничений.
+ */
+export type RouteGuard = 'guestOnly' | 'authOnly';
+
+/**
+ * Опции регистрации маршрута через Router.addRoute().
+ */
+export interface RouteOptions {
+    /** Ограничение доступа по состоянию сессии. */
+    guard?: RouteGuard;
+}
+
+/**
  * Внутренняя запись маршрута роутера: исходный паттерн, скомпилированная regexp,
  * имена параметров и класс страницы.
  */
@@ -132,16 +148,20 @@ export interface RouteDefinition {
     paramNames: string[];
     /** Класс страницы для рендера */
     PageClass: PageConstructor;
+    /** Ограничение доступа по сессии (см. RouteGuard) */
+    guard?: RouteGuard;
 }
 
 /**
- * Результат matchRoute: класс страницы и извлечённые параметры.
+ * Результат matchRoute: класс страницы, извлечённые параметры и guard маршрута.
  */
 export interface RouteMatch {
     /** Класс страницы */
     PageClass: PageConstructor;
     /** Извлечённые параметры из URL */
     params: Record<string, string>;
+    /** Guard маршрута (см. RouteGuard); undefined — без ограничений */
+    guard?: RouteGuard;
 }
 
 /**

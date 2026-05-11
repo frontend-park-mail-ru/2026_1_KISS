@@ -1,4 +1,12 @@
 /**
+ * Снимок состояния авторизации, отслеживаемый клиентом локально по результатам
+ * запросов к /auth/* эндпоинтам. 'unknown' — клиент ещё ни разу не уточнял
+ * сессию у сервера (до bootstrap'а). Используется роутером для гард-проверок
+ * без асинхронного похода на бэкенд.
+ */
+export type AuthSnapshot = 'unknown' | 'guest' | 'authed';
+
+/**
  * Singleton HTTP-клиент для работы с Go-бэкендом через API gateway.
  *
  * Особенности:
@@ -8,6 +16,9 @@
  * - **credentials: include**: cookies (session) шлются всегда — для cross-origin тоже.
  * - **Multipart upload**: отдельный метод upload() для файлов с ручной сборкой тела
  *   (без FormData — там есть граничные случаи с CSRF и encoding'ом).
+ * - **Auth snapshot**: клиент следит за состоянием сессии по результатам запросов
+ *   к `/auth/login`, `/auth/logout`, `/auth/me` и хранит синхронный снимок,
+ *   который читает Router для guest/auth-only guard'ов.
  *
  * Использование: `const http = HttpClient.getInstance(); await http.get('/users/me');`
  */
@@ -22,6 +33,7 @@ export class HttpClient {
 
     #cache = new Map<string, { data: unknown; ts: number }>();
     #cacheTTL = 30_000;
+    #authSnapshot: AuthSnapshot = 'unknown';
 
     /**
      * Прямой вызов конструктора запрещён — используйте getInstance().
@@ -43,6 +55,46 @@ export class HttpClient {
     public static getInstance(): HttpClient {
         HttpClient.#instance ??= new HttpClient();
         return HttpClient.#instance;
+    }
+
+    /**
+     * Возвращает текущий снимок состояния авторизации без обращения к серверу.
+     * До первого вызова /auth/me возвращает 'unknown'; после успешного ответа
+     * становится 'authed', после 401 или logout — 'guest'.
+     * @returns 'unknown' | 'guest' | 'authed'
+     */
+    public getAuthSnapshot(): AuthSnapshot {
+        return this.#authSnapshot;
+    }
+
+    /**
+     * Принудительно выставляет снимок состояния авторизации. Используется
+     * bootstrap'ом после первичной проверки /auth/me, а также unit-тестами.
+     * @param snapshot - новый снимок
+     */
+    public setAuthSnapshot(snapshot: AuthSnapshot): void {
+        this.#authSnapshot = snapshot;
+    }
+
+    /**
+     * Обновляет снимок авторизации на основе URL и кода ответа. Срабатывает
+     * автоматически в request()/get() — вызывающему коду явный вызов не нужен.
+     * @param url - путь запроса (без baseUrl)
+     * @param method - HTTP-метод
+     * @param status - HTTP-статус ответа
+     */
+    #updateAuthSnapshot(url: string, method: string, status: number): void {
+        if (url === '/auth/me' && method === 'GET') {
+            this.#authSnapshot = status === 200 ? 'authed' : 'guest';
+            return;
+        }
+        if (url === '/auth/login' && method === 'POST' && status === 200) {
+            this.#authSnapshot = 'authed';
+            return;
+        }
+        if (url === '/auth/logout' && method === 'POST') {
+            this.#authSnapshot = 'guest';
+        }
     }
 
     /**
@@ -71,6 +123,7 @@ export class HttpClient {
                 const data = (await response.clone().json()) as unknown;
                 this.#cache.set(url, { data, ts: Date.now() });
             }
+            this.#updateAuthSnapshot(url, 'GET', response.status);
             return response;
         });
     }
@@ -184,6 +237,9 @@ export class HttpClient {
             headers,
             body: data !== null && data !== undefined ? JSON.stringify(data) : null,
             credentials: 'include'
+        }).then((response) => {
+            this.#updateAuthSnapshot(url, method, response.status);
+            return response;
         });
     }
 }
