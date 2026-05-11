@@ -77,11 +77,12 @@ export class RegisterPage {
 
     /**
      * Обрабатывает query-параметры, оставленные бэкендом после редиректа с
-     * `/api/v1/auth/confirm`: `?error=invalid_token` или `?verified=1`.
-     * При наличии параметра показывает баннер с соответствующим сообщением,
-     * принудительно выбирает форму (Register при ошибке, Login при успехе)
-     * и очищает URL через `history.replaceState`, чтобы баннер не вернулся
-     * при перезагрузке страницы. Возвращает null, если параметры отсутствуют.
+     * `/api/v1/auth/confirm` или OAuth-callback'а: `?error=...`, `?verified=1`
+     * или `?oauth_error=...`. Достаточно самого присутствия параметра в URL
+     * (включая пустое значение) — текст подставит `translateError` своим
+     * fallback'ом. Показывает баннер, принудительно выбирает форму (Register
+     * при `?error`, Login при `?oauth_error` или `?verified`) и очищает URL
+     * через `history.replaceState`, чтобы баннер не вернулся при F5.
      * @returns форма для принудительного показа либо null, если query пустой
      */
     #applyQueryParams(): Login | Register | null {
@@ -90,12 +91,12 @@ export class RegisterPage {
         const verified = params.get('verified');
         const oauthError = params.get('oauth_error');
 
-        if (oauthError !== null && oauthError !== '') {
+        if (oauthError !== null) {
             this.#showBanner(translateError(oauthError), 'error');
             this.#cleanQueryString();
             return nn(this.#login);
         }
-        if (error !== null && error !== '') {
+        if (error !== null) {
             this.#showBanner(translateError(error), 'error');
             this.#cleanQueryString();
             return nn(this.#register);
