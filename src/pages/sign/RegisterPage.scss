@@ -25,6 +25,33 @@
     font-weight: 600;
 }
 
+.sign-banner {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    border: 1px solid transparent;
+}
+
+.sign-banner--hidden {
+    display: none;
+}
+
+.sign-banner--error {
+    color: var(--error-red);
+    background-color: var(--error-bg);
+    border-color: var(--error-red);
+}
+
+.sign-banner--success {
+    color: var(--teal-green-dark);
+    background-color: var(--teal-green-10);
+    border-color: var(--teal-green);
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
     .sign-page__main {

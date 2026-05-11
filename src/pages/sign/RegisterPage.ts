@@ -2,10 +2,12 @@ import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { Register } from '../../widgets/register-form/Register.js';
 import { Login } from '../../widgets/login-form/Login.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { translateError } from '../../shared/utils/serverErrors.js';
 
 const SESSION_ACTIVE_STATE = 'registerPageState';
 const LOGIN_STATE = 'login';
 const REGISTER_STATE = 'register';
+const VERIFIED_SUCCESS_MESSAGE = 'Email подтверждён. Теперь вы можете войти.';
 
 /**
  * Объединённая страница входа и регистрации (`/sign`). На одном экране держит
@@ -24,6 +26,7 @@ export class RegisterPage {
     #activeElement: Login | Register | null;
     #register: Register | null;
     #login: Login | null;
+    #banner: HTMLElement | null = null;
 
     /**
      * Инициализирует пустые ссылки. Реальные компоненты создаются в render().
@@ -59,11 +62,68 @@ export class RegisterPage {
         containerMain.id = 'sign-page__container__id';
         this.#elements.main.appendChild(containerMain);
 
+        this.#banner = document.createElement('div');
+        this.#banner.className = 'sign-banner sign-banner--hidden';
+        this.#banner.setAttribute('role', 'status');
+        containerMain.appendChild(this.#banner);
+
         this.#register = new Register(containerMain);
         this.#login = new Login(containerMain);
-        this.#activeElement = this.#restoreState();
+        this.#activeElement = this.#applyQueryParams() ?? this.#restoreState();
         this.#activeElement.mount();
         this.#attachEvents();
+    }
+
+    /**
+     * Обрабатывает query-параметры, оставленные бэкендом после редиректа с
+     * `/api/v1/auth/confirm`: `?error=invalid_token` или `?verified=1`.
+     * При наличии параметра показывает баннер с соответствующим сообщением,
+     * принудительно выбирает форму (Register при ошибке, Login при успехе)
+     * и очищает URL через `history.replaceState`, чтобы баннер не вернулся
+     * при перезагрузке страницы. Возвращает null, если параметры отсутствуют.
+     * @returns форма для принудительного показа либо null, если query пустой
+     */
+    #applyQueryParams(): Login | Register | null {
+        const params = new URLSearchParams(window.location.search);
+        const error = params.get('error');
+        const verified = params.get('verified');
+
+        if (error !== null && error !== '') {
+            this.#showBanner(translateError(error), 'error');
+            this.#cleanQueryString();
+            return nn(this.#register);
+        }
+        if (verified === '1') {
+            this.#showBanner(VERIFIED_SUCCESS_MESSAGE, 'success');
+            this.#cleanQueryString();
+            return nn(this.#login);
+        }
+        return null;
+    }
+
+    /**
+     * Наполняет баннер текстом и применяет цветовой модификатор (error/success).
+     * Баннер всегда создаётся скрытым; этот метод снимает класс sign-banner--hidden.
+     * @param message - локализованный текст для пользователя
+     * @param tone - визуальный тон баннера ('error' для красного, 'success' для зелёного)
+     */
+    #showBanner(message: string, tone: 'error' | 'success'): void {
+        const banner = nn(this.#banner);
+        banner.textContent = message;
+        banner.classList.remove('sign-banner--hidden');
+        banner.classList.remove('sign-banner--error');
+        banner.classList.remove('sign-banner--success');
+        banner.classList.add(`sign-banner--${tone}`);
+    }
+
+    /**
+     * Заменяет текущий URL на `/sign` без query-строки и без записи новой
+     * History-entry. Нужен чтобы после показа баннера обновление страницы
+     * (F5) не возвращало пользователю всплывающее сообщение об уже
+     * прочитанной ошибке/успехе подтверждения email.
+     */
+    #cleanQueryString(): void {
+        history.replaceState(null, '', '/sign');
     }
 
     /**
