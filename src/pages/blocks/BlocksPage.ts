@@ -34,6 +34,7 @@ import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
+import { isAuthError } from '../../shared/http_client/authStatus.js';
 import type { ApiEnvelope, PermissionDTO, UserDTO } from '../../shared/api/types.js';
 
 /**
@@ -195,11 +196,15 @@ export class BlocksPage {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onLogout: async (): Promise<void> => {
                 try {
-                    await this.#httpClient.post('/auth/logout');
-                } catch (_e) {
-                    /* ignore */
+                    const response = await this.#httpClient.post('/auth/logout');
+                    if (response.ok || isAuthError(response.status)) {
+                        nn(Router.getInstance()).navigate('/sign');
+                        return;
+                    }
+                    logError('Logout failed with HTTP status', response.status);
+                } catch (e: unknown) {
+                    logError('Logout request failed', e);
                 }
-                nn(Router.getInstance()).navigate('/sign');
             },
             onShare: isOwner
                 ? (): void => {
