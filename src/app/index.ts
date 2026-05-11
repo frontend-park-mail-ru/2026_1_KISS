@@ -8,6 +8,7 @@ import { Router } from '../shared/router/Router.js';
 import { HttpClient } from '../shared/http_client/HttpClient.js';
 import { Heartbeat } from '../shared/heartbeat/Heartbeat.js';
 import { nn } from '../shared/utils/notNull.js';
+import { isAuthError } from '../shared/http_client/authStatus.js';
 
 const rootElement = nn(document.getElementById('root'));
 const httpClient = new HttpClient();
@@ -29,7 +30,9 @@ router.addRoute('/admin', AdminPage);
 async function getDefaultPath(): Promise<string> {
     try {
         const response = await httpClient.get('/auth/me');
-        return response.ok ? '/files' : '/';
+        if (response.ok) return '/files';
+        if (isAuthError(response.status)) return '/';
+        return '/';
     } catch (_e) {
         return '/';
     }

@@ -9,6 +9,7 @@ import type { Notebook } from '../../shared/types.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
 import { isAuthError } from '../../shared/http_client/authStatus.js';
+import { renderServerUnavailable } from '../../shared/utils/serverUnavailable.js';
 import type {
     ApiEnvelope,
     NotebookDTO,
@@ -89,8 +90,12 @@ export class FilesPage {
 
         try {
             const response = await this.#httpClient.get('/auth/me');
-            if (!response.ok) {
+            if (isAuthError(response.status)) {
                 nn(Router.getInstance()).navigate('/sign');
+                return;
+            }
+            if (!response.ok) {
+                renderServerUnavailable(this.#root);
                 return;
             }
             const body = (await response.json()) as ApiEnvelope<UserDTO>;
@@ -99,7 +104,7 @@ export class FilesPage {
             this.#state.avatarUrl = user.avatar_url;
             this.#state.isAdmin = user.is_admin;
         } catch (_e) {
-            nn(Router.getInstance()).navigate('/sign');
+            renderServerUnavailable(this.#root);
             return;
         }
 
