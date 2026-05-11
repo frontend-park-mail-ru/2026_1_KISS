@@ -16,5 +16,8 @@ export function LoginTemplate(ctx: { title: string; error?: string }): string {
     <button type="submit" class="accent-btn" id="login-btn">Войти</button>
     <a class="simple-btn" href="" id="register-from-login-btn">Зарегистрироваться</a>
     <span class="sign-error-message">${escapeHtml(ctx.error ?? '')}</span>
+
+    <div class="oauth-divider">или</div>
+    <div class="oauth-providers" id="login-oauth-providers"></div>
 </form>`;
 }
