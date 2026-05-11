@@ -9,6 +9,8 @@ import { Router } from '../../shared/router/Router.js';
 import { ProfilePageTemplate } from './ProfilePage.template.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { logError } from '../../shared/utils/logger.js';
+import { isAuthError } from '../../shared/http_client/authStatus.js';
 
 /**
  * Минимальный контракт виджета-секции профиля: должен поддерживать mount/unmount.
@@ -99,11 +101,15 @@ export class ProfilePage {
             },
             onLogout: async () => {
                 try {
-                    await this.#httpClient.post('/auth/logout');
-                } catch (_e) {
-                    /* ignore */
+                    const response = await this.#httpClient.post('/auth/logout');
+                    if (response.ok || isAuthError(response.status)) {
+                        nn(Router.getInstance()).navigate('/sign');
+                        return;
+                    }
+                    logError('Logout failed with HTTP status', response.status);
+                } catch (e: unknown) {
+                    logError('Logout request failed', e);
                 }
-                nn(Router.getInstance()).navigate('/sign');
             }
         };
         if (nn(this.#user).is_admin !== undefined && nn(this.#user).is_admin !== null) {

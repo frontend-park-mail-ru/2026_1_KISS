@@ -7,6 +7,8 @@ import { AdminUsersSection } from '../../widgets/admin-users-section/AdminUsersS
 import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { logError } from '../../shared/utils/logger.js';
+import { isAuthError } from '../../shared/http_client/authStatus.js';
 
 /**
  * Возвращает HTML-каркас админ-страницы: sidebar с четырьмя пунктами
@@ -105,10 +107,16 @@ export class AdminPage {
             },
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onLogout: async (): Promise<void> => {
-                await this.#httpClient.post('/auth/logout').catch(() => {
-                    /* noop */
-                });
-                nn(Router.getInstance()).navigate('/sign');
+                try {
+                    const response = await this.#httpClient.post('/auth/logout');
+                    if (response.ok || isAuthError(response.status)) {
+                        nn(Router.getInstance()).navigate('/sign');
+                        return;
+                    }
+                    logError('Logout failed with HTTP status', response.status);
+                } catch (e: unknown) {
+                    logError('Logout request failed', e);
+                }
             }
         });
         header.render();
