@@ -13,6 +13,7 @@
 
 @use '../widgets/register-form/Register';
 @use '../widgets/login-form/Login';
+@use '../widgets/oauth-button/OAuthButton';
 @use '../widgets/green-header/GreenHeader';
 @use '../widgets/filter-bar/FilterBar';
 @use '../widgets/files-table/FilesTable';
