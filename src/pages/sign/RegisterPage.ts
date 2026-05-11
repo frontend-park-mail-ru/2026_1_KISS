@@ -3,6 +3,7 @@ import { Register } from '../../widgets/register-form/Register.js';
 import { Login } from '../../widgets/login-form/Login.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
+import { Router } from '../../shared/router/Router.js';
 
 const SESSION_ACTIVE_STATE = 'registerPageState';
 const LOGIN_STATE = 'login';
@@ -135,25 +136,20 @@ export class RegisterPage {
 
     /**
      * Навешивает 4 обработчика переключения форм (login/register × header/inline-link).
-     * Каждое переключение размонтирует одну форму, монтирует другую, сохраняет
-     * выбор в sessionStorage и зовёт update.
+     * Каждое переключение — `Router.navigate(...)` на `/login` или `/register`, чтобы
+     * URL отражал текущую форму и при F5/шейре открывалась та же.
      */
     #attachEvents(): void {
+        const router = nn(Router.getInstance());
         const moveToRegister = (e: Event): void => {
             e.preventDefault();
-            nn(this.#register).mount();
-            nn(this.#login).unmount();
-            this.#activeElement = this.#register;
             this.#saveState();
-            this.update();
+            router.navigate('/register');
         };
         const moveToLogin = (e: Event): void => {
             e.preventDefault();
-            nn(this.#register).unmount();
-            nn(this.#login).mount();
-            this.#activeElement = this.#login;
             this.#saveState();
-            this.update();
+            router.navigate('/login');
         };
         nn(this.#elements.header).loginBtn?.addEventListener('click', moveToLogin);
         nn(this.#elements.header).registerBtn?.addEventListener('click', moveToRegister);
