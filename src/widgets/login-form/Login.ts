@@ -5,6 +5,10 @@ import { Router } from '../../shared/router/Router.js';
 import { translateError } from '../../shared/utils/serverErrors.js';
 import { LoginTemplate } from './Login.template.js';
 import { nn } from '../../shared/utils/notNull.js';
+import { OAuthButton } from '../oauth-button/OAuthButton.js';
+import type { OAuthProviderName } from '../oauth-button/OAuthButton.icons.js';
+
+const OAUTH_PROVIDERS: OAuthProviderName[] = ['google', 'yandex', 'vkid'];
 
 const FIELD_NAMES = {
     email: 'email',
@@ -19,6 +23,7 @@ const FIELD_NAMES = {
 export class Login extends BaseComponent {
     #inputs: Input[] = [];
     #httpClient: HttpClient;
+    #oauthButtons: OAuthButton[] = [];
 
     /**
      * Создаёт форму, рендерит шаблон и подготавливает поля.
@@ -52,17 +57,36 @@ export class Login extends BaseComponent {
         this.#inputs.forEach((input) => {
             input.mount();
         });
+        this.#mountOAuthButtons();
         this.#attachEvents();
     }
 
     /**
-     * Снимает с DOM (включая Input'ы).
+     * Снимает с DOM (включая Input'ы и OAuth-кнопки).
      */
     public unmount(): void {
         if (!this._isMounted) return;
+        this.#oauthButtons.forEach((btn) => {
+            btn.unmount();
+        });
+        this.#oauthButtons = [];
         super.unmount();
         this.#inputs.forEach((input) => {
             input.unmount();
+        });
+    }
+
+    /**
+     * Инстанцирует и монтирует OAuth-кнопки трёх провайдеров в контейнер
+     * `.oauth-providers`. Контейнер создаётся шаблоном `LoginTemplate`.
+     */
+    #mountOAuthButtons(): void {
+        const container = this._element.querySelector<HTMLElement>('#login-oauth-providers');
+        if (!container) return;
+        container.innerHTML = '';
+        this.#oauthButtons = OAUTH_PROVIDERS.map((provider) => new OAuthButton(container, provider));
+        this.#oauthButtons.forEach((btn) => {
+            btn.mount();
         });
     }
 
