@@ -10,7 +10,7 @@ import { OAUTH_ICONS, OAUTH_PROVIDER_LABELS, type OAuthProviderName } from './OA
  */
 export function OAuthButtonTemplate(provider: OAuthProviderName): string {
     return `<button type="button" class="oauth-btn oauth-btn--${escapeHtml(provider)}">
-    <span class="oauth-btn__icon">${OAUTH_ICONS[provider]}</span>
     <span class="oauth-btn__label">${escapeHtml(OAUTH_PROVIDER_LABELS[provider])}</span>
+    <span class="oauth-btn__icon">${OAUTH_ICONS[provider]}</span>
 </button>`;
 }

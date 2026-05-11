@@ -1,4 +1,5 @@
 import { escapeHtml } from '../../shared/utils/escapeHtml.js';
+import { OAUTH_ICONS } from '../oauth-button/OAuthButton.icons.js';
 
 /**
  * Рендерит форму логина: заголовок, контейнер для динамически добавляемых Input'ов,
@@ -17,7 +18,13 @@ export function LoginTemplate(ctx: { title: string; error?: string }): string {
     <a class="simple-btn" href="" id="register-from-login-btn">Зарегистрироваться</a>
     <span class="sign-error-message">${escapeHtml(ctx.error ?? '')}</span>
 
-    <div class="oauth-divider">или</div>
-    <div class="oauth-providers" id="login-oauth-providers"></div>
+    <button type="button" class="oauth-toggle-btn" id="oauth-open-modal-btn">
+        <span class="oauth-toggle-btn__label">Войти с помощью</span>
+        <span class="oauth-toggle-btn__icons">
+            <span class="oauth-toggle-btn__icon-preview">${OAUTH_ICONS.google}</span>
+            <span class="oauth-toggle-btn__icon-preview">${OAUTH_ICONS.yandex}</span>
+            <span class="oauth-toggle-btn__icon-preview">${OAUTH_ICONS.vkid}</span>
+        </span>
+    </button>
 </form>`;
 }
