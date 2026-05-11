@@ -12,7 +12,9 @@ const ERROR_MAP: Record<string, string> = {
         'Описание не должно превышать 500 символов',
     'invalid input: password must be at least 8 characters':
         'Пароль должен быть не менее 8 символов',
-    'invalid input: email is the same as current': 'Вы уже используете этот email'
+    'invalid input: email is the same as current': 'Вы уже используете этот email',
+    invalid_token: 'Ссылка подтверждения недействительна или устарела. Зарегистрируйтесь ещё раз.',
+    'invalid token': 'Ссылка подтверждения недействительна или устарела. Зарегистрируйтесь ещё раз.'
 };
 
 /**
