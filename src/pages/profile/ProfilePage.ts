@@ -11,6 +11,7 @@ import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
 import { isAuthError } from '../../shared/http_client/authStatus.js';
+import { renderServerUnavailable } from '../../shared/utils/serverUnavailable.js';
 
 /**
  * Минимальный контракт виджета-секции профиля: должен поддерживать mount/unmount.
@@ -73,14 +74,18 @@ export class ProfilePage {
 
         try {
             const response = await this.#httpClient.get('/auth/me');
-            if (!response.ok) {
+            if (isAuthError(response.status)) {
                 nn(Router.getInstance()).navigate('/sign');
+                return;
+            }
+            if (!response.ok) {
+                renderServerUnavailable(this.#root);
                 return;
             }
             const body = (await response.json()) as { data: Record<string, unknown> };
             this.#user = body.data;
         } catch (_e) {
-            nn(Router.getInstance()).navigate('/sign');
+            renderServerUnavailable(this.#root);
             return;
         }
 
