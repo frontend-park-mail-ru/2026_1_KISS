@@ -84,7 +84,9 @@ export class Login extends BaseComponent {
         const container = this._element.querySelector<HTMLElement>('#login-oauth-providers');
         if (!container) return;
         container.innerHTML = '';
-        this.#oauthButtons = OAUTH_PROVIDERS.map((provider) => new OAuthButton(container, provider));
+        this.#oauthButtons = OAUTH_PROVIDERS.map(
+            (provider) => new OAuthButton(container, provider)
+        );
         this.#oauthButtons.forEach((btn) => {
             btn.mount();
         });
