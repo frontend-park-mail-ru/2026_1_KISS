@@ -5,7 +5,7 @@ export {};
 
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = '__BUILD_REV__';
 const CACHE_NAME = `kiss-${CACHE_VERSION}`;
 
 const PRECACHE_URLS: readonly string[] = [
