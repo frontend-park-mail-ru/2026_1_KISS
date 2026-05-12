@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -5,6 +6,14 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = path.resolve(ROOT, 'dist');
+
+const BUILD_REV = (() => {
+    try {
+        return execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
+    } catch {
+        return Date.now().toString(36);
+    }
+})();
 
 const srcDirArg = process.argv.find((a) => a.startsWith('--src-dir='));
 const SRC_DIR = srcDirArg ? path.resolve(ROOT, srcDirArg.split('=')[1]) : path.resolve(ROOT, 'src');
@@ -165,9 +174,10 @@ function buildBundle(entry, outJs, htmlSrc, outHtml) {
         let html = fs.readFileSync(htmlSrc, 'utf-8');
         html = html.replace(
             /<script type="module" src="[^"]*"><\/script>/,
-            `<script src="/${outJsName}"></script>`
+            `<script src="/${outJsName}?v=${BUILD_REV}"></script>`
         );
-        html = html.replace(/href="\/app\/index\.css[^"]*"/, 'href="/app.css"');
+        html = html.replace(/href="\/app\/index\.css[^"]*"/, `href="/app.css?v=${BUILD_REV}"`);
+        html = html.replaceAll('__BUILD_REV__', BUILD_REV);
         fs.writeFileSync(outHtml, html, 'utf-8');
         console.log(`[bundler] -> ${path.relative(ROOT, outHtml)}`);
     }
@@ -205,8 +215,9 @@ function build() {
 
     const swSrc = path.resolve(SRC_DIR, 'sw.js');
     if (fs.existsSync(swSrc)) {
-        fs.copyFileSync(swSrc, path.join(OUT_DIR, 'sw.js'));
-        console.log(`[bundler] -> dist/sw.js (copied)`);
+        const swCode = fs.readFileSync(swSrc, 'utf-8').replaceAll('__BUILD_REV__', BUILD_REV);
+        fs.writeFileSync(path.join(OUT_DIR, 'sw.js'), swCode, 'utf-8');
+        console.log(`[bundler] -> dist/sw.js (build rev ${BUILD_REV})`);
     }
 
     const publicDir = path.resolve(ROOT, 'public');
