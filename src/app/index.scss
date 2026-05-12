@@ -42,6 +42,10 @@
     font-family: var(--font-family-base), serif;
 }
 
+html {
+    scrollbar-gutter: stable;
+}
+
 html, body {
     margin: 0;
     padding: 0;
