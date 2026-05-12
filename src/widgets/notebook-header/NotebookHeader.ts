@@ -203,16 +203,20 @@ export class NotebookHeader extends BaseComponent {
     }
 
     /**
-     * Показывает анимацию сохранения на иконке "Облако" на 1.5 секунды.
-     * Вызывается родителем после успешного автосохранения.
+     * Показывает анимацию сохранения на иконке "Облако". Класс снимается ровно
+     * по событию animationend, что устраняет рассинхрон между CSS-анимацией
+     * (3 цикла @ 0.5s) и таймером — пользователь больше не увидит застывших
+     * промежуточных состояний.
      */
     public showSaveIndicator(): void {
         const cloudBtn = this._element.querySelector('[title="Облако"]');
         if (!cloudBtn) return;
-        cloudBtn.classList.add('notebook-header__icon-btn--saving');
-        setTimeout(() => {
+        const onEnd = (): void => {
             cloudBtn.classList.remove('notebook-header__icon-btn--saving');
-        }, 1500);
+            cloudBtn.removeEventListener('animationend', onEnd);
+        };
+        cloudBtn.addEventListener('animationend', onEnd);
+        cloudBtn.classList.add('notebook-header__icon-btn--saving');
     }
 
     /**
