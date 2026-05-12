@@ -1,5 +1,6 @@
 import type { RouteDefinition, RouteMatch, PageConstructor, RouteOptions } from '../types.js';
 import { HttpClient } from '../http_client/HttpClient.js';
+import { nn } from '../utils/notNull.js';
 
 /**
  * SPA-роутер на History API. Поддерживает параметризованные пути (`/notebook/:id`),
@@ -79,14 +80,14 @@ export class Router {
      */
     public start(): void {
         window.addEventListener('popstate', () => {
-            this.#handleRoute(window.location.pathname);
+            void this.#handleRoute(window.location.pathname);
         });
 
         const path = window.location.pathname;
         if (path === '/' || path === '') {
             this.navigate(this.#defaultPath);
         } else {
-            this.#handleRoute(path);
+            void this.#handleRoute(path);
         }
     }
 
@@ -97,18 +98,21 @@ export class Router {
      */
     public navigate(path: string): void {
         history.pushState(null, '', path);
-        this.#handleRoute(path);
+        void this.#handleRoute(path);
     }
 
     /**
-     * Обрабатывает путь: находит подходящий маршрут, проверяет guard, уничтожает
-     * текущую страницу (вызывая destroy), создаёт и рендерит новую. Если ни один
-     * маршрут не подошёл — редиректит на defaultPath. Если guard не совпадает
-     * с состоянием сессии (HttpClient.getAuthSnapshot()) — редиректит на
+     * Обрабатывает путь: находит подходящий маршрут, проверяет guard, рендерит
+     * новую страницу в off-screen staging-узел, и только потом атомарно подменяет
+     * содержимое #root через replaceChildren. Старая страница уничтожается уже
+     * после того, как новая отрендерилась — это убирает промежуточный пустой
+     * кадр при SPA-навигации. Если ни один маршрут не подошёл — редиректит на
+     * defaultPath. Если guard не совпадает с состоянием сессии — редиректит на
      * безопасный путь: 'guestOnly' под authed → /files; 'authOnly' под guest → /.
      * @param path - путь (может содержать query-string, query отбрасывается)
+     * @returns промис, завершающийся после полного рендера новой страницы
      */
-    #handleRoute(path: string): void {
+    async #handleRoute(path: string): Promise<void> {
         const [pathname] = path.split('?');
         const matched = this.#matchRoute(pathname);
         if (!matched) {
@@ -126,13 +130,25 @@ export class Router {
             return;
         }
 
-        if (this.#currentPage && this.#currentPage.destroy) {
-            this.#currentPage.destroy();
+        const staging = document.createElement('div');
+        staging.style.display = 'none';
+        nn(this.#rootElement.parentNode).insertBefore(staging, this.#rootElement.nextSibling);
+
+        const page = new matched.PageClass(staging, matched.params);
+
+        try {
+            await page.render();
+        } catch (err) {
+            staging.remove();
+            throw err;
         }
 
-        const page = new matched.PageClass(this.#rootElement, matched.params);
+        if (this.#currentPage?.destroy) {
+            this.#currentPage.destroy();
+        }
+        this.#rootElement.replaceChildren(...Array.from(staging.children));
+        staging.remove();
         this.#currentPage = page;
-        page.render();
     }
 
     /**
