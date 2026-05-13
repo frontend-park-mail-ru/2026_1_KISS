@@ -48,6 +48,7 @@ export class StatsSection extends BaseComponent {
         if (diskMount) {
             this.#diskUsage = new DiskUsageCard(diskMount, {
                 compact: true,
+                inset: true,
                 onClick: (): void => {
                     nn(Router.getInstance()).navigate('/disk');
                 }
