@@ -1,0 +1,77 @@
+.file-drop-zone {
+    border: 2px dashed #c2dac4;
+    border-radius: 12px;
+    background: #f7fbf7;
+    padding: 32px 24px;
+    text-align: center;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+    outline: none;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone:focus-visible,
+.file-drop-zone_dragover {
+    background: #eaf6ec;
+    border-color: #6abf73;
+}
+
+.file-drop-zone__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-drop-zone__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #d8ecd9;
+    color: #2e7233;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.file-drop-zone__title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #2e3a2f;
+}
+
+.file-drop-zone__subtitle {
+    font-size: 14px;
+    color: #6a7a6c;
+}
+
+.file-drop-zone__button {
+    border: 1px solid #6abf73;
+    background: #fff;
+    color: #2e7233;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.file-drop-zone__button:hover {
+    background: #e6f4e8;
+}
+
+.file-drop-zone__status {
+    min-height: 18px;
+    font-size: 13px;
+    color: #4a5a4c;
+    margin-top: 4px;
+}
+
+.file-drop-zone__status_error {
+    color: #b03a2e;
+}
+
+.file-drop-zone__status_ok {
+    color: #2e7233;
+}

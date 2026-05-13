@@ -1,0 +1,84 @@
+.disk-table {
+    width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 8px 16px 16px;
+}
+
+.disk-table__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.disk-table__header-row th {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    color: #5a6a5c;
+    padding: 12px 8px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.disk-table__row td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f3f3f3;
+    font-size: 14px;
+    color: #2e3a2f;
+    vertical-align: middle;
+}
+
+.disk-table__row:hover td {
+    background: #f9fbf9;
+}
+
+.disk-table__name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.disk-table__name a {
+    color: #2e7233;
+    text-decoration: none;
+}
+
+.disk-table__name a:hover {
+    text-decoration: underline;
+}
+
+.disk-table__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.disk-table__action {
+    background: none;
+    border: 1px solid transparent;
+    color: #2e7233;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.disk-table__action:hover {
+    background: #eaf6ec;
+    border-color: #c2dac4;
+}
+
+.disk-table__action_delete {
+    color: #b03a2e;
+}
+
+.disk-table__action_delete:hover {
+    background: #fbeae6;
+    border-color: #e9b8af;
+}
+
+.disk-table__empty {
+    text-align: center;
+    color: #6a7a6c;
+    padding: 24px 16px;
+}

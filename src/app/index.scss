@@ -18,6 +18,9 @@
 @use '../widgets/green-header/GreenHeader';
 @use '../widgets/filter-bar/FilterBar';
 @use '../widgets/files-table/FilesTable';
+@use '../widgets/file-drop-zone/FileDropZone';
+@use '../widgets/disk-table/DiskTable';
+@use '../widgets/disk-usage-card/DiskUsageCard';
 @use '../widgets/share-modal/ShareModal';
 @use '../widgets/notebook-header/NotebookHeader';
 @use '../widgets/notebook-toolbar/NotebookToolbar';
@@ -30,9 +33,11 @@
 @use '../widgets/feedback-modal/FeedbackModal';
 @use '../widgets/stats-section/StatsSection';
 @use '../widgets/container-stats/ContainerStats';
+@use '../widgets/admin-files-section/AdminFilesSection';
 
 @use '../pages/sign/RegisterPage';
 @use '../pages/files/FilesPage';
+@use '../pages/disk/DiskPage';
 @use '../pages/blocks/BlocksPage';
 @use '../pages/profile/ProfilePage';
 @use '../pages/landing/LandingPage';

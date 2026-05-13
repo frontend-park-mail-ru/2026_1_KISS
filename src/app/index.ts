@@ -1,6 +1,7 @@
 import { LandingPage } from '../pages/landing/LandingPage.js';
 import { RegisterPage } from '../pages/sign/RegisterPage.js';
 import { FilesPage } from '../pages/files/FilesPage.js';
+import { DiskPage } from '../pages/disk/DiskPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
 import { ProfilePage } from '../pages/profile/ProfilePage.js';
 import { AdminPage } from '../pages/admin/AdminPage.js';
@@ -18,6 +19,7 @@ router.addRoute('/sign', RegisterPage, { guard: 'guestOnly' });
 router.addRoute('/login', RegisterPage, { guard: 'guestOnly' });
 router.addRoute('/register', RegisterPage, { guard: 'guestOnly' });
 router.addRoute('/files', FilesPage, { guard: 'authOnly' });
+router.addRoute('/disk', DiskPage, { guard: 'authOnly' });
 router.addRoute('/notebooks/:id', BlocksPage, { guard: 'authOnly' });
 router.addRoute('/profile', ProfilePage, { guard: 'authOnly' });
 router.addRoute('/admin', AdminPage, { guard: 'authOnly' });
