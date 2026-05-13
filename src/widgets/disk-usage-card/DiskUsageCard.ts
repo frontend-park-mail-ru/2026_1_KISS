@@ -110,9 +110,9 @@ export class DiskUsageCard extends BaseComponent {
         planLabel.textContent = usage.plan || 'free';
 
         if (limitForLabel === null) {
-            usageLabel.textContent = `${formatBytes(usage.used)} использовано`;
+            usageLabel.textContent = `${formatBytes(usage.used)} использовано (безлимит)`;
         } else {
-            usageLabel.textContent = `${formatBytes(usage.used)} из ${formatBytes(limitForLabel)}`;
+            usageLabel.textContent = `${formatBytes(usage.used)} использовано из ${formatBytes(limitForLabel)}`;
         }
         countLabel.textContent = `${String(usage.files_count)} ${this.#pluralFiles(usage.files_count)}`;
     }
