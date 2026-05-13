@@ -1,6 +1,7 @@
 import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { FilterBar } from '../../widgets/filter-bar/FilterBar.js';
 import { FilesTable } from '../../widgets/files-table/FilesTable.js';
+import { DiskUsageCard } from '../../widgets/disk-usage-card/DiskUsageCard.js';
 import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
@@ -43,6 +44,7 @@ export class FilesPage {
     #header: GreenHeader | null = null;
     #filterBar: FilterBar | null = null;
     #filesTable: FilesTable | null = null;
+    #diskUsageCard: DiskUsageCard | null = null;
     #pagination: Pagination | null = null;
     #allNotebooks: FilesNotebook[] = [];
     #filters: {
@@ -148,6 +150,13 @@ export class FilesPage {
         container.className = 'files-page__container';
         main.appendChild(container);
 
+        this.#diskUsageCard = new DiskUsageCard(container, {
+            onClick: (): void => {
+                nn(Router.getInstance()).navigate('/disk');
+            }
+        });
+        this.#diskUsageCard.mount();
+
         this.#filterBar = new FilterBar(container, {
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onCreate: (): Promise<void> => this.#createNotebook(),
@@ -182,6 +191,7 @@ export class FilesPage {
      * Размонтирует все три виджета и очищает root. Вызывается роутером.
      */
     public destroy(): void {
+        if (this.#diskUsageCard) this.#diskUsageCard.unmount();
         if (this.#filterBar) this.#filterBar.unmount();
         if (this.#filesTable) this.#filesTable.unmount();
         if (this.#pagination) this.#pagination.unmount();
