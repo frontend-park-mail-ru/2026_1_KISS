@@ -67,3 +67,34 @@
     transform: translateY(-1px);
     border-color: #c2dac4;
 }
+
+.disk-usage-card_compact {
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    align-self: flex-start;
+    width: 100%;
+    max-width: 480px;
+    flex: 0 0 auto;
+}
+
+.disk-usage-card_compact .disk-usage-card__header {
+    margin-bottom: 6px;
+}
+
+.disk-usage-card_compact .disk-usage-card__title {
+    font-size: 13px;
+}
+
+.disk-usage-card_compact .disk-usage-card__plan {
+    font-size: 11px;
+    padding: 1px 6px;
+}
+
+.disk-usage-card_compact .disk-usage-card__bar {
+    height: 5px;
+}
+
+.disk-usage-card_compact .disk-usage-card__footer {
+    margin-top: 6px;
+    font-size: 12px;
+}
