@@ -16,6 +16,12 @@ export interface DiskUsageCardOptions {
      * (cursor: pointer, hover-эффект).
      */
     onClick?: () => void;
+    /**
+     * Включает компактный вариант: меньший padding, кегль, высота бара и
+     * ограниченная max-width. Используется когда карточка встраивается в
+     * страницу со своим контентом (например /files), а не как hero-блок.
+     */
+    compact?: boolean;
 }
 
 /**
@@ -49,6 +55,9 @@ export class DiskUsageCard extends BaseComponent {
      */
     public override mount(): void {
         super.mount();
+        if (this.#options.compact === true) {
+            this._element.classList.add('disk-usage-card_compact');
+        }
         if (this.#options.onClick) {
             this._element.classList.add('disk-usage-card_clickable');
             this._addListener(this._element, 'click', () => {

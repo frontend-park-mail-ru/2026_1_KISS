@@ -151,6 +151,7 @@ export class FilesPage {
         main.appendChild(container);
 
         this.#diskUsageCard = new DiskUsageCard(container, {
+            compact: true,
             onClick: (): void => {
                 nn(Router.getInstance()).navigate('/disk');
             }
