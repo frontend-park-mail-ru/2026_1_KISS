@@ -517,6 +517,59 @@ export interface NotebookEventDTO {
     message?: string;
 }
 
+// ===== Storage / Files =====
+
+/**
+ * DTO одного файла из storage-сервиса. Соответствует ответу
+ * /api/v1/files/* и AdminFile в админ-листинге (за исключением owner_username).
+ */
+export interface FileItemDTO {
+    /** UUID файла */
+    id: string;
+    /** ID владельца */
+    owner_id: number;
+    /** ID notebook'а (если файл прикреплён к notebook) */
+    notebook_id?: number;
+    /** Категория ('files', 'avatars', 'feedback', 'datasets') */
+    category: string;
+    /** Имя файла как ввёл пользователь */
+    filename: string;
+    /** Путь для скачивания (например /uploads/files/uuid.ext) */
+    url: string;
+    /** MIME-тип определённый по содержимому */
+    mime_type: string;
+    /** Размер в байтах */
+    size: number;
+    /** ISO-дата создания */
+    created_at: string;
+}
+
+/**
+ * Ответ /api/v1/files со списком файлов и общим числом для пагинации.
+ */
+export interface FileListResponse {
+    /** Найденные файлы (страница) */
+    files: FileItemDTO[];
+    /** Общее количество */
+    total: number;
+}
+
+/**
+ * Ответ /api/v1/files/usage с информацией о квоте текущего пользователя.
+ */
+export interface FileUsageResponse {
+    /** Использовано байт */
+    used: number;
+    /** Лимит байт (для admin берётся служебное большое число) */
+    limit: number;
+    /** true если у пользователя безлимитная квота (admin) */
+    unlimited: boolean;
+    /** Тариф пользователя ('free', 'pro', 'max', 'admin', 'freeze') */
+    plan: string;
+    /** Количество файлов пользователя */
+    files_count: number;
+}
+
 // ===== Streaming (websocket runtime errors / output chunks) =====
 
 /**
