@@ -17,11 +17,18 @@ export interface DiskUsageCardOptions {
      */
     onClick?: () => void;
     /**
-     * Включает компактный вариант: меньший padding, кегль, высота бара и
-     * ограниченная max-width. Используется когда карточка встраивается в
-     * страницу со своим контентом (например /files), а не как hero-блок.
+     * Включает компактный вариант: меньший padding, кегль, высота бара.
+     * Используется когда карточка встраивается в страницу со своим
+     * контентом (например /files), а не как hero-блок.
      */
     compact?: boolean;
+    /**
+     * Включает inset-вариант: ограничивает max-width так, чтобы карточка
+     * не растягивалась на всю ширину секции. Применяется в подпунктах
+     * страниц (например в секции «Хранилище» профиля), где рядом стоят
+     * другие компактные карточки и full-width смотрится диспропорционально.
+     */
+    inset?: boolean;
 }
 
 /**
@@ -57,6 +64,9 @@ export class DiskUsageCard extends BaseComponent {
         super.mount();
         if (this.#options.compact === true) {
             this._element.classList.add('disk-usage-card_compact');
+        }
+        if (this.#options.inset === true) {
+            this._element.classList.add('disk-usage-card_inset');
         }
         if (this.#options.onClick) {
             this._element.classList.add('disk-usage-card_clickable');

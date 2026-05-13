@@ -75,6 +75,11 @@
     flex: 0 0 auto;
 }
 
+.disk-usage-card_inset {
+    max-width: 480px;
+    align-self: flex-start;
+}
+
 .disk-usage-card_compact .disk-usage-card__header {
     margin-bottom: 6px;
 }
