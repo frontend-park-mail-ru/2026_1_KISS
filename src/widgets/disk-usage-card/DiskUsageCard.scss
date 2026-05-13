@@ -1,0 +1,69 @@
+.disk-usage-card {
+    background: #fff;
+    border: 1px solid #e6efe7;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.disk-usage-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.disk-usage-card__title {
+    font-weight: 600;
+    color: #2e3a2f;
+    font-size: 15px;
+}
+
+.disk-usage-card__plan {
+    font-size: 12px;
+    color: #2e7233;
+    background: #eaf6ec;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.disk-usage-card__bar {
+    background: #eef3ee;
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.disk-usage-card__bar-fill {
+    background: linear-gradient(90deg, #6abf73 0%, #2e7233 100%);
+    height: 100%;
+    transition: width 0.25s ease;
+}
+
+.disk-usage-card__bar-fill_warn {
+    background: linear-gradient(90deg, #f0a83a 0%, #c97a14 100%);
+}
+
+.disk-usage-card__bar-fill_danger {
+    background: linear-gradient(90deg, #e96360 0%, #b03a2e 100%);
+}
+
+.disk-usage-card__footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #5a6a5c;
+}
+
+.disk-usage-card_clickable {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.disk-usage-card_clickable:hover {
+    transform: translateY(-1px);
+    border-color: #c2dac4;
+}
