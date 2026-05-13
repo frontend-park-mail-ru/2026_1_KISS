@@ -4,6 +4,7 @@ import { AdminStatsSection } from '../../widgets/admin-stats-section/AdminStatsS
 import { AdminNotebooksSection } from '../../widgets/admin-notebooks-section/AdminNotebooksSection.js';
 import { AdminIssuesSection } from '../../widgets/admin-issues-section/AdminIssuesSection.js';
 import { AdminUsersSection } from '../../widgets/admin-users-section/AdminUsersSection.js';
+import { AdminFilesSection } from '../../widgets/admin-files-section/AdminFilesSection.js';
 import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
@@ -28,6 +29,7 @@ function AdminPageTemplate(): string {
                 <button class="admin-page__sidebar-item" data-section="users">Пользователи</button>
                 <button class="admin-page__sidebar-item" data-section="notebooks">Блокноты</button>
                 <button class="admin-page__sidebar-item" data-section="issues">Обращения</button>
+                <button class="admin-page__sidebar-item" data-section="files">Файлы</button>
             </div>
         </nav>
         <div class="admin-page__content"></div>
@@ -190,6 +192,11 @@ export class AdminPage {
             }
             case 'issues': {
                 const section = new AdminIssuesSection(nn(this.#contentArea));
+                section.mount();
+                break;
+            }
+            case 'files': {
+                const section = new AdminFilesSection(nn(this.#contentArea));
                 section.mount();
                 break;
             }
