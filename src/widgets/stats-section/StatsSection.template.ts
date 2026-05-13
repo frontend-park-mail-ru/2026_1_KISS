@@ -55,6 +55,7 @@ export function StatsSectionTemplate(): string {
 
     <div class="stats-section__storage">
         <div class="stats-section__storage-title">Хранилище</div>
+        <div class="stats-section__disk-usage-mount"></div>
         <div class="stats-section__storage-cards"></div>
     </div>
 </div>`;

@@ -2,6 +2,8 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { StatsApi, type UserStats } from '../../shared/api/StatsApi.js';
 import { renderBarChart, fillDays } from '../../shared/utils/chart.js';
 import { StatsSectionTemplate } from './StatsSection.template.js';
+import { DiskUsageCard } from '../disk-usage-card/DiskUsageCard.js';
+import { Router } from '../../shared/router/Router.js';
 import { nn } from '../../shared/utils/notNull.js';
 
 /**
@@ -14,6 +16,7 @@ import { nn } from '../../shared/utils/notNull.js';
  */
 export class StatsSection extends BaseComponent {
     #api: StatsApi;
+    #diskUsage: DiskUsageCard | null = null;
 
     /**
      * Создаёт и рендерит секцию. Загрузка данных откладывается до mount.
@@ -39,7 +42,27 @@ export class StatsSection extends BaseComponent {
      */
     public mount(): void {
         super.mount();
+        const diskMount = this._element.querySelector<HTMLElement>(
+            '.stats-section__disk-usage-mount'
+        );
+        if (diskMount) {
+            this.#diskUsage = new DiskUsageCard(diskMount, {
+                onClick: (): void => {
+                    nn(Router.getInstance()).navigate('/disk');
+                }
+            });
+            this.#diskUsage.mount();
+        }
         void this.#loadStats();
+    }
+
+    /**
+     * Размонтирует секцию и встроенную карточку диска.
+     */
+    public override unmount(): void {
+        this.#diskUsage?.unmount();
+        this.#diskUsage = null;
+        super.unmount();
     }
 
     /**
