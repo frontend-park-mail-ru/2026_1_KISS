@@ -63,6 +63,9 @@ export class FileDropZone extends BaseComponent {
         this._addListener(root, 'dragover', this.#onDragOver as EventListener);
         this._addListener(root, 'dragleave', this.#onDragLeave as EventListener);
         this._addListener(root, 'drop', this.#onDrop as EventListener);
+
+        this._addListener(window, 'dragover', this.#onWindowDragOver as EventListener);
+        this._addListener(window, 'drop', this.#onWindowDrop as EventListener);
     }
 
     /**
@@ -107,10 +110,36 @@ export class FileDropZone extends BaseComponent {
     };
 
     /**
-     * Реакция на dragover: блокирует дефолт чтобы получить событие drop.
+     * Реакция на dragover: блокирует дефолт чтобы получить событие drop и
+     * выставляет dropEffect=copy, чтобы курсор показывал валидную drop-цель.
      * @param event - DragEvent
      */
     #onDragOver = (event: DragEvent): void => {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'copy';
+        }
+    };
+
+    /**
+     * Глобальный dragover на window: блокирует дефолтное поведение браузера
+     * (открытие файла в новой вкладке), если пользователь промахнулся мимо зоны.
+     * Без этого drop вне зоны просто откроет файл в браузере.
+     * @param event - DragEvent
+     */
+    #onWindowDragOver = (event: DragEvent): void => {
+        event.preventDefault();
+    };
+
+    /**
+     * Глобальный drop на window: блокирует дефолтное поведение для drop'ов
+     * вне зоны. Если drop пришёл на саму зону — событие уже обработано
+     * (preventDefault там), поэтому здесь только страхует промахи.
+     * @param event - DragEvent
+     */
+    #onWindowDrop = (event: DragEvent): void => {
+        const target = event.target as Node | null;
+        if (target && this._element.contains(target)) return;
         event.preventDefault();
     };
 
