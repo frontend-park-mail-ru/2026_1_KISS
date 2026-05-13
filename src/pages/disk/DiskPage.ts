@@ -5,6 +5,8 @@ import { DiskUsageCard } from '../../widgets/disk-usage-card/DiskUsageCard.js';
 import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { StorageApi } from '../../shared/api/StorageApi.js';
+import { NotebookApi } from '../../shared/api/NotebookApi.js';
+import { ipynbToBlocks } from '../../shared/domain/notebook/nbformat.js';
 import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { nn } from '../../shared/utils/notNull.js';
@@ -199,6 +201,13 @@ export class DiskPage {
      */
     async #handleUpload(files: File[]): Promise<void> {
         if (files.length === 0) return;
+
+        const ipynb = files.find((f) => f.name.toLowerCase().endsWith('.ipynb'));
+        if (ipynb) {
+            await this.#handleIpynbImport(ipynb);
+            return;
+        }
+
         this.#dropZone?.setStatus(`Загрузка ${String(files.length)} ...`, 'info');
         let okCount = 0;
         const failed: { name: string; message: string }[] = [];
@@ -219,6 +228,30 @@ export class DiskPage {
             this.#dropZone?.setStatus(`Загружено ${String(okCount)}, ошибки: ${detail}`, 'error');
         }
         await this.#loadList();
+    }
+
+    /**
+     * Импортирует .ipynb-файл как новый ноутбук вместо обычной загрузки в
+     * хранилище: парсит JSON, превращает ячейки в блоки, отправляет на
+     * /notebooks/import и редиректит на страницу созданного ноутбука.
+     * Имя ноутбука берётся из имени файла без расширения.
+     * @param file - выбранный пользователем .ipynb-файл
+     */
+    async #handleIpynbImport(file: File): Promise<void> {
+        this.#dropZone?.setStatus(`Импорт ноутбука "${file.name}"...`, 'info');
+        try {
+            const text = await file.text();
+            const parsed = JSON.parse(text) as { cells?: Record<string, unknown>[] };
+            const blocks = ipynbToBlocks(parsed);
+            const title = file.name.replace(/\.ipynb$/i, '') || 'Импортированный ноутбук';
+            const notebook = await new NotebookApi().importNotebook(title, blocks);
+            this.#dropZone?.setStatus(`Ноутбук "${title}" импортирован`, 'ok');
+            nn(Router.getInstance()).navigate(`/notebooks/${String(notebook.id)}`);
+        } catch (error: unknown) {
+            logError('DiskPage.handleIpynbImport failed', error);
+            const msg = error instanceof Error ? error.message : 'неизвестная ошибка';
+            this.#dropZone?.setStatus(`Не удалось импортировать ноутбук: ${msg}`, 'error');
+        }
     }
 
     /**
