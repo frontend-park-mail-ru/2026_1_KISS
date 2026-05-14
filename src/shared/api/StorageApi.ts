@@ -1,5 +1,12 @@
 import { HttpClient } from '../http_client/HttpClient.js';
-import type { ApiEnvelope, FileItemDTO, FileListResponse, FileUsageResponse } from './types.js';
+import type {
+    ApiEnvelope,
+    FileItemDTO,
+    FileListResponse,
+    FileShareDTO,
+    FileShareListResponse,
+    FileUsageResponse
+} from './types.js';
 
 /**
  * API-клиент storage-сервиса: загрузка пользовательских файлов, листинг,
@@ -119,6 +126,144 @@ export class StorageApi {
      * с фильтрами category и owner_id и пагинацией. Доступно только admin'у;
      * для не-admin'ов сервер вернёт 403.
      * @param params - объект фильтров
+     * @returns промис с FileListResponse
+     * @throws Error при HTTP не-2xx
+     */
+    /**
+     * Загружает страницу файлов, расшаренных текущему пользователю.
+     * Соответствует GET /api/v1/files/shared?limit=&offset=.
+     * @param limit - размер страницы
+     * @param offset - смещение
+     * @returns промис со списком файлов
+     * @throws Error при HTTP не-2xx
+     */
+    public async listSharedWithMe(limit: number, offset: number): Promise<FileListResponse> {
+        const params = new URLSearchParams();
+        params.set('limit', String(limit));
+        params.set('offset', String(offset));
+        const response = await this.#http.get(`/files/shared?${params.toString()}`, {
+            noCache: true
+        });
+        return this.#parse<FileListResponse>(response);
+    }
+
+    /**
+     * Расшаривает файл по email или username. Соответствует
+     * POST /api/v1/files/:id/share. Если пользователь не найден на бэке —
+     * вернёт 404; уровень принимает 'view' или 'download'.
+     * @param fileId - UUID файла
+     * @param identifier - email или username получателя
+     * @param level - 'view' (без скачивания) или 'download'
+     * @returns промис с FileShareDTO выданного приглашения
+     * @throws Error при HTTP не-2xx
+     */
+    public async shareFile(
+        fileId: string,
+        identifier: string,
+        level: 'view' | 'download'
+    ): Promise<FileShareDTO> {
+        const response = await this.#http.post(`/files/${encodeURIComponent(fileId)}/share`, {
+            identifier,
+            level
+        });
+        return this.#parse<FileShareDTO>(response);
+    }
+
+    /**
+     * Возвращает список приглашений к файлу. Доступно только владельцу.
+     * @param fileId - UUID файла
+     * @returns промис со списком приглашений
+     * @throws Error при HTTP не-2xx
+     */
+    public async listShares(fileId: string): Promise<FileShareListResponse> {
+        const response = await this.#http.get(`/files/${encodeURIComponent(fileId)}/shares`, {
+            noCache: true
+        });
+        return this.#parse<FileShareListResponse>(response);
+    }
+
+    /**
+     * Меняет уровень доступа для уже приглашённого пользователя.
+     * @param fileId - UUID файла
+     * @param userId - ID пользователя
+     * @param level - новый уровень
+     * @returns промис с обновлённой записью
+     * @throws Error при HTTP не-2xx
+     */
+    public async updateShare(
+        fileId: string,
+        userId: number,
+        level: 'view' | 'download'
+    ): Promise<FileShareDTO> {
+        const response = await this.#http.put(
+            `/files/${encodeURIComponent(fileId)}/shares/${String(userId)}`,
+            { level }
+        );
+        return this.#parse<FileShareDTO>(response);
+    }
+
+    /**
+     * Отзывает доступ конкретного пользователя к файлу.
+     * @param fileId - UUID файла
+     * @param userId - ID пользователя
+     * @throws Error при HTTP не-2xx
+     */
+    public async revokeShare(fileId: string, userId: number): Promise<void> {
+        const response = await this.#http.delete(
+            `/files/${encodeURIComponent(fileId)}/shares/${String(userId)}`
+        );
+        if (!response.ok) {
+            const body = (await response.json().catch(() => ({}))) as { error?: string };
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
+        }
+    }
+
+    /**
+     * Включает или выключает публичную ссылку. При включении бэк генерирует
+     * UUID-токен (вернётся в FileItemDTO.share_token); при выключении токен
+     * обнуляется и старая ссылка перестаёт работать.
+     * @param fileId - UUID файла
+     * @param isPublic - true — выдать публичную ссылку, false — отозвать
+     * @param expiresAt - ISO-дата истечения (опционально, только при isPublic=true)
+     * @returns промис с обновлённой записью файла
+     * @throws Error при HTTP не-2xx
+     */
+    public async setPublic(
+        fileId: string,
+        isPublic: boolean,
+        expiresAt?: string | null
+    ): Promise<FileItemDTO> {
+        const payload: Record<string, unknown> = { is_public: isPublic };
+        if (expiresAt !== undefined && expiresAt !== null && expiresAt !== '') {
+            payload.expires_at = expiresAt;
+        }
+        const response = await this.#http.put(
+            `/files/${encodeURIComponent(fileId)}/public`,
+            payload
+        );
+        return this.#parse<FileItemDTO>(response);
+    }
+
+    /**
+     * Переименовывает файл (меняется только отображаемое имя; storage_key и
+     * прямой URL остаются прежними, поэтому существующие ссылки на файл
+     * продолжают работать).
+     * @param fileId - UUID файла
+     * @param filename - новое имя (1..255, без / и \)
+     * @returns промис с обновлённым DTO
+     * @throws Error при HTTP не-2xx (например 400 при недопустимом имени)
+     */
+    public async renameFile(fileId: string, filename: string): Promise<FileItemDTO> {
+        const response = await this.#http.patch(`/files/${encodeURIComponent(fileId)}/rename`, {
+            filename
+        });
+        return this.#parse<FileItemDTO>(response);
+    }
+
+    /**
+     * Админская выдача файлов. Соответствует GET /api/v1/admin/storage/files
+     * с фильтрами category и owner_id и пагинацией. Доступно только admin'у.
+     * @param params - объект фильтров (limit, offset, category?, ownerId?)
      * @returns промис с FileListResponse
      * @throws Error при HTTP не-2xx
      */
