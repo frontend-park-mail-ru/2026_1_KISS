@@ -1,6 +1,6 @@
 /**
  * Шаблон страницы «Диск»: контейнер для шапки, карточки квоты, drop-зоны,
- * таблицы файлов и пагинации. Реальные виджеты монтируются в DiskPage.render.
+ * табов (мои файлы / расшарено со мной), таблицы файлов и пагинации.
  * @returns HTML-разметка для innerHTML
  */
 export function DiskPageTemplate(): string {
@@ -11,9 +11,19 @@ export function DiskPageTemplate(): string {
             <h1 class="disk-page__title">Мой диск</h1>
         </div>
         <div class="disk-page__usage-mount"></div>
-        <div class="disk-page__drop-mount"></div>
-        <div class="disk-page__table-mount"></div>
-        <div class="disk-page__pagination-mount"></div>
+        <div class="disk-page__tabs">
+            <button type="button" class="disk-page__tab disk-page__tab_active" data-tab="own">Мои файлы</button>
+            <button type="button" class="disk-page__tab" data-tab="shared">Расшарено со мной</button>
+        </div>
+        <div class="disk-page__panel disk-page__panel_own">
+            <div class="disk-page__drop-mount"></div>
+            <div class="disk-page__table-mount"></div>
+            <div class="disk-page__pagination-mount"></div>
+        </div>
+        <div class="disk-page__panel disk-page__panel_shared" hidden>
+            <div class="disk-page__shared-table-mount"></div>
+            <div class="disk-page__shared-pagination-mount"></div>
+        </div>
     </main>
 </div>`;
 }

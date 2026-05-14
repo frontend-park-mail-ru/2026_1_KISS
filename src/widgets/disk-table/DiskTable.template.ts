@@ -12,6 +12,7 @@ export function DiskTableTemplate(): string {
                 <th class="disk-table__header">Имя</th>
                 <th class="disk-table__header">Размер</th>
                 <th class="disk-table__header">Тип</th>
+                <th class="disk-table__header">Скачиваний</th>
                 <th class="disk-table__header">Дата</th>
                 <th class="disk-table__header disk-table__header_actions"></th>
             </tr>

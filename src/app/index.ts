@@ -5,6 +5,7 @@ import { DiskPage } from '../pages/disk/DiskPage.js';
 import { BlocksPage } from '../pages/blocks/BlocksPage.js';
 import { ProfilePage } from '../pages/profile/ProfilePage.js';
 import { AdminPage } from '../pages/admin/AdminPage.js';
+import { SharedFilePage } from '../pages/shared-file/SharedFilePage.js';
 import { Router } from '../shared/router/Router.js';
 import { HttpClient } from '../shared/http_client/HttpClient.js';
 import { Heartbeat } from '../shared/heartbeat/Heartbeat.js';
@@ -23,6 +24,7 @@ router.addRoute('/disk', DiskPage, { guard: 'authOnly' });
 router.addRoute('/notebooks/:id', BlocksPage, { guard: 'authOnly' });
 router.addRoute('/profile', ProfilePage, { guard: 'authOnly' });
 router.addRoute('/admin', AdminPage, { guard: 'authOnly' });
+router.addRoute('/shared/files/:token', SharedFilePage);
 
 /**
  * Опрашивает /auth/me и обновляет snapshot авторизации внутри HttpClient.

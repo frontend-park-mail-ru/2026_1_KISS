@@ -2,6 +2,8 @@ import { GreenHeader } from '../../widgets/green-header/GreenHeader.js';
 import { FileDropZone } from '../../widgets/file-drop-zone/FileDropZone.js';
 import { DiskTable } from '../../widgets/disk-table/DiskTable.js';
 import { DiskUsageCard } from '../../widgets/disk-usage-card/DiskUsageCard.js';
+import { FileShareModal } from '../../widgets/file-share-modal/FileShareModal.js';
+import { RenameModal } from '../../widgets/rename-modal/RenameModal.js';
 import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { StorageApi } from '../../shared/api/StorageApi.js';
@@ -19,12 +21,10 @@ import { DiskPageTemplate } from './DiskPage.template.js';
 const PAGE_SIZE = 10;
 
 /**
- * Страница «Мой диск» (`/disk`). Показывает заполненность квоты, зону
- * drag-and-drop для загрузки, таблицу файлов пользователя и пагинацию.
- * Авторизованным пользователям; неавторизованных редиректит на /sign.
- *
- * Загрузка/удаление обновляют usage-card и таблицу. Дублирование запросов
- * минимально: после mutation делаем ровно один list + один usage.
+ * Страница «Мой диск» (`/disk`). Содержит две вкладки: «Мои файлы»
+ * (с drag-and-drop, квотой, действиями владельца) и «Расшарено со мной»
+ * (файлы от других пользователей). Авторизованным пользователям;
+ * неавторизованных редиректит на /sign.
  */
 export class DiskPage {
     #root: HTMLElement;
@@ -34,10 +34,15 @@ export class DiskPage {
     #usageCard: DiskUsageCard | null = null;
     #dropZone: FileDropZone | null = null;
     #table: DiskTable | null = null;
+    #sharedTable: DiskTable | null = null;
     #pagination: Pagination | null = null;
+    #sharedPagination: Pagination | null = null;
     #feedbackModal: FeedbackModal | null = null;
     #currentPage = 0;
     #totalPages = 1;
+    #sharedPage = 0;
+    #sharedTotalPages = 1;
+    #activeTab: 'own' | 'shared' = 'own';
 
     /**
      * Сохраняет root и берёт singleton-клиенты.
@@ -50,8 +55,8 @@ export class DiskPage {
     }
 
     /**
-     * Загружает текущего пользователя, монтирует шапку и все виджеты,
-     * подгружает первую страницу файлов и квоту. При недоступности бэка —
+     * Загружает текущего пользователя, монтирует шапку и виджеты обеих вкладок,
+     * подгружает первую страницу собственных файлов. При недоступности бэка —
      * показывает «server unavailable». При 401 — редирект на /sign.
      */
     public async render(): Promise<void> {
@@ -77,14 +82,13 @@ export class DiskPage {
 
         this.#root.innerHTML = DiskPageTemplate();
         this.#mountWidgets(user);
+        this.#attachTabSwitching();
         await this.#loadList();
     }
 
     /**
-     * Создаёт и монтирует все виджеты страницы: шапку, карточку квоты,
-     * drop-зону, таблицу файлов и пагинацию. Выделено отдельно, чтобы
-     * render() не превышал лимит max-statements.
-     * @param user - данные текущего пользователя для шапки
+     * Создаёт и монтирует все виджеты страницы.
+     * @param user - данные текущего пользователя
      */
     #mountWidgets(user: UserDTO): void {
         const root = this.#root;
@@ -93,6 +97,12 @@ export class DiskPage {
         const dropMount = nn(root.querySelector<HTMLElement>('.disk-page__drop-mount'));
         const tableMount = nn(root.querySelector<HTMLElement>('.disk-page__table-mount'));
         const paginationMount = nn(root.querySelector<HTMLElement>('.disk-page__pagination-mount'));
+        const sharedTableMount = nn(
+            root.querySelector<HTMLElement>('.disk-page__shared-table-mount')
+        );
+        const sharedPaginationMount = nn(
+            root.querySelector<HTMLElement>('.disk-page__shared-pagination-mount')
+        );
 
         this.#header = new GreenHeader(headerMount, this.#buildHeaderConfig(user));
         this.#header.render();
@@ -106,8 +116,15 @@ export class DiskPage {
         this.#dropZone.mount();
 
         this.#table = new DiskTable(tableMount, {
+            mode: 'own',
             onDelete: (file): void => {
                 void this.#handleDelete(file);
+            },
+            onShare: (file): void => {
+                void this.#handleShare(file);
+            },
+            onRename: (file): void => {
+                this.#handleRename(file);
             }
         });
         this.#table.mount();
@@ -117,11 +134,59 @@ export class DiskPage {
             void this.#loadList();
         });
         this.#pagination.mount();
+
+        this.#sharedTable = new DiskTable(sharedTableMount, {
+            mode: 'shared',
+            onDelete: (): void => {
+                /* нельзя удалять чужие */
+            }
+        });
+        this.#sharedTable.mount();
+
+        this.#sharedPagination = new Pagination(sharedPaginationMount, (page) => {
+            this.#sharedPage = page;
+            void this.#loadSharedList();
+        });
+        this.#sharedPagination.mount();
     }
 
     /**
-     * Собирает конфиг для GreenHeader из текущего пользователя: callbacks
-     * на навигацию, открытие фидбека и logout.
+     * Навешивает обработчики переключения вкладок.
+     */
+    #attachTabSwitching(): void {
+        const tabs = this.#root.querySelectorAll<HTMLButtonElement>('.disk-page__tab');
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab === 'shared' ? 'shared' : 'own';
+                void this.#switchTab(target);
+            });
+        });
+    }
+
+    /**
+     * Переключает активную вкладку, обновляя визуальное состояние и подгружая
+     * данные. Вызов идемпотентен — повторное переключение на ту же вкладку
+     * ничего не делает.
+     * @param next - новая активная вкладка
+     */
+    async #switchTab(next: 'own' | 'shared'): Promise<void> {
+        if (next === this.#activeTab) return;
+        this.#activeTab = next;
+        const tabs = this.#root.querySelectorAll<HTMLButtonElement>('.disk-page__tab');
+        tabs.forEach((t) => {
+            t.classList.toggle('disk-page__tab_active', t.dataset.tab === next);
+        });
+        const ownPanel = nn(this.#root.querySelector<HTMLElement>('.disk-page__panel_own'));
+        const sharedPanel = nn(this.#root.querySelector<HTMLElement>('.disk-page__panel_shared'));
+        ownPanel.hidden = next !== 'own';
+        sharedPanel.hidden = next !== 'shared';
+        if (next === 'shared') {
+            await this.#loadSharedList();
+        }
+    }
+
+    /**
+     * Собирает конфиг для GreenHeader из текущего пользователя.
      * @param user - данные пользователя из /auth/me
      * @returns объект конфигурации для GreenHeader
      */
@@ -158,26 +223,27 @@ export class DiskPage {
     }
 
     /**
-     * Размонтирует все виджеты и очищает root. Вызывается роутером перед сменой
-     * страницы.
+     * Размонтирует все виджеты и очищает root.
      */
     public destroy(): void {
         this.#header?.destroy();
         this.#usageCard?.unmount();
         this.#dropZone?.unmount();
         this.#table?.unmount();
+        this.#sharedTable?.unmount();
         this.#pagination?.unmount();
+        this.#sharedPagination?.unmount();
         this.#header = null;
         this.#usageCard = null;
         this.#dropZone = null;
         this.#table = null;
+        this.#sharedTable = null;
         this.#pagination = null;
+        this.#sharedPagination = null;
     }
 
     /**
-     * Подгружает текущую страницу файлов и обновляет таблицу и пагинацию.
-     * Ошибки отображает через статус drop-zone (на странице больше нет
-     * выделенной области для ошибок листинга).
+     * Подгружает текущую страницу собственных файлов.
      */
     async #loadList(): Promise<void> {
         try {
@@ -193,10 +259,23 @@ export class DiskPage {
     }
 
     /**
-     * Последовательно загружает файлы один за другим (HttpClient.upload не
-     * умеет параллельный прогресс, а сервер делает квота-проверку — поэтому
-     * последовательность даёт стабильное сообщение об ошибке). После каждой
-     * загрузки рефрешит квоту; в конце — рефреш списка.
+     * Подгружает текущую страницу файлов, расшаренных текущему пользователю.
+     */
+    async #loadSharedList(): Promise<void> {
+        try {
+            const offset = this.#sharedPage * PAGE_SIZE;
+            const resp = await this.#storage.listSharedWithMe(PAGE_SIZE, offset);
+            this.#sharedTotalPages = Math.max(1, Math.ceil(resp.total / PAGE_SIZE));
+            this.#sharedTable?.setData(resp.files);
+            this.#sharedPagination?.update(this.#sharedPage, this.#sharedTotalPages);
+        } catch (error: unknown) {
+            logError('DiskPage.loadSharedList failed', error);
+        }
+    }
+
+    /**
+     * Последовательно загружает выбранные файлы; .ipynb разруливает в импорт
+     * нотебука.
      * @param files - выбранные/перетянутые файлы
      */
     async #handleUpload(files: File[]): Promise<void> {
@@ -231,10 +310,7 @@ export class DiskPage {
     }
 
     /**
-     * Импортирует .ipynb-файл как новый ноутбук вместо обычной загрузки в
-     * хранилище: парсит JSON, превращает ячейки в блоки, отправляет на
-     * /notebooks/import и редиректит на страницу созданного ноутбука.
-     * Имя ноутбука берётся из имени файла без расширения.
+     * Импортирует .ipynb-файл как новый ноутбук.
      * @param file - выбранный пользователем .ipynb-файл
      */
     async #handleIpynbImport(file: File): Promise<void> {
@@ -256,8 +332,7 @@ export class DiskPage {
 
     /**
      * Спрашивает подтверждение и удаляет файл, после чего обновляет таблицу
-     * и квоту. confirm используется как простой UX-механизм; для продакшна
-     * можно завести модалку.
+     * и квоту.
      * @param file - файл к удалению
      */
     async #handleDelete(file: FileItemDTO): Promise<void> {
@@ -272,5 +347,25 @@ export class DiskPage {
             logError('DiskPage.handleDelete failed', error);
             this.#dropZone?.setStatus('Не удалось удалить файл', 'error');
         }
+    }
+
+    /**
+     * Открывает модалку шаринга для файла. После закрытия — обновляет список
+     * (на случай, если поменялась публичность или счётчики).
+     * @param file - файл для шаринга
+     */
+    async #handleShare(file: FileItemDTO): Promise<void> {
+        await FileShareModal.getInstance().open(file);
+        await this.#loadList();
+    }
+
+    /**
+     * Открывает модалку переименования; после сохранения — обновляет список.
+     * @param file - файл к переименованию
+     */
+    #handleRename(file: FileItemDTO): void {
+        RenameModal.getInstance().open(file, () => {
+            void this.#loadList();
+        });
     }
 }
