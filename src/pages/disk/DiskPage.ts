@@ -4,7 +4,6 @@ import { DiskTable } from '../../widgets/disk-table/DiskTable.js';
 import { DiskUsageCard } from '../../widgets/disk-usage-card/DiskUsageCard.js';
 import { FileShareModal } from '../../widgets/file-share-modal/FileShareModal.js';
 import { RenameModal } from '../../widgets/rename-modal/RenameModal.js';
-import { Pagination } from '../../shared/components/pagination/Pagination.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { StorageApi } from '../../shared/api/StorageApi.js';
 import { NotebookApi } from '../../shared/api/NotebookApi.js';
@@ -18,31 +17,24 @@ import { renderServerUnavailable } from '../../shared/utils/serverUnavailable.js
 import type { ApiEnvelope, FileItemDTO, UserDTO } from '../../shared/api/types.js';
 import { DiskPageTemplate } from './DiskPage.template.js';
 
-const PAGE_SIZE = 10;
+const MAX_FILES_PER_SOURCE = 100;
 
 /**
- * Страница «Мой диск» (`/disk`). Содержит две вкладки: «Мои файлы»
- * (с drag-and-drop, квотой, действиями владельца) и «Расшарено со мной»
- * (файлы от других пользователей). Авторизованным пользователям;
- * неавторизованных редиректит на /sign.
+ * Страница «Мой диск» (`/disk`): объединённая таблица собственных файлов
+ * и файлов, расшаренных текущему пользователю, отсортированная по дате.
+ * Доступ через `your_permission`: 'owner' для своих, 'view' / 'download'
+ * для расшаренных. Действия — через контекстное меню в таблице.
  */
 export class DiskPage {
     #root: HTMLElement;
     #httpClient: HttpClient;
     #storage: StorageApi;
+    #user: UserDTO | null = null;
     #header: GreenHeader | null = null;
     #usageCard: DiskUsageCard | null = null;
     #dropZone: FileDropZone | null = null;
     #table: DiskTable | null = null;
-    #sharedTable: DiskTable | null = null;
-    #pagination: Pagination | null = null;
-    #sharedPagination: Pagination | null = null;
     #feedbackModal: FeedbackModal | null = null;
-    #currentPage = 0;
-    #totalPages = 1;
-    #sharedPage = 0;
-    #sharedTotalPages = 1;
-    #activeTab: 'own' | 'shared' = 'own';
 
     /**
      * Сохраняет root и берёт singleton-клиенты.
@@ -55,9 +47,8 @@ export class DiskPage {
     }
 
     /**
-     * Загружает текущего пользователя, монтирует шапку и виджеты обеих вкладок,
-     * подгружает первую страницу собственных файлов. При недоступности бэка —
-     * показывает «server unavailable». При 401 — редирект на /sign.
+     * Загружает текущего пользователя, монтирует виджеты и подгружает
+     * объединённый список файлов. При 401 — редирект на /sign.
      */
     public async render(): Promise<void> {
         this.#root.innerHTML = '';
@@ -80,10 +71,10 @@ export class DiskPage {
             return;
         }
 
+        this.#user = user;
         this.#root.innerHTML = DiskPageTemplate();
         this.#mountWidgets(user);
-        this.#attachTabSwitching();
-        await this.#loadList();
+        await this.#loadAll();
     }
 
     /**
@@ -96,13 +87,6 @@ export class DiskPage {
         const usageMount = nn(root.querySelector<HTMLElement>('.disk-page__usage-mount'));
         const dropMount = nn(root.querySelector<HTMLElement>('.disk-page__drop-mount'));
         const tableMount = nn(root.querySelector<HTMLElement>('.disk-page__table-mount'));
-        const paginationMount = nn(root.querySelector<HTMLElement>('.disk-page__pagination-mount'));
-        const sharedTableMount = nn(
-            root.querySelector<HTMLElement>('.disk-page__shared-table-mount')
-        );
-        const sharedPaginationMount = nn(
-            root.querySelector<HTMLElement>('.disk-page__shared-pagination-mount')
-        );
 
         this.#header = new GreenHeader(headerMount, this.#buildHeaderConfig(user));
         this.#header.render();
@@ -116,7 +100,6 @@ export class DiskPage {
         this.#dropZone.mount();
 
         this.#table = new DiskTable(tableMount, {
-            mode: 'own',
             onDelete: (file): void => {
                 void this.#handleDelete(file);
             },
@@ -128,67 +111,12 @@ export class DiskPage {
             }
         });
         this.#table.mount();
-
-        this.#pagination = new Pagination(paginationMount, (page) => {
-            this.#currentPage = page;
-            void this.#loadList();
-        });
-        this.#pagination.mount();
-
-        this.#sharedTable = new DiskTable(sharedTableMount, {
-            mode: 'shared',
-            onDelete: (): void => {
-                /* нельзя удалять чужие */
-            }
-        });
-        this.#sharedTable.mount();
-
-        this.#sharedPagination = new Pagination(sharedPaginationMount, (page) => {
-            this.#sharedPage = page;
-            void this.#loadSharedList();
-        });
-        this.#sharedPagination.mount();
     }
 
     /**
-     * Навешивает обработчики переключения вкладок.
-     */
-    #attachTabSwitching(): void {
-        const tabs = this.#root.querySelectorAll<HTMLButtonElement>('.disk-page__tab');
-        tabs.forEach((tab) => {
-            tab.addEventListener('click', () => {
-                const target = tab.dataset.tab === 'shared' ? 'shared' : 'own';
-                void this.#switchTab(target);
-            });
-        });
-    }
-
-    /**
-     * Переключает активную вкладку, обновляя визуальное состояние и подгружая
-     * данные. Вызов идемпотентен — повторное переключение на ту же вкладку
-     * ничего не делает.
-     * @param next - новая активная вкладка
-     */
-    async #switchTab(next: 'own' | 'shared'): Promise<void> {
-        if (next === this.#activeTab) return;
-        this.#activeTab = next;
-        const tabs = this.#root.querySelectorAll<HTMLButtonElement>('.disk-page__tab');
-        tabs.forEach((t) => {
-            t.classList.toggle('disk-page__tab_active', t.dataset.tab === next);
-        });
-        const ownPanel = nn(this.#root.querySelector<HTMLElement>('.disk-page__panel_own'));
-        const sharedPanel = nn(this.#root.querySelector<HTMLElement>('.disk-page__panel_shared'));
-        ownPanel.hidden = next !== 'own';
-        sharedPanel.hidden = next !== 'shared';
-        if (next === 'shared') {
-            await this.#loadSharedList();
-        }
-    }
-
-    /**
-     * Собирает конфиг для GreenHeader из текущего пользователя.
-     * @param user - данные пользователя из /auth/me
-     * @returns объект конфигурации для GreenHeader
+     * Собирает конфиг для GreenHeader.
+     * @param user - данные пользователя
+     * @returns объект конфигурации
      */
     #buildHeaderConfig(user: UserDTO): Record<string, unknown> {
         const initials = user.username.substring(0, 2).toUpperCase();
@@ -230,52 +158,53 @@ export class DiskPage {
         this.#usageCard?.unmount();
         this.#dropZone?.unmount();
         this.#table?.unmount();
-        this.#sharedTable?.unmount();
-        this.#pagination?.unmount();
-        this.#sharedPagination?.unmount();
         this.#header = null;
         this.#usageCard = null;
         this.#dropZone = null;
         this.#table = null;
-        this.#sharedTable = null;
-        this.#pagination = null;
-        this.#sharedPagination = null;
     }
 
     /**
-     * Подгружает текущую страницу собственных файлов.
+     * Параллельно подгружает собственные и расшаренные файлы, объединяет
+     * в один список, помечает «свои» признаком your_permission='owner' и
+     * сортирует по дате. Ошибки одной из сторон отображает через статус
+     * drop-zone, но не блокирует отображение другой.
      */
-    async #loadList(): Promise<void> {
-        try {
-            const offset = this.#currentPage * PAGE_SIZE;
-            const resp = await this.#storage.listFiles(PAGE_SIZE, offset, 'files');
-            this.#totalPages = Math.max(1, Math.ceil(resp.total / PAGE_SIZE));
-            this.#table?.setData(resp.files);
-            this.#pagination?.update(this.#currentPage, this.#totalPages);
-        } catch (error: unknown) {
-            logError('DiskPage.loadList failed', error);
+    async #loadAll(): Promise<void> {
+        const ownerEmail = this.#user?.email ?? '';
+        const [ownResult, sharedResult] = await Promise.allSettled([
+            this.#storage.listFiles(MAX_FILES_PER_SOURCE, 0, 'files'),
+            this.#storage.listSharedWithMe(MAX_FILES_PER_SOURCE, 0)
+        ]);
+        const files: FileItemDTO[] = [];
+        if (ownResult.status === 'fulfilled') {
+            for (const f of ownResult.value.files) {
+                files.push({
+                    ...f,
+                    your_permission: 'owner',
+                    owner_email:
+                        f.owner_email !== undefined && f.owner_email !== ''
+                            ? f.owner_email
+                            : ownerEmail
+                });
+            }
+        } else {
+            logError('DiskPage.loadAll: own files failed', ownResult.reason);
             this.#dropZone?.setStatus('Не удалось загрузить список файлов', 'error');
         }
-    }
-
-    /**
-     * Подгружает текущую страницу файлов, расшаренных текущему пользователю.
-     */
-    async #loadSharedList(): Promise<void> {
-        try {
-            const offset = this.#sharedPage * PAGE_SIZE;
-            const resp = await this.#storage.listSharedWithMe(PAGE_SIZE, offset);
-            this.#sharedTotalPages = Math.max(1, Math.ceil(resp.total / PAGE_SIZE));
-            this.#sharedTable?.setData(resp.files);
-            this.#sharedPagination?.update(this.#sharedPage, this.#sharedTotalPages);
-        } catch (error: unknown) {
-            logError('DiskPage.loadSharedList failed', error);
+        if (sharedResult.status === 'fulfilled') {
+            for (const f of sharedResult.value.files) {
+                files.push(f);
+            }
+        } else {
+            logError('DiskPage.loadAll: shared files failed', sharedResult.reason);
         }
+        files.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        this.#table?.setData(files);
     }
 
     /**
-     * Последовательно загружает выбранные файлы; .ipynb разруливает в импорт
-     * нотебука.
+     * Последовательно загружает выбранные файлы; .ipynb уходят в импорт ноутбука.
      * @param files - выбранные/перетянутые файлы
      */
     async #handleUpload(files: File[]): Promise<void> {
@@ -306,12 +235,12 @@ export class DiskPage {
             const detail = failed.map((f) => `${f.name}: ${f.message}`).join('; ');
             this.#dropZone?.setStatus(`Загружено ${String(okCount)}, ошибки: ${detail}`, 'error');
         }
-        await this.#loadList();
+        await this.#loadAll();
     }
 
     /**
      * Импортирует .ipynb-файл как новый ноутбук.
-     * @param file - выбранный пользователем .ipynb-файл
+     * @param file - выбранный .ipynb
      */
     async #handleIpynbImport(file: File): Promise<void> {
         this.#dropZone?.setStatus(`Импорт ноутбука "${file.name}"...`, 'info');
@@ -342,7 +271,7 @@ export class DiskPage {
         try {
             await this.#storage.deleteFile(file.id);
             await this.#usageCard?.refresh();
-            await this.#loadList();
+            await this.#loadAll();
         } catch (error: unknown) {
             logError('DiskPage.handleDelete failed', error);
             this.#dropZone?.setStatus('Не удалось удалить файл', 'error');
@@ -350,22 +279,21 @@ export class DiskPage {
     }
 
     /**
-     * Открывает модалку шаринга для файла. После закрытия — обновляет список
-     * (на случай, если поменялась публичность или счётчики).
+     * Открывает модалку шаринга. После закрытия обновляет список.
      * @param file - файл для шаринга
      */
     async #handleShare(file: FileItemDTO): Promise<void> {
         await FileShareModal.getInstance().open(file);
-        await this.#loadList();
+        await this.#loadAll();
     }
 
     /**
-     * Открывает модалку переименования; после сохранения — обновляет список.
+     * Открывает модалку переименования. После сохранения обновляет список.
      * @param file - файл к переименованию
      */
     #handleRename(file: FileItemDTO): void {
         RenameModal.getInstance().open(file, () => {
-            void this.#loadList();
+            void this.#loadAll();
         });
     }
 }
