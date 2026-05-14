@@ -542,6 +542,44 @@ export interface FileItemDTO {
     size: number;
     /** ISO-дата создания */
     created_at: string;
+    /** Файл опубликован публичной ссылкой */
+    is_public: boolean;
+    /** UUID public-токена, если файл опубликован */
+    share_token?: string | null;
+    /** ISO-дата истечения public-ссылки */
+    share_expires_at?: string | null;
+    /** Количество скачиваний (всех каналов) */
+    downloads_count: number;
+    /** Уровень доступа текущего пользователя: owner/view/download/public */
+    your_permission?: string;
+    /** Авторизованный URL для скачивания */
+    download_url: string;
+    /** Публичный URL для скачивания (если is_public) */
+    public_url?: string | null;
+}
+
+/**
+ * DTO записи о расшаривании файла конкретному пользователю.
+ */
+export interface FileShareDTO {
+    /** UUID файла */
+    file_id: string;
+    /** ID пользователя, которому выдан доступ */
+    user_id: number;
+    /** Email приглашённого (заполняется на бэке) */
+    email?: string;
+    /** Уровень доступа: 'view' или 'download' */
+    permission_level: 'view' | 'download';
+    /** ISO-дата выдачи доступа */
+    created_at: string;
+}
+
+/**
+ * Ответ /api/v1/files/:id/shares — список приглашений к файлу.
+ */
+export interface FileShareListResponse {
+    /** Приглашения */
+    shares: FileShareDTO[];
 }
 
 /**
