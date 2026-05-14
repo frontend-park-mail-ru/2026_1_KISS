@@ -556,6 +556,8 @@ export interface FileItemDTO {
     download_url: string;
     /** Публичный URL для скачивания (если is_public) */
     public_url?: string | null;
+    /** Email владельца (заполняется для расшаренных файлов; для своих может быть пустым) */
+    owner_email?: string;
 }
 
 /**

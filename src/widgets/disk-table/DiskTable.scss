@@ -1,14 +1,38 @@
 .disk-table {
+    box-sizing: border-box;
     width: 100%;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     padding: 8px 16px 16px;
+    position: relative;
 }
 
 .disk-table__table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.disk-table__header_name {
+    width: 32%;
+}
+
+.disk-table__header_owner {
+    width: 20%;
+}
+
+.disk-table__header_size,
+.disk-table__header_downloads {
+    width: 10%;
+}
+
+.disk-table__header_mime {
+    width: 12%;
+}
+
+.disk-table__header_date {
+    width: 16%;
 }
 
 .disk-table__header-row th {
@@ -26,55 +50,55 @@
     font-size: 14px;
     color: #2e3a2f;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .disk-table__row:hover td {
     background: #f9fbf9;
 }
 
-.disk-table__name {
+.disk-table__cell-name {
+    min-width: 0;
+}
+
+.disk-table__name-wrap {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
 }
 
-.disk-table__name a {
+.disk-table__cell-date {
+    color: #5a6a5c;
+}
+
+.disk-table__name-link {
     color: #2e7233;
     text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+    display: inline-block;
 }
 
-.disk-table__name a:hover {
+.disk-table__name-link:hover {
     text-decoration: underline;
 }
 
-.disk-table__actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
+.disk-table__cell-owner,
+.disk-table__cell-mime {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #5a6a5c;
 }
 
-.disk-table__action {
-    background: none;
-    border: 1px solid transparent;
-    color: #2e7233;
-    cursor: pointer;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-}
-
-.disk-table__action:hover {
-    background: #eaf6ec;
-    border-color: #c2dac4;
-}
-
-.disk-table__action_delete {
-    color: #b03a2e;
-}
-
-.disk-table__action_delete:hover {
-    background: #fbeae6;
-    border-color: #e9b8af;
+.disk-table__cell-downloads {
+    text-align: center;
 }
 
 .disk-table__empty {
@@ -89,9 +113,9 @@
     border-radius: 999px;
     font-size: 11px;
     line-height: 1.2;
-    margin-left: 6px;
     background: #eaf6ec;
     color: #2e7233;
+    flex-shrink: 0;
 }
 
 .disk-table__badge_public {
@@ -102,41 +126,51 @@
 .disk-table__badge_count {
     background: #eef3ee;
     color: #5a6a5c;
-    margin-left: 0;
 }
 
-.disk-table__downloads {
-    text-align: center;
-}
-
-.disk-table__actions {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.disk-table__action {
-    padding: 4px 8px;
-    border-radius: 6px;
-    border: 1px solid #d6e2d8;
+.disk-table__context-menu {
+    position: fixed;
+    z-index: 1200;
     background: #fff;
-    color: #2e3a2f;
-    font-size: 12px;
+    border: 1px solid #d6e2d8;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 4px;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+}
+
+.disk-table__context-menu[hidden] {
+    display: none;
+}
+
+.disk-table__menu-item {
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    text-decoration: none;
-    line-height: 1.4;
+    font-size: 13px;
+    color: #2e3a2f;
 }
 
-.disk-table__action:hover:not([disabled]) {
-    background: #f4f8f4;
+.disk-table__menu-item:hover:not(:disabled) {
+    background: #eaf6ec;
 }
 
-.disk-table__action[disabled] {
+.disk-table__menu-item_danger {
+    color: #b03a2e;
+}
+
+.disk-table__menu-item_danger:hover:not(:disabled) {
+    background: #fbeae6;
+}
+
+.disk-table__menu-item_disabled,
+.disk-table__menu-item:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-}
-
-.disk-table__action_delete {
-    border-color: #f1d1cf;
-    color: #b03a2e;
+    color: #5a6a5c;
 }
