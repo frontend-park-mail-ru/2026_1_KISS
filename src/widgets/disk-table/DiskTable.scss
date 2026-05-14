@@ -82,3 +82,61 @@
     color: #6a7a6c;
     padding: 24px 16px;
 }
+
+.disk-table__badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.2;
+    margin-left: 6px;
+    background: #eaf6ec;
+    color: #2e7233;
+}
+
+.disk-table__badge_public {
+    background: #fff3d6;
+    color: #946400;
+}
+
+.disk-table__badge_count {
+    background: #eef3ee;
+    color: #5a6a5c;
+    margin-left: 0;
+}
+
+.disk-table__downloads {
+    text-align: center;
+}
+
+.disk-table__actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.disk-table__action {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d6e2d8;
+    background: #fff;
+    color: #2e3a2f;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.4;
+}
+
+.disk-table__action:hover:not([disabled]) {
+    background: #f4f8f4;
+}
+
+.disk-table__action[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.disk-table__action_delete {
+    border-color: #f1d1cf;
+    color: #b03a2e;
+}

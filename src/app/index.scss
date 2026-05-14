@@ -22,6 +22,9 @@
 @use '../widgets/disk-table/DiskTable';
 @use '../widgets/disk-usage-card/DiskUsageCard';
 @use '../widgets/share-modal/ShareModal';
+@use '../widgets/file-share-modal/FileShareModal';
+@use '../widgets/rename-modal/RenameModal';
+@use '../pages/shared-file/SharedFilePage';
 @use '../widgets/notebook-header/NotebookHeader';
 @use '../widgets/notebook-toolbar/NotebookToolbar';
 @use '../widgets/notebook-sidebar/NotebookSidebar';
