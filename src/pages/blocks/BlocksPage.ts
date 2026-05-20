@@ -32,11 +32,17 @@ import { Router } from '../../shared/router/Router.js';
 import { ShareModal } from '../../widgets/share-modal/ShareModal.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
 import { NotebookWS } from '../../shared/api/NotebookWS.js';
+import { StatsWS } from '../../shared/api/StatsWS.js';
 import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
 import { isAuthError } from '../../shared/http_client/authStatus.js';
 import { renderServerUnavailable } from '../../shared/utils/serverUnavailable.js';
-import type { ApiEnvelope, PermissionDTO, UserDTO } from '../../shared/api/types.js';
+import type {
+    ApiEnvelope,
+    ContainerStatsDTO,
+    PermissionDTO,
+    UserDTO
+} from '../../shared/api/types.js';
 
 /**
  * Минимальный контракт ячейки для операций сохранения её содержимого.
@@ -85,6 +91,7 @@ export class BlocksPage {
     #shareModal: ShareModal | null = null;
 
     #ws: NotebookWS | null = null;
+    #statsWs: StatsWS | null = null;
 
     /**
      * Сохраняет root и notebookId, инициализирует HttpClient (singleton) и
@@ -270,36 +277,14 @@ export class BlocksPage {
         });
         this.#sidebar.mount();
 
-        this.#cellList = new CellList(main, {
-            notebookId: this.#notebookId,
-            currentUserId: nn(this.#userId),
-            isOwner: nn(this.#perms).isOwner,
-            canComment: nn(this.#perms).canComment,
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRunCell: (blockId: number | string): Promise<void> => this.#runSingleBlock(blockId),
-            onRerender: (): void => {
-                this.#reapplyCellState();
-            },
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onDeleteCell: (blockId: number | string): Promise<void> => this.#deleteBlock(blockId),
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onSaveContent: (blockId: number | string, content: string): Promise<void> =>
-                this.#saveTextCellContent(blockId, content),
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onCodeContentChange: (blockId: number | string, content: string): Promise<void> =>
-                this.#saveCodeCellContent(blockId, content),
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onReorder: (blockIds: (number | string)[]): Promise<void> =>
-                this.#reorderBlocks(blockIds)
-        });
-        this.#cellList.mount();
+        const cellList = this.#buildCellList(main);
 
         this.#root.appendChild(page);
 
         const blocks = nn(this.#model).blocks as unknown as BlockData[];
         this.#execState.loadFromServerBlocks(blocks as unknown as Record<string, unknown>[]);
-        this.#cellList.updateBlocks(blocks);
-        this.#cellList.toggleComments(commentsVisible);
+        cellList.updateBlocks(blocks);
+        cellList.toggleComments(commentsVisible);
 
         this.#beforeUnloadHandler = (): void => {
             if (this.#notebookId) this.#runnerApi.stopSessionBeacon(this.#notebookId);
@@ -307,6 +292,7 @@ export class BlocksPage {
         window.addEventListener('beforeunload', this.#beforeUnloadHandler);
 
         this.#openWebSocket();
+        this.#openStatsWS();
     }
 
     /**
@@ -341,6 +327,55 @@ export class BlocksPage {
             }
         });
         this.#ws.connect();
+    }
+
+    /**
+     * Создаёт CellList с полным набором callback'ов (run/reorder/delete/save),
+     * сохраняет его в this.#cellList и монтирует. Возвращает созданный
+     * инстанс, чтобы caller мог сразу его использовать без повторных null-проверок
+     * на поле. Вынесено из #buildLayout, чтобы тот не превышал лимит по
+     * числу statement'ов.
+     * @param main - DOM-контейнер для списка ячеек
+     * @returns созданный и смонтированный CellList
+     */
+    #buildCellList(main: HTMLElement): CellList {
+        const cellList = new CellList(main, {
+            notebookId: this.#notebookId,
+            currentUserId: nn(this.#userId),
+            isOwner: nn(this.#perms).isOwner,
+            canComment: nn(this.#perms).canComment,
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onRunCell: (blockId: number | string): Promise<void> => this.#runSingleBlock(blockId),
+            onRerender: (): void => {
+                this.#reapplyCellState();
+            },
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onDeleteCell: (blockId: number | string): Promise<void> => this.#deleteBlock(blockId),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onSaveContent: (blockId: number | string, content: string): Promise<void> =>
+                this.#saveTextCellContent(blockId, content),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onCodeContentChange: (blockId: number | string, content: string): Promise<void> =>
+                this.#saveCodeCellContent(blockId, content),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onReorder: (blockIds: (number | string)[]): Promise<void> =>
+                this.#reorderBlocks(blockIds)
+        });
+        this.#cellList = cellList;
+        cellList.mount();
+        return cellList;
+    }
+
+    /**
+     * Открывает stats-WebSocket для получения ресурсной статистики runner-контейнера
+     * (CPU/memory/queue-position). Полученные значения отдаются в NotebookToolbar
+     * для отображения session-state.
+     */
+    #openStatsWS(): void {
+        this.#statsWs = new StatsWS(this.#notebookId, (stats: ContainerStatsDTO) => {
+            this.#toolbar?.setSessionState(stats.session_state, stats.queue_position);
+        });
+        this.#statsWs.connect();
     }
 
     #streamingResolve: (() => void) | null = null;
@@ -474,13 +509,15 @@ export class BlocksPage {
      * чанками через WS и ждёт execute_completed. Иначе fallback на REST
      * /runner/execute. В любом случае предварительно сохраняет содержимое
      * ячейки и обновляет execution-counter + output после завершения.
+     *
+     * Блок идентифицируется на сервере по id (не по позиции) — иначе при
+     * pending reorder сервер может прислать в качестве кода старую ячейку с
+     * этой позиции.
      * @param blockId - идентификатор запускаемого блока
      */
     async #runSingleBlock(blockId: number | string): Promise<void> {
         const cell = nn(this.#cellList).getCellByBlockId(blockId);
         if (!cell || !(cell instanceof CodeCell)) return;
-        const position = nn(this.#cellList).getBlockPositionById(blockId);
-        if (position < 0) return;
 
         await this.#maybeSaveCellContent(blockId, cell);
 
@@ -489,13 +526,13 @@ export class BlocksPage {
         if (this.#ws && this.#ws.isOpen()) {
             this.#streamBuffer.start(blockId);
             cell.setOutput({});
-            this.#ws.executeBlock(position);
+            this.#ws.executeBlock(blockId);
             await new Promise<void>((resolve) => {
                 this.#streamingResolve = resolve;
             });
         } else {
             try {
-                const result = await this.#runnerApi.executeBlock(this.#notebookId, position);
+                const result = await this.#runnerApi.executeBlock(this.#notebookId, blockId);
                 const out = runnerResultToCellOutput(result as unknown as Record<string, unknown>);
                 const execNum = this.#execState.assignNextNumber(blockId);
                 this.#execState.setOutput(blockId, out);
@@ -785,6 +822,10 @@ export class BlocksPage {
         if (this.#ws) {
             this.#ws.close();
             this.#ws = null;
+        }
+        if (this.#statsWs) {
+            this.#statsWs.close();
+            this.#statsWs = null;
         }
         if (this.#shareModal) this.#shareModal.close();
         if (this.#cellList) this.#cellList.unmount();

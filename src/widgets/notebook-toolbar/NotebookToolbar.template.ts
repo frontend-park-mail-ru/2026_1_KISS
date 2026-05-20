@@ -17,6 +17,9 @@ export function NotebookToolbarTemplate(): string {
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
             <span class="notebook-toolbar__btn-text">Выполнить все</span>
         </button>
+        <span class="notebook-toolbar__queue-badge" data-queue-badge style="display:none">
+            В очереди: <strong data-queue-position></strong>
+        </span>
     </div>
 </div>`;
 }

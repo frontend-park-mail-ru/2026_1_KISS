@@ -1,5 +1,5 @@
 import { HttpClient } from '../http_client/HttpClient.js';
-import type { ApiEnvelope, ContainerStatsDTO, ExecutionResultDTO } from './types.js';
+import type { ApiEnvelope, ExecutionResultDTO } from './types.js';
 
 /**
  * Один элемент массива detail в ошибке валидации FastAPI (Python runner).
@@ -77,17 +77,19 @@ export class RunnerApi {
     }
 
     /**
-     * Запускает один блок по позиции. Соответствует POST /runner/:nb/block.
+     * Запускает один блок по идентификатору. Соответствует POST /runner/:nb/block.
+     * Используется id (а не позиция), чтобы устранить race с pending reorder:
+     * пока reorder не доехал до сервера, position может указывать не на тот блок.
      * @param notebookId - ID notebook'а
-     * @param blockPosition - позиция блока в notebook'е (0-based)
+     * @param blockId - идентификатор запускаемого блока
      * @returns промис с результатом выполнения (stdout/stderr/result/outputs)
      */
     public async executeBlock(
         notebookId: number | string,
-        blockPosition: number
+        blockId: number | string
     ): Promise<ExecutionResultDTO> {
         const response = await this.#http.post(
-            `/runner/${String(notebookId)}/block?block_position=${String(blockPosition)}`
+            `/runner/${String(notebookId)}/block?block_id=${String(blockId)}`
         );
         return this.#parse<ExecutionResultDTO>(response);
     }
@@ -137,16 +139,5 @@ export class RunnerApi {
         if (typeof navigator !== 'undefined') {
             navigator.sendBeacon(`/api/v1/runner/${String(notebookId)}/stop`);
         }
-    }
-
-    /**
-     * Запрашивает текущие метрики docker-контейнера сессии (CPU/память/GPU).
-     * Используется в ResourceBanner для real-time индикации использования.
-     * @param notebookId - ID notebook'а
-     * @returns промис со статистикой контейнера
-     */
-    public async getContainerStats(notebookId: number | string): Promise<ContainerStatsDTO> {
-        const response = await this.#http.get(`/runner/${String(notebookId)}/stats`);
-        return this.#parse<ContainerStatsDTO>(response);
     }
 }

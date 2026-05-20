@@ -65,6 +65,9 @@ export function NotebookSidebarTemplate(): string {
         <h3 class="notebook-sidebar__panel-title">Ресурсы</h3>
         <div class="notebook-sidebar__panel-content">
             <div class="container-stats container-stats--sidebar container-stats--inactive">
+                <div class="container-stats__queue-banner" data-queue-banner style="display:none">
+                    В очереди: позиция <span data-metric="queue">—</span>
+                </div>
                 <div class="container-stats__row">
                     <span class="container-stats__label">RAM</span>
                     <span class="container-stats__value" data-metric="ram">--</span>

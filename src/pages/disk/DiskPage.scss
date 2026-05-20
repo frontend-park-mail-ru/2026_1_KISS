@@ -24,3 +24,30 @@
     color: #1e2a1f;
 }
 
+.disk-page__section-title {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e2a1f;
+}
+
+.disk-page__sessions-col-action {
+    text-align: right;
+    padding-right: 12px !important;
+}
+
+.disk-page__sessions-del {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #b03a2e;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background: #fbeae6;
+    }
+}
+

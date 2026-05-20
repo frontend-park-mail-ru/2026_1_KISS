@@ -1,8 +1,9 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
-import { RunnerApi } from '../../shared/api/RunnerApi.js';
+import { StatsWS } from '../../shared/api/StatsWS.js';
 import { FindEngine } from '../../shared/search/FindEngine.js';
 import { NotebookSidebarTemplate } from './NotebookSidebar.template.js';
 import { nn } from '../../shared/utils/notNull.js';
+import type { ContainerStatsDTO } from '../../shared/api/types.js';
 
 /**
  * Параметры одного запроса find/replace в notebook'е.
@@ -105,8 +106,7 @@ export class NotebookSidebar extends BaseComponent {
     #searchTarget: NotebookSearchAdapter | null = null;
     #findEngine = new FindEngine();
     #notebookId: string | number | undefined;
-    #runnerApi: RunnerApi;
-    #containerPollTimer: ReturnType<typeof setInterval> | null = null;
+    #statsWs: StatsWS | null = null;
     #ramHistory: number[] = [];
     #cpuHistory: number[] = [];
 
@@ -123,7 +123,6 @@ export class NotebookSidebar extends BaseComponent {
         super(null, parent);
         this.#searchTarget = searchTarget ?? null;
         this.#notebookId = notebookId;
-        this.#runnerApi = new RunnerApi();
         this.#render();
     }
 
@@ -150,7 +149,7 @@ export class NotebookSidebar extends BaseComponent {
      */
     public unmount(): void {
         if (!this._isMounted) return;
-        this.#stopContainerPolling();
+        this.#stopStatsWS();
         super.unmount();
     }
 
@@ -333,7 +332,7 @@ export class NotebookSidebar extends BaseComponent {
         if (panel) panel.classList.add('notebook-sidebar__panel--visible');
 
         if (panelName === 'resources') {
-            this.#startContainerPolling();
+            this.#startStatsWS();
         }
     }
 
@@ -343,7 +342,7 @@ export class NotebookSidebar extends BaseComponent {
      */
     #closePanel(): void {
         if (this.#activePanel === null) return;
-        if (this.#activePanel === 'resources') this.#stopContainerPolling();
+        if (this.#activePanel === 'resources') this.#stopStatsWS();
         const btn = this._element.querySelector(`[data-panel="${this.#activePanel}"]`);
         if (btn) btn.classList.remove('notebook-sidebar__icon-btn--active');
         const panel = this._element.querySelector(`.notebook-sidebar__panel--${this.#activePanel}`);
@@ -352,70 +351,108 @@ export class NotebookSidebar extends BaseComponent {
     }
 
     /**
-     * Запускает периодический поллинг container stats (первый запрос — сразу,
-     * потом каждые 3 секунды).
+     * Создаёт StatsWS и подключается. Вызывается при открытии resources-панели.
+     * Если notebookId не задан — noop. onClose от WS переключает панель в
+     * inactive-вид через #setStatsInactive.
      */
-    #startContainerPolling(): void {
-        void this.#pollContainer();
-        this.#containerPollTimer = setInterval(() => this.#pollContainer(), 3000);
-    }
-
-    /**
-     * Останавливает поллинг container stats.
-     */
-    #stopContainerPolling(): void {
-        if (this.#containerPollTimer !== null) {
-            clearInterval(this.#containerPollTimer);
-            this.#containerPollTimer = null;
-        }
-    }
-
-    /**
-     * Один тик поллинга: запрашивает RunnerApi.getContainerStats и обновляет
-     * 5 значений (RAM/CPU/Cores/Disk/GPU) + прогресс-бар + sparkline'ы.
-     * При ошибке — добавляет --inactive класс.
-     */
-    async #pollContainer(): Promise<void> {
+    #startStatsWS(): void {
         if (this.#notebookId === undefined) return;
+        this.#statsWs = new StatsWS(
+            this.#notebookId,
+            (stats) => {
+                this.#onStats(stats);
+            },
+            {
+                onClose: (): void => {
+                    this.#setStatsInactive();
+                }
+            }
+        );
+        this.#statsWs.connect();
+    }
+
+    /**
+     * Закрывает StatsWS при сворачивании resources-панели и обнуляет ссылку.
+     */
+    #stopStatsWS(): void {
+        this.#statsWs?.close();
+        this.#statsWs = null;
+    }
+
+    /**
+     * Обработчик кадра статистики runner-контейнера: переключает классы
+     * queued/inactive, обновляет числовые метрики (RAM/CPU/cores/disk/GPU),
+     * перерисовывает progress-bar и sparkline-историю. При inactive выходит
+     * после установки CSS-классов (значения метрик уже скрыты CSS'ом).
+     * @param stats - кадр от StatsWS
+     */
+    #onStats(stats: ContainerStatsDTO): void {
         const panel = this._element.querySelector('.container-stats--sidebar');
         if (!panel) return;
 
-        try {
-            const stats = await this.#runnerApi.getContainerStats(this.#notebookId);
-            panel.classList.remove('container-stats--inactive');
+        const queued = stats.session_state === 'queued';
+        const inactive = stats.session_state === 'inactive';
 
-            const ramEl = nn(panel.querySelector('[data-metric="ram"]'));
-            const cpuEl = nn(panel.querySelector('[data-metric="cpu"]'));
-            const coresEl = nn(panel.querySelector('[data-metric="cores"]'));
-            const diskEl = nn(panel.querySelector('[data-metric="disk"]'));
-            const gpuEl = nn(panel.querySelector('[data-metric="gpu"]'));
-            const fill = nn(panel.querySelector<HTMLElement>('.container-stats__bar-fill'));
+        panel.classList.toggle('container-stats--inactive', inactive);
+        panel.classList.toggle('container-stats--queued', queued);
 
-            const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
-            const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);
-            ramEl.textContent = `${usedMB} / ${limitMB} MB`;
-            cpuEl.textContent = `${stats.cpu_percent.toFixed(1)}%`;
-            coresEl.textContent = String(stats.cpu_cores || 1);
-            diskEl.textContent = stats.disk_limit_bytes
-                ? `${(stats.disk_limit_bytes / (1024 * 1024)).toFixed(0)} MB`
-                : '--';
-            gpuEl.textContent = stats.gpu_available ? 'доступна' : 'недоступна';
+        const banner = panel.querySelector<HTMLElement>('[data-queue-banner]');
+        if (banner) banner.style.display = queued ? '' : 'none';
+        const queueEl = panel.querySelector('[data-metric="queue"]');
+        if (queueEl) queueEl.textContent = String(stats.queue_position);
 
-            const pct = Math.min(100, stats.memory_percent);
-            fill.style.width = `${String(pct)}%`;
-            fill.className = 'container-stats__bar-fill';
-            if (pct < 60) fill.classList.add('container-stats__bar-fill--ok');
-            else if (pct < 85) fill.classList.add('container-stats__bar-fill--warn');
-            else fill.classList.add('container-stats__bar-fill--danger');
+        if (inactive) return;
 
-            this.#ramHistory.push(stats.memory_percent);
-            this.#cpuHistory.push(stats.cpu_percent);
-            if (this.#ramHistory.length > 20) this.#ramHistory.shift();
-            if (this.#cpuHistory.length > 20) this.#cpuHistory.shift();
-            this.#renderSparklines(panel as HTMLElement);
-        } catch {
-            panel.classList.add('container-stats--inactive');
-        }
+        this.#renderStatsMetrics(panel as HTMLElement, stats);
+
+        this.#ramHistory.push(stats.memory_percent);
+        this.#cpuHistory.push(stats.cpu_percent);
+        if (this.#ramHistory.length > 20) this.#ramHistory.shift();
+        if (this.#cpuHistory.length > 20) this.#cpuHistory.shift();
+        this.#renderSparklines(panel as HTMLElement);
+    }
+
+    /**
+     * Заполняет текстовые метрики (RAM/CPU/cores/disk/GPU) и progress-bar
+     * нагрузки памяти с цветовой индикацией (60% — warn, 85% — danger).
+     * Вынесено из #onStats чтобы тот не превышал лимит по числу statement'ов.
+     * @param panel - корневой DOM-элемент resources-панели
+     * @param stats - кадр от StatsWS
+     */
+    #renderStatsMetrics(panel: HTMLElement, stats: ContainerStatsDTO): void {
+        const ramEl = nn(panel.querySelector('[data-metric="ram"]'));
+        const cpuEl = nn(panel.querySelector('[data-metric="cpu"]'));
+        const coresEl = nn(panel.querySelector('[data-metric="cores"]'));
+        const diskEl = nn(panel.querySelector('[data-metric="disk"]'));
+        const gpuEl = nn(panel.querySelector('[data-metric="gpu"]'));
+        const fill = nn(panel.querySelector<HTMLElement>('.container-stats__bar-fill'));
+
+        const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
+        const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);
+        ramEl.textContent = `${usedMB} / ${limitMB} MB`;
+        cpuEl.textContent = `${stats.cpu_percent.toFixed(1)}%`;
+        coresEl.textContent = String(stats.cpu_cores || 1);
+        diskEl.textContent = stats.disk_limit_bytes
+            ? `${(stats.disk_limit_bytes / (1024 * 1024)).toFixed(0)} MB`
+            : '--';
+        gpuEl.textContent = stats.gpu_available ? 'доступна' : 'недоступна';
+
+        const pct = Math.min(100, stats.memory_percent);
+        fill.style.width = `${String(pct)}%`;
+        fill.className = 'container-stats__bar-fill';
+        if (pct < 60) fill.classList.add('container-stats__bar-fill--ok');
+        else if (pct < 85) fill.classList.add('container-stats__bar-fill--warn');
+        else fill.classList.add('container-stats__bar-fill--danger');
+    }
+
+    /**
+     * Переводит resources-панель в неактивный вид (контейнер не запущен).
+     * Конкретные значения метрик скрываются CSS-классом, отдельно сбрасывать
+     * текстовое содержимое не нужно.
+     */
+    #setStatsInactive(): void {
+        const panel = this._element.querySelector('.container-stats--sidebar');
+        if (panel) panel.classList.add('container-stats--inactive');
     }
 
     /**
