@@ -1,9 +1,8 @@
 import { BaseComponent } from '../../shared/components/base-component/BaseComponent.js';
-import { RunnerApi } from '../../shared/api/RunnerApi.js';
+import { StatsWS } from '../../shared/api/StatsWS.js';
 import { ContainerStatsTemplate } from './ContainerStats.template.js';
 import { nn } from '../../shared/utils/notNull.js';
-
-const POLL_INTERVAL = 3000;
+import type { ContainerStatsDTO } from '../../shared/api/types.js';
 
 /**
  * Компактная панель статистики docker-контейнера сессии (RAM/CPU + progress-bar).
@@ -14,9 +13,7 @@ const POLL_INTERVAL = 3000;
  * < 60% — ok (зелёный), < 85% — warn (жёлтый), >= 85% — danger (красный).
  */
 export class ContainerStats extends BaseComponent {
-    #api: RunnerApi;
-    #notebookId: number | string;
-    #timer: ReturnType<typeof setInterval> | null = null;
+    #ws: StatsWS;
 
     /**
      * Создаёт компонент с привязкой к notebook'у. Поллинг стартует при mount.
@@ -25,8 +22,17 @@ export class ContainerStats extends BaseComponent {
      */
     public constructor(parent: HTMLElement, config: { notebookId: number | string }) {
         super(null, parent);
-        this.#api = new RunnerApi();
-        this.#notebookId = config.notebookId;
+        this.#ws = new StatsWS(
+            config.notebookId,
+            (stats) => {
+                this.#update(stats);
+            },
+            {
+                onClose: (): void => {
+                    this.#setInactive();
+                }
+            }
+        );
         this.#render();
     }
 
@@ -44,47 +50,15 @@ export class ContainerStats extends BaseComponent {
      */
     public mount(): void {
         super.mount();
-        this.#startPolling();
+        this.#ws.connect();
     }
 
     /**
-     * Останавливает поллинг и снимает с DOM.
+     * Закрывает StatsWS (с него больше не придут кадры) и размонтирует DOM.
      */
     public unmount(): void {
-        this.#stopPolling();
+        this.#ws.close();
         super.unmount();
-    }
-
-    /**
-     * Запускает периодический поллинг (первый запрос — сразу, потом каждые
-     * POLL_INTERVAL миллисекунд).
-     */
-    #startPolling(): void {
-        void this.#poll();
-        this.#timer = setInterval(() => this.#poll(), POLL_INTERVAL);
-    }
-
-    /**
-     * Останавливает поллинг если активен.
-     */
-    #stopPolling(): void {
-        if (this.#timer !== null) {
-            clearInterval(this.#timer);
-            this.#timer = null;
-        }
-    }
-
-    /**
-     * Один тик поллинга: запрашивает статистику и обновляет UI; при ошибке —
-     * переходит в неактивное состояние (прочерки).
-     */
-    async #poll(): Promise<void> {
-        try {
-            const stats = await this.#api.getContainerStats(this.#notebookId);
-            this.#update(stats);
-        } catch {
-            this.#setInactive();
-        }
     }
 
     /**
@@ -92,17 +66,24 @@ export class ContainerStats extends BaseComponent {
      * меняется по порогам 60/85% для цветовой индикации нагрузки.
      * @param stats - данные от RunnerApi
      */
-    #update(stats: {
-        cpu_percent: number;
-        memory_usage: number;
-        memory_limit: number;
-        memory_percent: number;
-    }): void {
+    #update(stats: ContainerStatsDTO): void {
+        if (stats.session_state === 'inactive') {
+            this.#setInactive();
+            return;
+        }
+
         this._element.classList.remove('container-stats--inactive');
 
         const ramEl = nn(this._element.querySelector('[data-metric="ram"]'));
         const cpuEl = nn(this._element.querySelector('[data-metric="cpu"]'));
         const fill = nn(this._element.querySelector<HTMLElement>('.container-stats__bar-fill'));
+
+        if (stats.session_state === 'queued') {
+            ramEl.textContent = `Очередь: ${String(stats.queue_position)}`;
+            cpuEl.textContent = '—';
+            fill.style.width = '0%';
+            return;
+        }
 
         const usedMB = (stats.memory_usage / (1024 * 1024)).toFixed(0);
         const limitMB = (stats.memory_limit / (1024 * 1024)).toFixed(0);

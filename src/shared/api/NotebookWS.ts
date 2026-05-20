@@ -113,11 +113,13 @@ export class NotebookWS {
 
     /**
      * Запускает блок через WS (альтернатива HTTP-эндпоинту RunnerApi.executeBlock).
-     * Output приходит чанками через onEvent (StreamChunkEvent).
-     * @param blockPosition - позиция запускаемого блока
+     * Output приходит чанками через onEvent (StreamChunkEvent). Блок идентифицируется
+     * по id (не по позиции), чтобы устранить race с pending reorder: пока reorder
+     * не доехал до сервера, position может указывать не на тот блок.
+     * @param blockId - идентификатор запускаемого блока
      */
-    public executeBlock(blockPosition: number): void {
-        this.#send({ type: 'execute_block', block_position: blockPosition });
+    public executeBlock(blockId: number | string): void {
+        this.#send({ type: 'execute_block', block_id: Number(blockId) });
     }
 
     /**

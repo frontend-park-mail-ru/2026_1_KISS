@@ -7,6 +7,20 @@
     opacity: 0.4;
 }
 
+.container-stats__queue-banner {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+}
+
+.container-stats--queued {
+    opacity: 0.7;
+}
+
 .container-stats--sidebar {
     display: flex;
     flex-direction: column;

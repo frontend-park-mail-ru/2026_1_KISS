@@ -296,23 +296,33 @@ export interface ExecutionResultDTO {
 }
 
 /**
- * DTO статистики docker-контейнера пользователя (для resource-banner).
+ * Кадр статистики runner-контейнера, стримящийся по WS (см. StatsWS).
+ * Сервер пушит примерно раз в 2 секунды. Поля snapshot_* отражают состояние
+ * дампа контейнера, session_state — фазу жизненного цикла сессии.
  */
 export interface ContainerStatsDTO {
-    /** Использование CPU в процентах */
+    /** Загрузка CPU в процентах от лимита (0-100) */
     cpu_percent: number;
-    /** Использование памяти в байтах */
+    /** Использовано памяти в байтах */
     memory_usage: number;
     /** Лимит памяти в байтах */
     memory_limit: number;
-    /** Использование памяти в процентах */
+    /** Использование памяти в процентах от лимита (0-100) */
     memory_percent: number;
-    /** Доступное количество ядер CPU */
+    /** Количество доступных CPU-ядер */
     cpu_cores: number;
-    /** Лимит дискового пространства в байтах */
+    /** Лимит диска в байтах */
     disk_limit_bytes: number;
-    /** Доступен ли GPU для выполнения */
+    /** Доступен ли GPU в контейнере */
     gpu_available: boolean;
+    /** Позиция в очереди ожидания контейнера (0 — назначен) */
+    queue_position: number;
+    /** Возраст последнего snapshot'а в секундах (-1 если snapshot'а нет) */
+    snapshot_age_seconds: number;
+    /** Размер последнего snapshot'а в байтах */
+    snapshot_size_bytes: number;
+    /** Текущая фаза сессии runner'а */
+    session_state: 'active' | 'queued' | 'inactive';
 }
 
 // ===== Admin =====
@@ -592,6 +602,21 @@ export interface FileListResponse {
     files: FileItemDTO[];
     /** Общее количество */
     total: number;
+}
+
+/**
+ * Запись о дампе runner-сессии для одного ноутбука. Возвращается
+ * GET /api/v1/sessions и отображается в секции «Сессии» на странице диска.
+ */
+export interface SessionDTO {
+    /** ID ноутбука, к которому привязан дамп */
+    notebook_id: number;
+    /** Название ноутбука (денормализованное, для отображения без отдельного запроса) */
+    notebook_title: string;
+    /** Размер дампа в байтах */
+    size_bytes: number;
+    /** ISO-дата последнего обновления дампа */
+    updated_at: string;
 }
 
 /**

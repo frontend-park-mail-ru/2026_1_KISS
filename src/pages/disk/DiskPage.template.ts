@@ -13,6 +13,10 @@ export function DiskPageTemplate(): string {
         <div class="disk-page__usage-mount"></div>
         <div class="disk-page__drop-mount"></div>
         <div class="disk-page__table-mount"></div>
+        <section class="disk-page__sessions-section" data-sessions-section style="display:none">
+            <h2 class="disk-page__section-title">Дампы сессий</h2>
+            <div class="disk-page__sessions-mount" data-sessions-mount></div>
+        </section>
     </main>
 </div>`;
 }

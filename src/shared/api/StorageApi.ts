@@ -5,7 +5,8 @@ import type {
     FileListResponse,
     FileShareDTO,
     FileShareListResponse,
-    FileUsageResponse
+    FileUsageResponse,
+    SessionDTO
 } from './types.js';
 
 /**
@@ -105,6 +106,34 @@ export class StorageApi {
     public async deleteFile(id: string): Promise<void> {
         const response = await this.#http.delete(`/files/${encodeURIComponent(id)}`);
         if (!response.ok) {
+            const body = (await response.json().catch(() => ({}))) as { error?: string };
+            throw new Error(body.error ?? `HTTP ${String(response.status)}`);
+        }
+    }
+
+    /**
+     * Возвращает список активных runner-сессий пользователя. Соответствует
+     * GET /api/v1/sessions.
+     * @returns промис со списком сессий (пустой массив если их нет)
+     * @throws Error при HTTP не-2xx
+     */
+    public async listSessions(): Promise<SessionDTO[]> {
+        const response = await this.#http.get('/sessions', { noCache: true });
+        const body = await this.#parse<{ sessions: SessionDTO[] }>(response);
+        return body.sessions;
+    }
+
+    /**
+     * Удаляет дамп runner-сессии для конкретного ноутбука. Соответствует
+     * DELETE /api/v1/sessions/:notebookId. 204 трактуется как успех.
+     * @param notebookId - ID ноутбука
+     * @throws Error при HTTP не-2xx (кроме 204)
+     */
+    public async deleteSession(notebookId: number | string): Promise<void> {
+        const response = await this.#http.delete(
+            `/sessions/${encodeURIComponent(String(notebookId))}`
+        );
+        if (!response.ok && response.status !== 204) {
             const body = (await response.json().catch(() => ({}))) as { error?: string };
             throw new Error(body.error ?? `HTTP ${String(response.status)}`);
         }

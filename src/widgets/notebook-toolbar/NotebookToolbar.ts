@@ -73,6 +73,25 @@ export class NotebookToolbar extends BaseComponent {
     }
 
     /**
+     * Управляет видимостью бэйджа «В очереди» в тулбаре. Бэйдж появляется
+     * только в состоянии queued; queuePosition подставляется в текст
+     * (порядковый номер в очереди контейнеров).
+     * @param state - текущая фаза runner-сессии
+     * @param queuePosition - позиция в очереди (актуально только для queued)
+     */
+    public setSessionState(state: 'active' | 'queued' | 'inactive', queuePosition = 0): void {
+        const badge = this._element.querySelector<HTMLElement>('[data-queue-badge]');
+        if (!badge) return;
+        if (state === 'queued') {
+            badge.style.display = '';
+            const pos = badge.querySelector('[data-queue-position]');
+            if (pos) pos.textContent = String(queuePosition);
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    /**
      * Навешивает делегированные click-обработчики на action-кнопки и чекбокс
      * показа комментариев.
      */

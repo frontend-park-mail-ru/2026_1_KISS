@@ -33,7 +33,7 @@
     color: var(--white);
 }
 
-.notebook-toolbar__btn--add:hover{
+.notebook-toolbar__btn--add:hover {
     background: var(--teal-green-10)
 }
 
@@ -84,6 +84,18 @@
 .notebook-toolbar__toggle:has(.notebook-toolbar__toggle-input:checked) {
     background: var(--teal-green);
     color: var(--white);
+}
+
+.notebook-toolbar__queue-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--amber-10, #fff3cd);
+    color: var(--amber-dark, #856404);
+    border: 1px solid var(--amber, #ffc107);
+    white-space: nowrap;
 }
 
 @media (max-width: 768px) {

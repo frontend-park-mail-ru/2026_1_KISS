@@ -7,6 +7,8 @@ import { RenameModal } from '../../widgets/rename-modal/RenameModal.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { StorageApi } from '../../shared/api/StorageApi.js';
 import { NotebookApi } from '../../shared/api/NotebookApi.js';
+import { escapeHtml } from '../../shared/utils/escapeHtml.js';
+import { formatBytes } from '../../shared/utils/formatBytes.js';
 import { ipynbToBlocks } from '../../shared/domain/notebook/nbformat.js';
 import { Router } from '../../shared/router/Router.js';
 import { FeedbackModal } from '../../widgets/feedback-modal/FeedbackModal.js';
@@ -14,7 +16,7 @@ import { nn } from '../../shared/utils/notNull.js';
 import { logError } from '../../shared/utils/logger.js';
 import { isAuthError } from '../../shared/http_client/authStatus.js';
 import { renderServerUnavailable } from '../../shared/utils/serverUnavailable.js';
-import type { ApiEnvelope, FileItemDTO, UserDTO } from '../../shared/api/types.js';
+import type { ApiEnvelope, FileItemDTO, SessionDTO, UserDTO } from '../../shared/api/types.js';
 import { DiskPageTemplate } from './DiskPage.template.js';
 
 const MAX_FILES_PER_SOURCE = 100;
@@ -34,6 +36,8 @@ export class DiskPage {
     #usageCard: DiskUsageCard | null = null;
     #dropZone: FileDropZone | null = null;
     #table: DiskTable | null = null;
+    #sessionsSection: HTMLElement | null = null;
+    #sessionsMount: HTMLElement | null = null;
     #feedbackModal: FeedbackModal | null = null;
 
     /**
@@ -99,6 +103,9 @@ export class DiskPage {
         });
         this.#dropZone.mount();
 
+        this.#sessionsSection = root.querySelector<HTMLElement>('[data-sessions-section]') ?? null;
+        this.#sessionsMount = root.querySelector<HTMLElement>('[data-sessions-mount]') ?? null;
+
         this.#table = new DiskTable(tableMount, {
             onDelete: (file): void => {
                 void this.#handleDelete(file);
@@ -162,6 +169,8 @@ export class DiskPage {
         this.#usageCard = null;
         this.#dropZone = null;
         this.#table = null;
+        this.#sessionsSection = null;
+        this.#sessionsMount = null;
     }
 
     /**
@@ -172,9 +181,10 @@ export class DiskPage {
      */
     async #loadAll(): Promise<void> {
         const ownerEmail = this.#user?.email ?? '';
-        const [ownResult, sharedResult] = await Promise.allSettled([
+        const [ownResult, sharedResult, sessionsResult] = await Promise.allSettled([
             this.#storage.listFiles(MAX_FILES_PER_SOURCE, 0, 'files'),
-            this.#storage.listSharedWithMe(MAX_FILES_PER_SOURCE, 0)
+            this.#storage.listSharedWithMe(MAX_FILES_PER_SOURCE, 0),
+            this.#storage.listSessions()
         ]);
         const files: FileItemDTO[] = [];
         if (ownResult.status === 'fulfilled') {
@@ -201,6 +211,88 @@ export class DiskPage {
         }
         files.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         this.#table?.setData(files);
+
+        const sessions = sessionsResult.status === 'fulfilled' ? sessionsResult.value : [];
+        if (sessionsResult.status === 'rejected') {
+            logError('DiskPage.loadAll: sessions failed', sessionsResult.reason);
+        }
+        this.#renderSessions(sessions);
+    }
+
+    /**
+     * Рендерит секцию runner-сессий (дампы контейнеров): таблица с именем
+     * ноутбука, размером и датой; кнопка «Удалить» дёргает #handleDeleteSession.
+     * При пустом списке секция скрывается.
+     * @param sessions - актуальный список сессий с сервера
+     */
+    #renderSessions(sessions: SessionDTO[]): void {
+        const section = this.#sessionsSection;
+        const mount = this.#sessionsMount;
+        if (!section || !mount) return;
+
+        if (sessions.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        section.style.display = '';
+
+        const rows = sessions
+            .map((s) => {
+                const title = escapeHtml(s.notebook_title);
+                const size = escapeHtml(formatBytes(s.size_bytes));
+                const date = escapeHtml(new Date(s.updated_at).toLocaleString('ru-RU'));
+                return `<tr class="disk-table__row" data-notebook-id="${String(s.notebook_id)}">
+                    <td class="disk-table__cell-name">
+                        <div class="disk-table__name-wrap">
+                            <a class="disk-table__name-link" href="/notebooks/${String(s.notebook_id)}">${title}</a>
+                        </div>
+                    </td>
+                    <td>${size}</td>
+                    <td class="disk-table__cell-date">${date}</td>
+                    <td class="disk-page__sessions-col-action">
+                        <button class="disk-page__sessions-del" data-notebook-id="${String(s.notebook_id)}" title="Удалить дамп">Удалить</button>
+                    </td>
+                </tr>`;
+            })
+            .join('');
+
+        mount.innerHTML = `<div class="disk-table">
+            <table class="disk-table__table">
+                <thead>
+                    <tr class="disk-table__header-row">
+                        <th class="disk-table__header" style="width:50%">Ноутбук</th>
+                        <th class="disk-table__header" style="width:18%">Размер</th>
+                        <th class="disk-table__header" style="width:22%">Дата</th>
+                        <th class="disk-table__header" style="width:10%"></th>
+                    </tr>
+                </thead>
+                <tbody class="disk-table__body">${rows}</tbody>
+            </table>
+        </div>`;
+
+        mount.onclick = (e): void => {
+            const btn = (e.target as HTMLElement).closest<HTMLElement>('.disk-page__sessions-del');
+            if (!btn) return;
+            const nbId = Number(btn.dataset.notebookId);
+            const session = sessions.find((s) => s.notebook_id === nbId);
+            if (session) void this.#handleDeleteSession(session);
+        };
+    }
+
+    /**
+     * Удаляет дамп runner-сессии для конкретного ноутбука после confirm().
+     * Перерисовывает список после успешного удаления. Ошибки логируются.
+     * @param session - запись о сессии (id ноутбука + название для confirm)
+     */
+    async #handleDeleteSession(session: SessionDTO): Promise<void> {
+        // eslint-disable-next-line no-alert -- TODO(ui): replace with confirmation modal
+        if (!window.confirm(`Удалить дамп сессии для "${session.notebook_title}"?`)) return;
+        try {
+            await this.#storage.deleteSession(session.notebook_id);
+            await this.#loadAll();
+        } catch (error: unknown) {
+            logError('DiskPage.handleDeleteSession failed', error);
+        }
     }
 
     /**

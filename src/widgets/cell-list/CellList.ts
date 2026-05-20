@@ -596,16 +596,6 @@ export class CellList extends BaseComponent {
     }
 
     /**
-     * Возвращает индекс блока в текущем массиве (полезно для RunnerApi.executeBlock
-     * который требует position, а не id).
-     * @param id - ID блока
-     * @returns индекс блока (-1 если не найден)
-     */
-    public getBlockPositionById(id: string | number): number {
-        return this.#blocks.findIndex((b) => b.id === id);
-    }
-
-    /**
      * Проверяет находится ли currently focused element внутри какой-либо
      * ячейки. Используется чтобы не дёргать save в момент когда пользователь
      * печатает (родитель решает делать save или нет).

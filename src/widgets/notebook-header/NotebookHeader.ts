@@ -131,10 +131,12 @@ export class NotebookHeader extends BaseComponent {
             nn(Router.getInstance()).navigate('/files');
         });
 
-        const editBtn = nn(this._element.querySelector('.notebook-header__edit-btn'));
-        this._addListener(editBtn, 'click', () => {
-            this.#startRename();
-        });
+        const editBtn = this._element.querySelector('.notebook-header__edit-btn');
+        if (editBtn) {
+            this._addListener(editBtn, 'click', () => {
+                this.#startRename();
+            });
+        }
 
         const shareBtn = this._element.querySelector('.notebook-header__share-btn');
         if (shareBtn && this.#onShare) {
