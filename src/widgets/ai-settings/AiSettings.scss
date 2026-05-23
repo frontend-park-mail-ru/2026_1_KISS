@@ -1,0 +1,84 @@
+.ai-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+    max-width: 640px;
+
+    &__title {
+        margin: 0;
+        color: var(--dark-primary);
+        font-size: 20px;
+    }
+
+    &__subtitle {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--accent);
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    &__label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-weight: 600;
+        color: var(--dark-primary);
+    }
+
+    &__model-select,
+    &__prompt {
+        padding: 8px 10px;
+        border: 1px solid var(--cell-border);
+        border-radius: 6px;
+        font: inherit;
+        font-size: var(--font-size-base);
+        background: var(--white);
+    }
+
+    &__prompt {
+        resize: vertical;
+        font-family: var(--font-family-mono);
+        min-height: 120px;
+    }
+
+    &__hint {
+        margin: 0;
+        font-size: var(--font-size-small);
+        color: var(--accent);
+    }
+
+    &__usage {
+        background: var(--code-bg);
+        border: 1px solid var(--cell-border);
+        border-radius: 8px;
+        padding: 12px 16px;
+    }
+
+    &__usage-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: var(--font-size-base);
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__save {
+        min-width: 140px;
+    }
+
+    &__status {
+        font-size: var(--font-size-small);
+        color: var(--teal-green);
+    }
+}
