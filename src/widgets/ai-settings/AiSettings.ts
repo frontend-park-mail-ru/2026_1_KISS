@@ -135,8 +135,7 @@ export class AiSettings extends BaseComponent {
             this.#planHintEl.textContent =
                 'На вашем тарифе модели недоступны. Перейдите в раздел «Подписка», чтобы открыть чат с ИИ.';
         } else if (locked.length > 0 && this.#planHintEl) {
-            this.#planHintEl.textContent =
-                'Доступно больше моделей на тарифах Pro/Max.';
+            this.#planHintEl.textContent = 'Доступно больше моделей на тарифах Pro/Max.';
         }
     }
 
@@ -161,7 +160,8 @@ export class AiSettings extends BaseComponent {
             logError('AiSettings.save', e);
             if (this.#statusEl) {
                 this.#statusEl.style.color = 'var(--error-red)';
-                this.#statusEl.textContent = e instanceof Error ? e.message : 'Не удалось сохранить';
+                this.#statusEl.textContent =
+                    e instanceof Error ? e.message : 'Не удалось сохранить';
             }
         } finally {
             this.#saveBtnEl.disabled = false;
