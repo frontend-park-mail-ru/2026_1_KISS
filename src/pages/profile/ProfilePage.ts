@@ -4,6 +4,7 @@ import { PasswordSection } from '../../widgets/password-section/PasswordSection.
 import { SubscriptionSection } from '../../widgets/subscription-section/SubscriptionSection.js';
 import { EditorSettings } from '../../widgets/editor-settings/EditorSettings.js';
 import { StatsSection } from '../../widgets/stats-section/StatsSection.js';
+import { AiSettings } from '../../widgets/ai-settings/AiSettings.js';
 import { HttpClient } from '../../shared/http_client/HttpClient.js';
 import { Router } from '../../shared/router/Router.js';
 import { ProfilePageTemplate } from './ProfilePage.template.js';
@@ -33,7 +34,8 @@ const SECTION_MAP: Record<string, new (...args: any[]) => MountableSection> = {
     password: PasswordSection,
     subscription: SubscriptionSection,
     stats: StatsSection,
-    editor: EditorSettings
+    editor: EditorSettings,
+    ai: AiSettings
 };
 
 /**

@@ -28,11 +28,13 @@
 @use '../widgets/notebook-header/NotebookHeader';
 @use '../widgets/notebook-toolbar/NotebookToolbar';
 @use '../widgets/notebook-sidebar/NotebookSidebar';
+@use '../widgets/ai-chat-panel/AiChatPanel';
 @use '../widgets/cell-list/CellList';
 @use '../widgets/profile-section/ProfileSection';
 @use '../widgets/password-section/PasswordSection';
 @use '../widgets/subscription-section/SubscriptionSection';
 @use '../widgets/editor-settings/EditorSettings';
+@use '../widgets/ai-settings/AiSettings';
 @use '../widgets/feedback-modal/FeedbackModal';
 @use '../widgets/stats-section/StatsSection';
 @use '../widgets/container-stats/ContainerStats';
