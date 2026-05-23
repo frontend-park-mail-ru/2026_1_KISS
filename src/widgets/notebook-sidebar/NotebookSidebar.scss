@@ -46,6 +46,36 @@
     background: var(--white);
     border-right: 1px solid var(--cell-border);
     overflow-y: auto;
+    position: relative;
+    min-width: 220px;
+    max-width: 800px;
+}
+
+.notebook-sidebar__resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 5;
+    background: transparent;
+    transition: background 0.15s ease;
+}
+
+.notebook-sidebar__resize-handle:hover,
+.notebook-sidebar__resizing .notebook-sidebar__resize-handle {
+    background: var(--teal-green-10);
+}
+
+.notebook-sidebar__resizing {
+    cursor: col-resize !important;
+    user-select: none;
+}
+
+.notebook-sidebar__resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
 }
 
 .notebook-sidebar__panel--visible {
@@ -168,4 +198,24 @@ mark.find-match--current {
     font-size: 13px;
     color: var(--line-number-color);
     margin: 0;
+}
+
+.notebook-sidebar__panel--ai-chat {
+    width: 360px;
+    overflow: hidden;
+}
+
+.notebook-sidebar__panel--ai-chat.notebook-sidebar__panel--visible {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.notebook-sidebar__panel-content--ai-chat {
+    padding: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }

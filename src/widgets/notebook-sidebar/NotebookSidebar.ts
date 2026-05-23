@@ -91,6 +91,12 @@ interface NotebookSidebarCallbacks {
     searchTarget?: NotebookSearchAdapter;
     /** ID notebook'а — нужен для resources-панели (поллинг RunnerApi) */
     notebookId?: string | number;
+    /**
+     * Фабрика монтирования AI-чат-панели. Вызывается ровно один раз при
+     * первом открытии вкладки чата — даёт страницу контроль над
+     * созданием/конфигурацией виджета без круговой зависимости.
+     */
+    mountAiChat?: (container: HTMLElement) => void;
 }
 
 /**
@@ -109,6 +115,11 @@ export class NotebookSidebar extends BaseComponent {
     #statsWs: StatsWS | null = null;
     #ramHistory: number[] = [];
     #cpuHistory: number[] = [];
+    #mountAiChat: ((container: HTMLElement) => void) | null = null;
+    #aiChatMounted = false;
+    #resizeActive: { panel: HTMLElement; startX: number; startWidth: number } | null = null;
+    #resizeMoveHandler: ((e: MouseEvent) => void) | null = null;
+    #resizeUpHandler: (() => void) | null = null;
 
     /**
      * Создаёт сайдбар. searchTarget опционален — без него search-панель
@@ -118,11 +129,12 @@ export class NotebookSidebar extends BaseComponent {
      */
     public constructor(
         parent: HTMLElement,
-        { searchTarget, notebookId }: NotebookSidebarCallbacks = {}
+        { searchTarget, notebookId, mountAiChat }: NotebookSidebarCallbacks = {}
     ) {
         super(null, parent);
         this.#searchTarget = searchTarget ?? null;
         this.#notebookId = notebookId;
+        this.#mountAiChat = mountAiChat ?? null;
         this.#render();
     }
 
@@ -142,6 +154,8 @@ export class NotebookSidebar extends BaseComponent {
         if (this._isMounted) return;
         super.mount();
         this.#attachEvents();
+        this.#attachResizeHandles();
+        this.#applySavedWidths();
     }
 
     /**
@@ -150,6 +164,7 @@ export class NotebookSidebar extends BaseComponent {
     public unmount(): void {
         if (!this._isMounted) return;
         this.#stopStatsWS();
+        this.#cleanupResize();
         super.unmount();
     }
 
@@ -334,6 +349,133 @@ export class NotebookSidebar extends BaseComponent {
         if (panelName === 'resources') {
             this.#startStatsWS();
         }
+        if (panelName === 'ai-chat') {
+            this.#ensureAiChatMounted();
+        }
+    }
+
+    /**
+     * Вставляет в каждую панель сайдбара невидимый resize-handle на правой
+     * границе. При drag-е (mousedown→mousemove→mouseup) меняет ширину панели
+     * с min/max-ограничением и сохраняет финальное значение в localStorage,
+     * ключом служит имя панели из data-panel-name.
+     */
+    #attachResizeHandles(): void {
+        const panels = this._element.querySelectorAll<HTMLElement>('.notebook-sidebar__panel');
+        panels.forEach((panel) => {
+            const handle = document.createElement('div');
+            handle.className = 'notebook-sidebar__resize-handle';
+            panel.appendChild(handle);
+            this._addListener(handle, 'mousedown', (e: Event): void => {
+                this.#startResize(panel, e as MouseEvent);
+            });
+        });
+    }
+
+    /**
+     * Запускает drag-resize: сохраняет стартовую ширину и X, и навешивает
+     * глобальные mousemove/mouseup на document. Document.body получает
+     * курсор col-resize и user-select:none, чтобы текст не выделялся.
+     * @param panel - панель, которую ресайзим
+     * @param event - mousedown-событие
+     */
+    #startResize(panel: HTMLElement, event: MouseEvent): void {
+        event.preventDefault();
+        this.#resizeActive = {
+            panel,
+            startX: event.clientX,
+            startWidth: panel.getBoundingClientRect().width
+        };
+        document.body.classList.add('notebook-sidebar__resizing');
+        this.#resizeMoveHandler = (e: MouseEvent): void => {
+            this.#onResizeMove(e);
+        };
+        this.#resizeUpHandler = (): void => {
+            this.#onResizeEnd();
+        };
+        document.addEventListener('mousemove', this.#resizeMoveHandler);
+        document.addEventListener('mouseup', this.#resizeUpHandler);
+    }
+
+    /**
+     * Обработчик mousemove во время drag-resize: вычисляет новую ширину
+     * с зажимом в диапазон [220, 800] px и применяет к панели.
+     * @param e - событие mousemove
+     */
+    #onResizeMove(e: MouseEvent): void {
+        if (!this.#resizeActive) return;
+        const delta = e.clientX - this.#resizeActive.startX;
+        const width = Math.max(220, Math.min(800, this.#resizeActive.startWidth + delta));
+        this.#resizeActive.panel.style.width = `${String(width)}px`;
+    }
+
+    /**
+     * Завершает drag-resize: снимает глобальные слушатели, восстанавливает
+     * курсор/selection и сохраняет финальную ширину в localStorage.
+     */
+    #onResizeEnd(): void {
+        if (!this.#resizeActive) return;
+        const panelName = this.#resizeActive.panel.dataset.panelName ?? '';
+        const width = this.#resizeActive.panel.style.width;
+        if (panelName !== '' && width !== '') {
+            try {
+                localStorage.setItem(`notebook_sidebar_width:${panelName}`, width);
+            } catch {
+                /* private mode / quota — игнорируем */
+            }
+        }
+        this.#cleanupResize();
+    }
+
+    /**
+     * Снимает глобальные resize-слушатели и сбрасывает active state.
+     * Вызывается как из onResizeEnd, так и из unmount.
+     */
+    #cleanupResize(): void {
+        document.body.classList.remove('notebook-sidebar__resizing');
+        if (this.#resizeMoveHandler) {
+            document.removeEventListener('mousemove', this.#resizeMoveHandler);
+            this.#resizeMoveHandler = null;
+        }
+        if (this.#resizeUpHandler) {
+            document.removeEventListener('mouseup', this.#resizeUpHandler);
+            this.#resizeUpHandler = null;
+        }
+        this.#resizeActive = null;
+    }
+
+    /**
+     * При маунте подтягивает сохранённые ширины панелей из localStorage и
+     * применяет их inline-стилем — чтобы при перезагрузке страницы пользователь
+     * получил тот же размер.
+     */
+    #applySavedWidths(): void {
+        const panels = this._element.querySelectorAll<HTMLElement>('.notebook-sidebar__panel');
+        panels.forEach((panel) => {
+            const name = panel.dataset.panelName ?? '';
+            if (name === '') return;
+            try {
+                const saved = localStorage.getItem(`notebook_sidebar_width:${name}`);
+                if (saved !== null && saved !== '') {
+                    panel.style.width = saved;
+                }
+            } catch {
+                /* private mode — оставляем CSS default */
+            }
+        });
+    }
+
+    /**
+     * Лениво монтирует AI-чат-панель при первом открытии вкладки. Повторные
+     * открытия просто переиспользуют существующий компонент.
+     */
+    #ensureAiChatMounted(): void {
+        if (this.#aiChatMounted) return;
+        if (!this.#mountAiChat) return;
+        const container = this._element.querySelector<HTMLElement>('[data-ai-chat-mount]');
+        if (!container) return;
+        this.#mountAiChat(container);
+        this.#aiChatMounted = true;
     }
 
     /**

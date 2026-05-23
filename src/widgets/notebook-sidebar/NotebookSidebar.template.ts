@@ -27,8 +27,13 @@ export function NotebookSidebarTemplate(): string {
                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
             </svg>
         </button>
+        <button class="notebook-sidebar__icon-btn" data-panel="ai-chat" title="Чат с ИИ">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+            </svg>
+        </button>
     </div>
-    <div class="notebook-sidebar__panel notebook-sidebar__panel--search">
+    <div class="notebook-sidebar__panel notebook-sidebar__panel--search" data-panel-name="search">
         <h3 class="notebook-sidebar__panel-title">Найти и заменить</h3>
         <div class="notebook-sidebar__panel-content">
             <input type="text" class="notebook-sidebar__input notebook-sidebar__find-input" placeholder="Найти...">
@@ -49,19 +54,22 @@ export function NotebookSidebarTemplate(): string {
             </div>
         </div>
     </div>
-    <div class="notebook-sidebar__panel notebook-sidebar__panel--toc">
+    <div class="notebook-sidebar__panel notebook-sidebar__panel--toc" data-panel-name="toc">
         <h3 class="notebook-sidebar__panel-title">Содержание</h3>
         <div class="notebook-sidebar__panel-content">
             <p class="notebook-sidebar__placeholder">Нет заголовков</p>
         </div>
     </div>
-    <div class="notebook-sidebar__panel notebook-sidebar__panel--files">
+    <div class="notebook-sidebar__panel notebook-sidebar__panel--files" data-panel-name="files">
         <h3 class="notebook-sidebar__panel-title">Файлы</h3>
         <div class="notebook-sidebar__panel-content">
             <p class="notebook-sidebar__placeholder">Нет файлов</p>
         </div>
     </div>
-    <div class="notebook-sidebar__panel notebook-sidebar__panel--resources">
+    <div class="notebook-sidebar__panel notebook-sidebar__panel--ai-chat" data-panel-name="ai-chat">
+        <div class="notebook-sidebar__panel-content notebook-sidebar__panel-content--ai-chat" data-ai-chat-mount></div>
+    </div>
+    <div class="notebook-sidebar__panel notebook-sidebar__panel--resources" data-panel-name="resources">
         <h3 class="notebook-sidebar__panel-title">Ресурсы</h3>
         <div class="notebook-sidebar__panel-content">
             <div class="container-stats container-stats--sidebar container-stats--inactive">

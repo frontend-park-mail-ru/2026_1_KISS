@@ -7,6 +7,7 @@ import {
     type SearchMatch,
     type SearchableCellSnapshot
 } from '../../widgets/notebook-sidebar/NotebookSidebar.js';
+import { AiChatPanel } from '../../widgets/ai-chat-panel/AiChatPanel.js';
 import { CellList } from '../../widgets/cell-list/CellList.js';
 import { CodeCell } from '../../shared/components/code-cell/CodeCell.js';
 import { TextCell } from '../../shared/components/text-cell/TextCell.js';
@@ -273,7 +274,11 @@ export class BlocksPage {
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
             searchTarget: this.#buildSearchAdapter(),
-            notebookId: this.#notebookId
+            notebookId: this.#notebookId,
+            mountAiChat: (container: HTMLElement): void => {
+                const panel = new AiChatPanel(container, Number(this.#notebookId));
+                panel.mount();
+            }
         });
         this.#sidebar.mount();
 
