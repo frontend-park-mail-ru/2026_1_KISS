@@ -365,9 +365,7 @@ export class AiChatPanel extends BaseComponent {
                 break;
             case 'error':
                 this.#finishAssistant();
-                this.#showError(
-                    msg.error_message ?? msg.error_code ?? 'Ошибка при работе с ИИ'
-                );
+                this.#showError(msg.error_message ?? msg.error_code ?? 'Ошибка при работе с ИИ');
                 break;
             default:
                 break;
