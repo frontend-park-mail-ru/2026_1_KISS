@@ -109,6 +109,12 @@ export class Router {
      * кадр при SPA-навигации. Если ни один маршрут не подошёл — редиректит на
      * defaultPath. Если guard не совпадает с состоянием сессии — редиректит на
      * безопасный путь: 'guestOnly' под authed → /files; 'authOnly' под guest → /.
+     *
+     * Дополнительно обязывает авторизованного пользователя выбрать корректное имя:
+     * если HttpClient.isUsernamePending() === true, любой путь кроме
+     * /username-setup перенаправляется на неё (нельзя уйти, пока имя не выбрано);
+     * и наоборот — попав на /username-setup без необходимости, пользователь
+     * редиректится на /files.
      * @param path - путь (может содержать query-string, query отбрасывается)
      * @returns промис, завершающийся после полного рендера новой страницы
      */
@@ -120,13 +126,9 @@ export class Router {
             return;
         }
 
-        const auth = HttpClient.getInstance().getAuthSnapshot();
-        if (matched.guard === 'guestOnly' && auth === 'authed') {
-            this.navigate('/files');
-            return;
-        }
-        if (matched.guard === 'authOnly' && auth === 'guest') {
-            this.navigate('/');
+        const redirect = this.#resolveGuardRedirect(matched, pathname);
+        if (redirect !== null) {
+            this.navigate(redirect);
             return;
         }
 
@@ -149,6 +151,27 @@ export class Router {
         this.#rootElement.replaceChildren(...Array.from(staging.children));
         staging.remove();
         this.#currentPage = page;
+    }
+
+    /**
+     * Проверяет guard'ы маршрута и обязательный выбор имени, возвращая путь для
+     * редиректа или null, если текущий путь допустим. Вынесено из #handleRoute,
+     * чтобы тот не превышал лимит max-statements.
+     * @param matched - сматченный маршрут с его guard'ом
+     * @param pathname - текущий путь без query-строки
+     * @returns путь для редиректа или null если переход разрешён
+     */
+    #resolveGuardRedirect(matched: RouteMatch, pathname: string): string | null {
+        const auth = HttpClient.getInstance().getAuthSnapshot();
+        if (matched.guard === 'guestOnly' && auth === 'authed') return '/files';
+        if (matched.guard === 'authOnly' && auth === 'guest') return '/';
+
+        if (auth === 'authed') {
+            const pending = HttpClient.getInstance().isUsernamePending();
+            if (pending && pathname !== '/username-setup') return '/username-setup';
+            if (!pending && pathname === '/username-setup') return '/files';
+        }
+        return null;
     }
 
     /**

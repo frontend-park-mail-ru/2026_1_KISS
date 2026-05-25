@@ -9,6 +9,7 @@ const SESSION_ACTIVE_STATE = 'registerPageState';
 const LOGIN_STATE = 'login';
 const REGISTER_STATE = 'register';
 const VERIFIED_SUCCESS_MESSAGE = 'Email подтверждён. Теперь вы можете войти.';
+const PASSWORD_RESET_SUCCESS_MESSAGE = 'Пароль успешно изменён. Войдите с новым паролем.';
 
 /**
  * Объединённая страница входа и регистрации (`/sign`). На одном экране держит
@@ -106,6 +107,12 @@ export class RegisterPage {
             this.#cleanQueryString();
             return nn(this.#login);
         }
+        const reset = params.get('reset');
+        if (reset === '1') {
+            this.#showBanner(PASSWORD_RESET_SUCCESS_MESSAGE, 'success');
+            this.#cleanQueryString();
+            return nn(this.#login);
+        }
         return null;
     }
 
@@ -136,9 +143,9 @@ export class RegisterPage {
     }
 
     /**
-     * Навешивает 4 обработчика переключения форм (login/register × header/inline-link).
-     * Каждое переключение — `Router.navigate(...)` на `/login` или `/register`, чтобы
-     * URL отражал текущую форму и при F5/шейре открывалась та же.
+     * Навешивает обработчики переключения форм (login/register × header/inline-link)
+     * и переход на страницу восстановления пароля по ссылке "Забыли пароль?".
+     * Каждое переключение — `Router.navigate(...)` чтобы URL отражал текущую форму.
      */
     #attachEvents(): void {
         const router = nn(Router.getInstance());
@@ -159,6 +166,10 @@ export class RegisterPage {
         }
         if (this.#login) {
             this.#login.goToRegisterBtn?.addEventListener('click', moveToRegister);
+            this.#login.forgotPasswordBtn?.addEventListener('click', (e: Event) => {
+                e.preventDefault();
+                router.navigate('/forgot-password');
+            });
         }
     }
 

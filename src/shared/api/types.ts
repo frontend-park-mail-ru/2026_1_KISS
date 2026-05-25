@@ -40,6 +40,8 @@ export interface UserDTO {
     plan: string;
     /** Суммарное время активности в секундах (для статистики) */
     total_time_seconds: number;
+    /** Требуется ли выбор корректного юзернейма (после OAuth с недопустимым именем) */
+    username_pending?: boolean;
     /** ISO-дата последней активности (опционально) */
     last_active_at?: string;
     /** ISO-дата создания аккаунта */

@@ -193,4 +193,13 @@ export class Login extends BaseComponent {
     public get goToRegisterBtn(): HTMLElement | null {
         return this._element.querySelector('#register-from-login-btn');
     }
+
+    /**
+     * Геттер ссылки "Забыли пароль?" — родительская страница навешивает
+     * обработчик перехода на страницу восстановления пароля.
+     * @returns DOM-элемент ссылки или null если форма не отрендерена
+     */
+    public get forgotPasswordBtn(): HTMLElement | null {
+        return this._element.querySelector('#forgot-password-link-btn');
+    }
 }
