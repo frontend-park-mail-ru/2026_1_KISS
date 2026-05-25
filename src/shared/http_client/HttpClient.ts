@@ -34,6 +34,7 @@ export class HttpClient {
     #cache = new Map<string, { data: unknown; ts: number }>();
     #cacheTTL = 30_000;
     #authSnapshot: AuthSnapshot = 'unknown';
+    #usernamePending = false;
 
     /**
      * Прямой вызов конструктора запрещён — используйте getInstance().
@@ -77,6 +78,26 @@ export class HttpClient {
     }
 
     /**
+     * Возвращает синхронный признак того, что пользователю ещё нужно выбрать
+     * корректное имя (после OAuth-входа провайдер прислал недопустимое имя и
+     * на бэкенде выставлен username_pending). Роутер использует его как guard,
+     * чтобы не выпускать пользователя с других страниц до выбора имени.
+     * @returns true если выбор имени обязателен
+     */
+    public isUsernamePending(): boolean {
+        return this.#usernamePending;
+    }
+
+    /**
+     * Выставляет признак обязательного выбора имени. Вызывается bootstrap'ом по
+     * ответу /auth/me и страницей выбора имени после успешного сохранения.
+     * @param pending - новое значение признака
+     */
+    public setUsernamePending(pending: boolean): void {
+        this.#usernamePending = pending;
+    }
+
+    /**
      * Обновляет снимок авторизации на основе URL и кода ответа. Срабатывает
      * автоматически в request()/get() — вызывающему коду явный вызов не нужен.
      * @param url - путь запроса (без baseUrl)
@@ -94,6 +115,7 @@ export class HttpClient {
         }
         if (url === '/auth/logout' && method === 'POST') {
             this.#authSnapshot = 'guest';
+            this.#usernamePending = false;
         }
     }
 

@@ -13,6 +13,8 @@
 
 @use '../widgets/register-form/Register';
 @use '../widgets/login-form/Login';
+@use '../widgets/forgot-password-form/ForgotPasswordForm';
+@use '../widgets/reset-password-form/ResetPasswordForm';
 @use '../widgets/oauth-button/OAuthButton';
 @use '../widgets/oauth-modal/OAuthModal';
 @use '../widgets/green-header/GreenHeader';
@@ -47,6 +49,7 @@
 @use '../pages/profile/ProfilePage';
 @use '../pages/landing/LandingPage';
 @use '../pages/admin/AdminPage';
+@use '../pages/username-setup/UsernameSetupPage';
 
 * {
     font-family: var(--font-family-base), serif;
