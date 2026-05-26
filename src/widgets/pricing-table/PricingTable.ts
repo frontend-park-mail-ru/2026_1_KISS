@@ -116,8 +116,8 @@ const FEATURE_ROWS: TableRow[] = [
     },
     {
         kind: 'feature',
-        label: 'Запусков кода в месяц',
-        values: ['Базовая квота', '100 000', '999 999']
+        label: 'Квота запусков кода в месяц',
+        values: ['50 000', '100 000', '999 999']
     },
     { kind: 'group', label: 'LLM-чат' },
     {
@@ -316,17 +316,9 @@ export class PricingTable extends BaseComponent {
      */
     #renderFoot(current: PlanId | undefined): void {
         const tfoot = nn(this._element.querySelector<HTMLElement>('[data-tfoot]'));
-        const cells = PLAN_DEFINITIONS.map((plan) => {
-            const isCurrent = current === plan.id;
-            const label = this.#ctaLabelFor(plan.id, current);
-            return `
-                <td>
-                    <button type="button" class="pricing-table__cta" data-plan="${escapeHtml(plan.id)}"${isCurrent ? ' disabled' : ''}>
-                        ${escapeHtml(label)}
-                    </button>
-                </td>
-            `;
-        }).join('');
+        const cells = PLAN_DEFINITIONS.map(
+            (plan) => `<td>${this.#renderCtaCell(plan.id, current)}</td>`
+        ).join('');
         tfoot.innerHTML = `<tr><td></td>${cells}</tr>`;
 
         const buttons = this._element.querySelectorAll<HTMLButtonElement>('[data-plan]');
@@ -335,6 +327,28 @@ export class PricingTable extends BaseComponent {
                 this.#handleCta(btn.dataset.plan);
             });
         });
+    }
+
+    /**
+     * Решает чем заполнить футер-ячейку конкретной колонки: кнопкой
+     * «Оплатить» / «Зарегистрироваться» / «Начать бесплатно», disabled-кнопкой
+     * «Текущий план» или просто текстовой подписью «Доступен без оплаты»
+     * (для Starter в authenticated-режиме, чтобы не выглядело как активная CTA).
+     * @param planId - id тарифа в текущей колонке
+     * @param current - канонический id текущего плана пользователя (или undefined)
+     * @returns HTML-фрагмент содержимого <td>
+     */
+    #renderCtaCell(planId: PlanId, current: PlanId | undefined): string {
+        const isCurrent = current === planId;
+        if (this.#config.mode === 'authenticated' && planId === 'starter' && !isCurrent) {
+            return '<span class="pricing-table__cta-text">Доступен без оплаты</span>';
+        }
+        const label = this.#ctaLabelFor(planId, current);
+        return `
+            <button type="button" class="pricing-table__cta" data-plan="${escapeHtml(planId)}"${isCurrent ? ' disabled' : ''}>
+                ${escapeHtml(label)}
+            </button>
+        `;
     }
 
     /**
