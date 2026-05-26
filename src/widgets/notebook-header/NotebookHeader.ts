@@ -39,6 +39,22 @@ interface NotebookHeaderConfig {
     onSaveAs?: (() => void) | null;
     /** Callback "Открыть" в File-меню */
     onOpen?: (() => void) | null;
+    /** Callback "Добавить код" в Blocks-меню */
+    onAddCode?: (() => void) | null;
+    /** Callback "Добавить текст" в Blocks-меню */
+    onAddText?: (() => void) | null;
+    /** Callback клика "Выполнить все" */
+    onRunAll?: (() => void) | null;
+    /** Callback клика "Перезапустить контейнер" */
+    onRestart?: (() => void) | null;
+    /** Callback клика "Очистить все выводы" */
+    onClearOutputs?: (() => void) | null;
+    /** Callback клика "Остановить выполнение" */
+    onInterrupt?: (() => void) | null;
+    /** Callback тоггла видимости панели комментариев */
+    onToggleComments?: ((visible: boolean) => void) | null;
+    /** Начальное состояние чекбокса комментариев */
+    commentsVisible?: boolean;
 }
 
 /**
@@ -60,7 +76,7 @@ export class NotebookHeader extends BaseComponent {
     #originalText = '';
     #isEditing = false;
     #isDropdownOpen = false;
-    #isMenuOpen = false;
+    #openMenuName: string | null = null;
 
     /**
      * Создаёт шапку с заданным конфигом.
@@ -145,30 +161,52 @@ export class NotebookHeader extends BaseComponent {
             });
         }
 
-        const menuBtn = this._element.querySelector('[data-menu="file"]');
-        if (menuBtn) {
-            this._addListener(menuBtn, 'click', (e: Event) => {
+        this._element.querySelectorAll<HTMLElement>('[data-menu]').forEach((trigger) => {
+            const menuName = trigger.dataset.menu;
+            if (menuName === undefined) return;
+            this._addListener(trigger, 'click', (e: Event) => {
                 e.stopPropagation();
-                this.#toggleMenu();
+                this.#toggleMenu(menuName);
+            });
+        });
+
+        this._addListener(document, 'click', () => {
+            if (this.#openMenuName !== null) this.#closeMenu();
+        });
+
+        this._element
+            .querySelectorAll<HTMLElement>('.notebook-header__dropdown')
+            .forEach((dropdown) => {
+                this._addListener(dropdown, 'click', (e: Event) => {
+                    e.stopPropagation();
+                    const item = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+                    if (!item) return;
+                    this.#dispatchAction(item.dataset.action ?? '');
+                    this.#closeMenu();
+                });
             });
 
-            this._addListener(document, 'click', () => {
-                if (this.#isMenuOpen) this.#closeMenu();
+        const actions = this._element.querySelector('.notebook-header__actions');
+        if (actions) {
+            this._addListener(actions, 'click', (e: Event) => {
+                const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
+                if (!btn) return;
+                this.#dispatchAction(btn.dataset.action ?? '');
             });
         }
 
-        const fileDropdown = this._element.querySelector('.notebook-header__dropdown');
-        if (fileDropdown) {
-            this._addListener(fileDropdown, 'click', (e: Event) => {
-                e.stopPropagation();
-                const item = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
-                if (!item) return;
-                const action = item.dataset.action;
-                if (action === 'save' && this.#config.onSave) this.#config.onSave();
-                else if (action === 'save-as' && this.#config.onSaveAs) this.#config.onSaveAs();
-                else if (action === 'open' && this.#config.onOpen) this.#config.onOpen();
-                this.#closeMenu();
-            });
+        const toggle = this._element.querySelector<HTMLElement>('.notebook-header__toggle');
+        const toggleInput = toggle?.querySelector<HTMLInputElement>('input') ?? null;
+        const onToggleComments = this.#config.onToggleComments ?? null;
+        if (toggle && toggleInput) {
+            toggleInput.checked = this.#config.commentsVisible ?? false;
+            if (onToggleComments) {
+                this._addListener(toggle, 'click', (e: Event) => {
+                    e.preventDefault();
+                    toggleInput.checked = !toggleInput.checked;
+                    onToggleComments(toggleInput.checked);
+                });
+            }
         }
 
         const pill = this._element.querySelector('.notebook-header__user-pill');
@@ -246,40 +284,94 @@ export class NotebookHeader extends BaseComponent {
     }
 
     /**
-     * Переключает состояние File-меню.
+     * Переключает состояние выбранного menu-bar меню (file / blocks).
+     * Если открыто другое — сначала закрывает его.
+     * @param menuName - имя меню из data-menu
      */
-    #toggleMenu(): void {
-        if (this.#isMenuOpen) {
+    #toggleMenu(menuName: string): void {
+        if (this.#openMenuName === menuName) {
             this.#closeMenu();
         } else {
-            this.#openMenu();
+            this.#openMenu(menuName);
         }
     }
 
     /**
-     * Открывает File-меню (CSS-класс на dropdown'е и активная подсветка триггера).
+     * Открывает указанное menu-bar меню. Если другое уже открыто — закрывает его.
+     * @param menuName - имя меню из data-menu
      */
-    #openMenu(): void {
-        this.#isMenuOpen = true;
-        nn(this._element.querySelector('.notebook-header__dropdown')).classList.add(
-            'notebook-header__dropdown--open'
+    #openMenu(menuName: string): void {
+        if (this.#openMenuName !== null) this.#closeMenu();
+        this.#openMenuName = menuName;
+        const dropdown = this._element.querySelector(
+            `.notebook-header__dropdown[data-dropdown-for="${menuName}"]`
         );
-        nn(this._element.querySelector('[data-menu="file"]')).classList.add(
-            'notebook-header__menu-item--active'
-        );
+        const trigger = this._element.querySelector(`[data-menu="${menuName}"]`);
+        if (dropdown) dropdown.classList.add('notebook-header__dropdown--open');
+        if (trigger) trigger.classList.add('notebook-header__menu-item--active');
     }
 
     /**
-     * Закрывает File-меню.
+     * Закрывает активное menu-bar меню.
      */
     #closeMenu(): void {
-        this.#isMenuOpen = false;
-        nn(this._element.querySelector('.notebook-header__dropdown')).classList.remove(
-            'notebook-header__dropdown--open'
+        if (this.#openMenuName === null) return;
+        const dropdown = this._element.querySelector(
+            `.notebook-header__dropdown[data-dropdown-for="${this.#openMenuName}"]`
         );
-        nn(this._element.querySelector('[data-menu="file"]')).classList.remove(
-            'notebook-header__menu-item--active'
-        );
+        const trigger = this._element.querySelector(`[data-menu="${this.#openMenuName}"]`);
+        if (dropdown) dropdown.classList.remove('notebook-header__dropdown--open');
+        if (trigger) trigger.classList.remove('notebook-header__menu-item--active');
+        this.#openMenuName = null;
+    }
+
+    /**
+     * Маршрутизирует data-action клик по элементу dropdown/action-кнопки
+     * на соответствующий callback из конфига. Безопасно вызывать с пустым
+     * action — в этом случае ничего не происходит.
+     * @param action - значение data-action
+     */
+    #dispatchAction(action: string): void {
+        const cb = this.#actionHandlers()[action];
+        if (cb) cb();
+    }
+
+    /**
+     * Собирает таблицу обработчиков data-action → callback. Вынесено отдельно
+     * чтобы #dispatchAction оставался простым lookup'ом без switch.
+     * @returns map из строки action в опциональный callback из конфига
+     */
+    #actionHandlers(): Record<string, (() => void) | null | undefined> {
+        const c = this.#config;
+        return {
+            save: c.onSave,
+            'save-as': c.onSaveAs,
+            open: c.onOpen,
+            'add-code': c.onAddCode,
+            'add-text': c.onAddText,
+            'run-all': c.onRunAll,
+            restart: c.onRestart,
+            'clear-outputs': c.onClearOutputs,
+            interrupt: c.onInterrupt
+        };
+    }
+
+    /**
+     * Управляет видимостью бэйджа «В очереди» в шапке. Бэйдж появляется
+     * только когда runner-сессия в состоянии queued.
+     * @param state - текущая фаза runner-сессии
+     * @param queuePosition - позиция в очереди (актуально только для queued)
+     */
+    public setSessionState(state: 'active' | 'queued' | 'inactive', queuePosition = 0): void {
+        const badge = this._element.querySelector<HTMLElement>('[data-queue-badge]');
+        if (!badge) return;
+        if (state === 'queued') {
+            badge.style.display = '';
+            const pos = badge.querySelector('[data-queue-position]');
+            if (pos) pos.textContent = String(queuePosition);
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
     /**
