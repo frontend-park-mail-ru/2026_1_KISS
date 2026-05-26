@@ -332,12 +332,10 @@ export class CodeCell extends BaseComponent {
         (el as HTMLElement).hidden = !hasAny;
 
         const stdoutText =
-            out.stdout !== undefined && out.stdout.length > 0 ? out.stdout.join('\n') : '';
+            out.stdout !== undefined && out.stdout.length > 0 ? out.stdout.join('') : '';
         stdoutEl.innerHTML = stdoutText ? ansiToHtml(normalizeTerminalControl(stdoutText)) : '';
 
-        const stderrText = [out.stderr?.join('\n') ?? '', out.error ?? '']
-            .filter(Boolean)
-            .join('\n');
+        const stderrText = [out.stderr?.join('') ?? '', out.error ?? ''].filter(Boolean).join('\n');
         stderrEl.innerHTML = stderrText
             ? ansiToHtml(normalizeTerminalControl(stripTracebackDashes(stderrText)))
             : '';
