@@ -1,14 +1,17 @@
 /**
- * Возвращает разметку контейнера таблицы тарифов. Колонки и строки фич
- * рендерятся динамически из PricingTable, поэтому здесь только обёртка
- * с двумя слотами (заголовки и тело сравнения).
- * @returns строку HTML с двумя пустыми контейнерами data-columns и data-rows
+ * Возвращает обёртку для PricingTable. Внутри одного table-элемента
+ * рендерятся thead (заголовки тарифов с ценой), tbody (строки фич) и
+ * tfoot (кнопки CTA) — всё динамически из PricingTable.
+ * @returns строку HTML с пустой таблицей и thead/tbody/tfoot
  */
 export function PricingTableTemplate(): string {
     return `
         <div class="pricing-table">
-            <div class="pricing-table__columns" data-columns></div>
-            <div class="pricing-table__rows" data-rows></div>
+            <table class="pricing-table__table">
+                <thead data-thead></thead>
+                <tbody data-tbody></tbody>
+                <tfoot data-tfoot></tfoot>
+            </table>
         </div>
     `;
 }
