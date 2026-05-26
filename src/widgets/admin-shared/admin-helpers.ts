@@ -12,20 +12,25 @@ export interface BadgeDescriptor {
  * Маппинг тарифов на бейджи. Используется во всех admin-таблицах.
  */
 export const PLAN_BADGES: Record<string, BadgeDescriptor> = {
-    free: { cls: 'admin-badge--free', label: 'Free' },
+    starter: { cls: 'admin-badge--free', label: 'Starter' },
+    developer: { cls: 'admin-badge--pro', label: 'Developer' },
+    professional: { cls: 'admin-badge--max', label: 'Professional' },
     freeze: { cls: 'admin-badge--freeze', label: 'Freeze' },
-    pro: { cls: 'admin-badge--pro', label: 'Pro' },
-    max: { cls: 'admin-badge--max', label: 'Max' },
-    admin: { cls: 'admin-badge--admin', label: 'Admin' }
+    admin: { cls: 'admin-badge--admin', label: 'Admin' },
+    free: { cls: 'admin-badge--free', label: 'Starter' },
+    pro: { cls: 'admin-badge--pro', label: 'Developer' },
+    max: { cls: 'admin-badge--max', label: 'Professional' }
 };
 
 /**
- * Опции тарифов для select-полей в форме изменения плана.
+ * Опции тарифов для select-полей в форме изменения плана. Используются
+ * канонические значения; legacy ('free'/'pro'/'max') нормализуются бэкендом
+ * через domain.NormalizePlan при записи.
  */
 export const PLAN_OPTIONS = [
-    { value: 'free', label: 'Free' },
-    { value: 'pro', label: 'Pro' },
-    { value: 'max', label: 'Max' },
+    { value: 'starter', label: 'Starter' },
+    { value: 'developer', label: 'Developer' },
+    { value: 'professional', label: 'Professional' },
     { value: 'admin', label: 'Admin' }
 ];
 
