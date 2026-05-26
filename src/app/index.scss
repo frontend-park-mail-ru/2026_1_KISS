@@ -50,6 +50,7 @@
 @use '../pages/landing/LandingPage';
 @use '../pages/admin/AdminPage';
 @use '../pages/username-setup/UsernameSetupPage';
+@use '../pages/pricing/PricingPage';
 
 * {
     font-family: var(--font-family-base), serif;
@@ -59,7 +60,8 @@ html {
     scrollbar-gutter: stable;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -75,11 +77,14 @@ html, body {
     width: 100%;
 }
 
-code, pre, kbd, samp,
+code,
+pre,
+kbd,
+samp,
 .code-cell,
 .code-cell *,
-[class*="code"],
-[class*="Code"],
+[class*='code'],
+[class*='Code'],
 .monospace {
     font-family: var(--font-family-mono), 'Courier New', monospace;
 }
