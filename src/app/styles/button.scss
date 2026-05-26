@@ -22,8 +22,7 @@
 
 .accent-btn:hover,
 .base-btn:hover {
-    transform: translateY(-1px);
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
     background: var(--teal-green-dark);
     color: var(--white);
 }
@@ -50,7 +49,5 @@
 }
 
 .base-btn.just-text:hover {
-    background-color: transparent;
-    outline: 1px solid var(--white);
-    outline-offset: -1px;
+    background-color: rgba(255, 255, 255, 0.15);
 }
