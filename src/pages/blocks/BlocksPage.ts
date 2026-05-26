@@ -1,6 +1,5 @@
 /* eslint-disable max-lines -- TODO(refactor): extract BlockExecutor (#runSingleBlock + #runAllBlocks) into shared/domain/notebook/, ~120 строк уйдёт; уже срезано 35% от исходных 1179 */
 import { NotebookHeader } from '../../widgets/notebook-header/NotebookHeader.js';
-import { NotebookToolbar } from '../../widgets/notebook-toolbar/NotebookToolbar.js';
 import {
     NotebookSidebar,
     type NotebookSearchAdapter,
@@ -72,7 +71,6 @@ export class BlocksPage {
     #root: HTMLElement;
     #notebookId: string;
     #header: NotebookHeader | null = null;
-    #toolbar: NotebookToolbar | null = null;
     #sidebar: NotebookSidebar | null = null;
     #cellList: CellList | null = null;
     #model: NotebookModel | null = null;
@@ -175,8 +173,10 @@ export class BlocksPage {
      * его в headerArea. Извлечено из #buildLayout, чтобы тот укладывался
      * в лимиты по длине метода.
      * @param headerArea - контейнер для шапки
+     * @param mainEl - элемент основного контента (для тоггла класса --with-comments)
+     * @param commentsVisible - начальное состояние чекбокса комментариев
      */
-    #buildHeader(headerArea: HTMLElement): void {
+    #buildHeader(headerArea: HTMLElement, mainEl: HTMLElement, commentsVisible: boolean): void {
         const initials = this.#username.substring(0, 2).toUpperCase();
         const model = nn(this.#model);
         const isOwner = model.isOwner(this.#userId);
@@ -193,6 +193,25 @@ export class BlocksPage {
             onSaveAs: (): Promise<void> => this.#exportAsIpynb(),
             onOpen: (): void => {
                 this.#importNotebook();
+            },
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onAddCode: (): Promise<void> => this.#createBlock('code'),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onAddText: (): Promise<void> => this.#createBlock('text'),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onRunAll: (): Promise<void> => this.#runAllBlocks(),
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onRestart: (): Promise<void> => this.#restartContainer(),
+            onClearOutputs: (): void => {
+                this.#clearAllOutputs();
+            },
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onInterrupt: (): Promise<void> => this.#interruptExecution(),
+            commentsVisible,
+            onToggleComments: (visible: boolean): void => {
+                this.#cellList?.toggleComments(visible);
+                mainEl.classList.toggle('blocks-page__main--with-comments', visible);
+                localStorage.setItem('notebook_comments_visible', String(visible));
             },
             onProfile: (): void => {
                 nn(Router.getInstance()).navigate('/profile');
@@ -241,8 +260,6 @@ export class BlocksPage {
         headerArea.className = 'blocks-page__header-area';
         page.appendChild(headerArea);
 
-        this.#buildHeader(headerArea);
-
         const body = document.createElement('div');
         body.className = 'blocks-page__body';
         page.appendChild(body);
@@ -256,21 +273,7 @@ export class BlocksPage {
         main.className = `blocks-page__main${commentsVisible ? ' blocks-page__main--with-comments' : ''}`;
         body.appendChild(main);
 
-        this.#toolbar = new NotebookToolbar(headerArea, {
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onAddCode: (): Promise<void> => this.#createBlock('code'),
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onAddText: (): Promise<void> => this.#createBlock('text'),
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRunAll: (): Promise<void> => this.#runAllBlocks(),
-            commentsVisible,
-            onToggleComments: (visible: boolean): void => {
-                this.#cellList?.toggleComments(visible);
-                main.classList.toggle('blocks-page__main--with-comments', visible);
-                localStorage.setItem('notebook_comments_visible', String(visible));
-            }
-        });
-        this.#toolbar.mount();
+        this.#buildHeader(headerArea, main, commentsVisible);
 
         this.#sidebar = new NotebookSidebar(sidebarArea, {
             searchTarget: this.#buildSearchAdapter(),
@@ -378,7 +381,7 @@ export class BlocksPage {
      */
     #openStatsWS(): void {
         this.#statsWs = new StatsWS(this.#notebookId, (stats: ContainerStatsDTO) => {
-            this.#toolbar?.setSessionState(stats.session_state, stats.queue_position);
+            this.#header?.setSessionState(stats.session_state, stats.queue_position);
         });
         this.#statsWs.connect();
     }
@@ -633,6 +636,39 @@ export class BlocksPage {
     }
 
     /**
+     * Перезапускает runner-контейнер для текущего notebook'а. Закрывает
+     * активную сессию через runnerApi.stopSession — при следующем executeBlock
+     * пул выделит свежий контейнер.
+     * @returns промис, резолвится после отправки stop-запроса
+     */
+    async #restartContainer(): Promise<void> {
+        if (this.#notebookId === '') return;
+        await this.#runnerApi.stopSession(this.#notebookId);
+    }
+
+    /**
+     * Очищает output у всех code-ячеек локально (DOM + сохранённое состояние).
+     * Не делает сетевого запроса — следующий save запишет пустые outputs на сервер.
+     */
+    #clearAllOutputs(): void {
+        const codeCells = this.#cellList?.getCodeCellsInOrder() ?? [];
+        codeCells.forEach((c) => {
+            c.setOutput({});
+            this.#execState.discard(c.getBlockId());
+        });
+    }
+
+    /**
+     * Прерывает текущее выполнение, останавливая сессию runner'а. Серверный
+     * контейнер будет убит/освобождён, следующий запуск создаст новый.
+     * @returns промис, резолвится после stop-запроса
+     */
+    async #interruptExecution(): Promise<void> {
+        if (this.#notebookId === '') return;
+        await this.#runnerApi.stopSession(this.#notebookId);
+    }
+
+    /**
      * Восстанавливает execution-номера и outputs во всех code-ячейках из
      * локальных Map'ов. Вызывается после rerender'а CellList'а (например,
      * после WS-события block_added/block_updated), когда DOM пересоздан.
@@ -835,7 +871,6 @@ export class BlocksPage {
         if (this.#shareModal) this.#shareModal.close();
         if (this.#cellList) this.#cellList.unmount();
         if (this.#sidebar) this.#sidebar.unmount();
-        if (this.#toolbar) this.#toolbar.unmount();
         if (this.#header) this.#header.unmount();
         this.#root.innerHTML = '';
     }

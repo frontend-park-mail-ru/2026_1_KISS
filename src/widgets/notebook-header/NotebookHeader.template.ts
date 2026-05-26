@@ -85,11 +85,40 @@ export function NotebookHeaderTemplate(ctx: NotebookHeaderTemplateCtx): string {
     <nav class="notebook-header__menu-bar">
         <div class="notebook-header__menu-wrapper">
             <button class="notebook-header__menu-item" data-menu="file">Файл</button>
-            <div class="notebook-header__dropdown">
+            <div class="notebook-header__dropdown" data-dropdown-for="file">
                 <button class="notebook-header__dropdown-item" data-action="open">Открыть</button>
                 <button class="notebook-header__dropdown-item" data-action="save">Сохранить</button>
                 <button class="notebook-header__dropdown-item" data-action="save-as">Сохранить как</button>
             </div>
+        </div>
+        <div class="notebook-header__menu-wrapper">
+            <button class="notebook-header__menu-item" data-menu="blocks">Блоки</button>
+            <div class="notebook-header__dropdown" data-dropdown-for="blocks">
+                <button class="notebook-header__dropdown-item" data-action="add-code">Добавить код</button>
+                <button class="notebook-header__dropdown-item" data-action="add-text">Добавить текст</button>
+            </div>
+        </div>
+        <label class="notebook-header__toggle" data-action="toggle-comments">
+            <input type="checkbox" class="notebook-header__toggle-input" aria-label="Показать комментарии">
+            <span class="notebook-header__toggle-label">Комментарии</span>
+        </label>
+        <div class="notebook-header__actions">
+            <button class="notebook-header__action-btn" data-action="restart" title="Перезапустить контейнер">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+            </button>
+            <button class="notebook-header__action-btn" data-action="clear-outputs" title="Очистить все выводы">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+            <button class="notebook-header__action-btn" data-action="interrupt" title="Остановить выполнение">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+            </button>
+            <button class="notebook-header__action-btn notebook-header__action-btn--run" data-action="run-all" title="Выполнить все">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
+                <span class="notebook-header__action-btn-text">Выполнить все</span>
+            </button>
+            <span class="notebook-header__queue-badge" data-queue-badge style="display:none">
+                В очереди: <strong data-queue-position></strong>
+            </span>
         </div>
     </nav>
 </header>`;

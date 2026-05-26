@@ -119,9 +119,74 @@
 
 .notebook-header__menu-bar {
     display: flex;
-    gap: 0;
+    align-items: center;
+    gap: 4px;
     padding: 0 16px;
     border-top: 1px solid var(--light-grey);
+}
+
+.notebook-header__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    margin-left: 12px;
+    font-size: 13px;
+    color: var(--accent);
+    cursor: pointer;
+    user-select: none;
+}
+
+.notebook-header__toggle-input {
+    cursor: pointer;
+}
+
+.notebook-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 4px 0;
+}
+
+.notebook-header__action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.notebook-header__action-btn:hover {
+    background: var(--light-grey);
+}
+
+.notebook-header__action-btn--run {
+    background: var(--teal-green);
+    color: var(--white);
+    border-color: var(--teal-green);
+}
+
+.notebook-header__action-btn--run:hover {
+    background: var(--teal-green-dark);
+    color: var(--white);
+}
+
+.notebook-header__queue-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: var(--amber-10, rgba(255, 193, 7, 0.15));
+    border: 1px solid var(--amber, #ffc107);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--dark-primary);
 }
 
 .notebook-header__menu-item {
