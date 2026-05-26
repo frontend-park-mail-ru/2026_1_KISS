@@ -1,6 +1,10 @@
 import { BaseComponent } from '../base-component/BaseComponent.js';
 import { CodeCellTemplate } from './CodeCell.template.js';
-import { ansiToHtml, stripTracebackDashes, handleCarriageReturns } from '../../utils/ansiToHtml.js';
+import {
+    ansiToHtml,
+    stripTracebackDashes,
+    normalizeTerminalControl
+} from '../../utils/ansiToHtml.js';
 import type { BlockData } from '../../types.js';
 import { nn } from '../../utils/notNull.js';
 
@@ -329,13 +333,13 @@ export class CodeCell extends BaseComponent {
 
         const stdoutText =
             out.stdout !== undefined && out.stdout.length > 0 ? out.stdout.join('\n') : '';
-        stdoutEl.innerHTML = stdoutText ? ansiToHtml(handleCarriageReturns(stdoutText)) : '';
+        stdoutEl.innerHTML = stdoutText ? ansiToHtml(normalizeTerminalControl(stdoutText)) : '';
 
         const stderrText = [out.stderr?.join('\n') ?? '', out.error ?? '']
             .filter(Boolean)
             .join('\n');
         stderrEl.innerHTML = stderrText
-            ? ansiToHtml(handleCarriageReturns(stripTracebackDashes(stderrText)))
+            ? ansiToHtml(normalizeTerminalControl(stripTracebackDashes(stderrText)))
             : '';
 
         resultEl.textContent = imageOutputs.length ? '' : (out.result ?? '');
