@@ -152,6 +152,33 @@ function applyCSI(
     return cursor;
 }
 
+const PROGRESS_LINE_REGEX = /[━╸╺╹╴╵╶╷]|\d+\.\d+\/\d+\.\d+\s+(MB|GB|KB|B)|^\s*\d+\/\d+\s+\[/;
+
+/**
+ * Эвристически схлопывает подряд идущие строки прогресс-баров (pip/tqdm),
+ * оставляя только последнюю в каждой группе. Применяется для persisted-output
+ * где `\r` и erase-line уже потеряны (сервер сохраняет stdout разбитым по `\n`).
+ * Признаки progress-строки: блочные символы (`━╸╺╹`), паттерн `N.N/M.M MB ... eta`,
+ * tqdm-формат `N/M [name]`.
+ * @param text - многострочный текст уже без курсорных управляющих последовательностей
+ * @returns текст где группы подряд идущих progress-строк заменены последней строкой группы
+ */
+function collapseProgressBarLines(text: string): string {
+    const lines = text.split('\n');
+    const result: string[] = [];
+    let lastWasProgress = false;
+    for (const line of lines) {
+        const isProgress = PROGRESS_LINE_REGEX.test(line);
+        if (isProgress && lastWasProgress) {
+            result[result.length - 1] = line;
+        } else {
+            result.push(line);
+        }
+        lastWasProgress = isProgress;
+    }
+    return result.join('\n');
+}
+
 /**
  * Эмулирует терминальный буфер: обрабатывает CSI-последовательности курсора
  * (cursor up/down, erase line/display), `\r` (возврат каретки) и `\n` (новая строка).
@@ -187,8 +214,10 @@ export function normalizeTerminalControl(text: string): string {
             i++;
         }
     }
-    return lines
-        .join('\n')
-        .replace(/\n{2,}/g, '\n')
-        .replace(/^\n+|\n+$/g, '');
+    return collapseProgressBarLines(
+        lines
+            .join('\n')
+            .replace(/\n{2,}/g, '\n')
+            .replace(/^\n+|\n+$/g, '')
+    );
 }
