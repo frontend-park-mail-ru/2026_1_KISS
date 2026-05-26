@@ -1,4 +1,5 @@
 import { HttpClient } from '../http_client/HttpClient.js';
+import { mapServerError } from '../utils/serverErrors.js';
 import type { ApiEnvelope, ExecutionResultDTO } from './types.js';
 
 /**
@@ -45,8 +46,9 @@ export class RunnerApi {
     async #parse<T>(response: Response): Promise<T> {
         const body = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>>;
         if (!response.ok) {
-            const err = body.error ?? `HTTP ${String(response.status)}`;
-            throw new Error(this.#formatError(err));
+            const raw = body.error ?? '';
+            const formatted = this.#formatError(raw);
+            throw new Error(mapServerError(formatted, response.status));
         }
         return body.data as T;
     }
