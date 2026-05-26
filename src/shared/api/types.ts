@@ -36,7 +36,7 @@ export interface UserDTO {
     is_verified: boolean;
     /** Имеет ли права администратора (доступ к /admin) */
     is_admin: boolean;
-    /** Тарифный план ('free', 'pro', ...) */
+    /** Тарифный план ('starter', 'developer', 'professional', 'freeze', 'admin'); бэкенд принимает и legacy 'free'/'pro'/'max' */
     plan: string;
     /** Суммарное время активности в секундах (для статистики) */
     total_time_seconds: number;
@@ -422,7 +422,7 @@ export interface AdminActivityStatsResponse {
 export interface PlanDTO {
     /** ID плана в БД */
     id: number;
-    /** Название (служебный идентификатор: 'pro' / 'max') */
+    /** Название (служебный идентификатор: 'developer' / 'professional') */
     name: string;
     /** Цена в копейках (например 99900 = 999 ₽) */
     price_kopeks: number;
@@ -451,7 +451,7 @@ export interface CreatePaymentResponse {
     confirmation_token: string;
     /** Сумма списания в копейках (для UI-отображения) */
     amount_kopeks: number;
-    /** Имя плана ('pro' / 'max') для UI-отображения */
+    /** Имя плана ('developer' / 'professional') для UI-отображения */
     plan: string;
 }
 
@@ -631,7 +631,7 @@ export interface FileUsageResponse {
     limit: number;
     /** true если у пользователя безлимитная квота (admin) */
     unlimited: boolean;
-    /** Тариф пользователя ('free', 'pro', 'max', 'admin', 'freeze') */
+    /** Тариф пользователя ('starter', 'developer', 'professional', 'admin', 'freeze'); legacy 'free'/'pro'/'max' допустимы */
     plan: string;
     /** Количество файлов пользователя */
     files_count: number;

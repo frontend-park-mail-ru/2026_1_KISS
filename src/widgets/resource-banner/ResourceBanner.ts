@@ -56,17 +56,21 @@ export class ResourceBanner extends BaseComponent {
 
     /**
      * Заполняет все значения баннера данными UserStats. Маппит machine-имя плана
-     * (free/freeze/pro/max/admin) в человекочитаемое; форматирует время как
-     * "Xч Yмин / Zч"; для безлимита — "Безлимит".
+     * (starter/developer/professional/freeze/admin) в человекочитаемое; для
+     * совместимости со старыми ответами /stats принимает legacy free/pro/max.
+     * Форматирует время как "Xч Yмин / Zч"; для безлимита — "Безлимит".
      * @param stats - статистика пользователя от StatsApi
      */
     #populate(stats: UserStats): void {
         const planNames: Record<string, string> = {
-            free: 'Free',
+            starter: 'Starter',
+            developer: 'Developer',
+            professional: 'Professional',
             freeze: 'Freeze',
-            pro: 'Pro',
-            max: 'Max',
-            admin: 'Admin'
+            admin: 'Admin',
+            free: 'Starter',
+            pro: 'Developer',
+            max: 'Professional'
         };
 
         const badge = nn(this._element.querySelector('[data-field="plan"]'));

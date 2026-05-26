@@ -95,11 +95,14 @@ export class StatsSection extends BaseComponent {
         const fill = nn(this._element.querySelector<HTMLElement>('.stats-section__progress-fill'));
 
         const planNames: Record<string, string> = {
-            free: 'Free',
+            starter: 'Starter',
+            developer: 'Developer',
+            professional: 'Professional',
             freeze: 'Freeze',
-            pro: 'Pro',
-            max: 'Max',
-            admin: 'Admin'
+            admin: 'Admin',
+            free: 'Starter',
+            pro: 'Developer',
+            max: 'Professional'
         };
         badge.textContent = planNames[stats.quota.plan] || stats.quota.plan;
         badge.classList.add(`stats-section__plan-badge--${stats.quota.plan}`);
