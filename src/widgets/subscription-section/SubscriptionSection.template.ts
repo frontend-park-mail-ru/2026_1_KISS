@@ -1,8 +1,8 @@
 /**
  * Рендерит секцию управления подпиской в профиле. Содержит карточку текущего
- * плана, две карточки доступных тарифов (Pro/Max) с кнопками оплаты и пустой
- * контейнер для встраивания виджета ЮKassa в режиме embedded.
- * Сами карточки тарифов наполняются динамически из API в SubscriptionSection.
+ * плана, контейнер data-plans под виджет PricingTable (рендерится из
+ * SubscriptionSection) и пустой контейнер для встраивания виджета ЮKassa
+ * в режиме embedded.
  * @returns HTML-разметка для innerHTML
  */
 export function SubscriptionSectionTemplate(): string {

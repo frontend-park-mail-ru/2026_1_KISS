@@ -2,9 +2,8 @@ import { BaseComponent } from '../../shared/components/base-component/BaseCompon
 import { PaymentApi } from '../../shared/api/PaymentApi.js';
 import { logError } from '../../shared/utils/logger.js';
 import { nn } from '../../shared/utils/notNull.js';
-import { escapeHtml } from '../../shared/utils/escapeHtml.js';
+import { PricingTable, type PlanId } from '../pricing-table/PricingTable.js';
 import { SubscriptionSectionTemplate } from './SubscriptionSection.template.js';
-import type { PlanDTO } from '../../shared/api/types.js';
 
 /**
  * Внешний URL JS-библиотеки виджета ЮKassa Checkout. Загружается лениво
@@ -22,6 +21,17 @@ function formatRubles(kopeks: number): string {
     const fracPart = kopeks % 100;
     return `${String(intPart)}.${fracPart.toString().padStart(2, '0')}`;
 }
+
+const PLAN_DISPLAY_NAMES: Record<string, string> = {
+    starter: 'Starter',
+    developer: 'Developer',
+    professional: 'Professional',
+    free: 'Starter',
+    pro: 'Developer',
+    max: 'Professional',
+    freeze: 'Заморожен (исчерпан лимит)',
+    admin: 'Admin'
+};
 
 /**
  * Минимальный контракт глобального конструктора виджета ЮKassa.
@@ -74,29 +84,6 @@ interface SubscriptionSectionConfig {
 }
 
 /**
- * Описание тарифа для шаблона карточки.
- */
-interface PlanCardData {
-    /** Идентификатор плана для API ('pro' / 'max') */
-    name: string;
-    /** Заголовок карточки */
-    title: string;
-    /** Цена в копейках */
-    priceKopeks: number;
-    /** Список фич для отображения */
-    features: string[];
-}
-
-/**
- * Заранее заданные тексты для карточек тарифов. Реальные цены/квоты приходят
- * из API (/subscription/plans), но описание UI задаётся локально.
- */
-const PLAN_FEATURES: Record<string, string[]> = {
-    pro: ['Безлимитное время работы', 'Расширенная квота запусков кода', 'Приоритет в очереди'],
-    max: ['Всё из Pro', 'Максимальная квота запусков', 'Поддержка по email']
-};
-
-/**
  * Интервал поллинга статуса платежа в миллисекундах.
  */
 const POLL_INTERVAL_MS = 2000;
@@ -114,7 +101,7 @@ const POLL_INTERVAL_MS = 2000;
 export class SubscriptionSection extends BaseComponent {
     #config: SubscriptionSectionConfig;
     #api: PaymentApi;
-    #plans: PlanDTO[] = [];
+    #table: PricingTable | null = null;
     #pollTimer: number | null = null;
     #widget: YooKassaWidget | null = null;
     #scriptLoading: Promise<void> | null = null;
@@ -149,6 +136,10 @@ export class SubscriptionSection extends BaseComponent {
     public override unmount(): void {
         this.#stopPolling();
         this.#destroyWidget();
+        if (this.#table) {
+            this.#table.unmount();
+            this.#table = null;
+        }
         super.unmount();
     }
 
@@ -180,17 +171,13 @@ export class SubscriptionSection extends BaseComponent {
      */
     async #initialize(): Promise<void> {
         try {
-            const [plansResp, subResp] = await Promise.all([
-                this.#api.listPlans(),
-                this.#api.getMySubscription()
-            ]);
-            this.#plans = plansResp.plans;
+            const subResp = await this.#api.getMySubscription();
             this.#renderCurrent(subResp.plan, subResp.expires_at);
             this.#renderPlans(subResp.plan);
         } catch (err) {
             logError('SubscriptionSection.initialize', err);
-            this.#renderCurrent('free');
-            this.#renderPlans('free');
+            this.#renderCurrent('starter');
+            this.#renderPlans('starter');
         }
     }
 
@@ -205,20 +192,15 @@ export class SubscriptionSection extends BaseComponent {
         if (!card) return;
         const nameEl = card.querySelector('.subscription-section__plan-name');
         const descEl = card.querySelector('.subscription-section__plan-desc');
-        const labelMap: Record<string, string> = {
-            free: 'Бесплатный план',
-            freeze: 'Заморожен (исчерпан лимит)',
-            pro: 'Pro',
-            max: 'Max',
-            admin: 'Admin'
-        };
-        if (nameEl) nameEl.textContent = labelMap[plan] ?? plan;
+        if (nameEl) nameEl.textContent = PLAN_DISPLAY_NAMES[plan] ?? plan;
 
         if (descEl) {
-            if ((plan === 'pro' || plan === 'max') && expiresAt !== undefined && expiresAt > 0) {
+            const isPaid =
+                plan === 'developer' || plan === 'professional' || plan === 'pro' || plan === 'max';
+            if (isPaid && expiresAt !== undefined && expiresAt > 0) {
                 const date = new Date(expiresAt * 1000);
                 descEl.textContent = `Активна до ${date.toLocaleDateString('ru-RU')}`;
-            } else if (plan === 'free') {
+            } else if (plan === 'starter' || plan === 'free') {
                 descEl.textContent = 'Базовый доступ. Лимит: 3 часа активности.';
             } else if (plan === 'freeze') {
                 descEl.textContent = 'Лимит времени исчерпан. Оплатите подписку чтобы продолжить.';
@@ -229,62 +211,35 @@ export class SubscriptionSection extends BaseComponent {
     }
 
     /**
-     * Рендерит карточки доступных тарифов (Pro и Max) с кнопками "Оплатить".
-     * Для текущего плана кнопка disabled и подсвечена.
+     * Монтирует виджет PricingTable в data-plans (если ещё не смонтирован),
+     * либо обновляет в нём currentPlan. CTA-клик платного плана запускает
+     * #startPayment в режиме authenticated.
      * @param currentPlan - текущий план пользователя
      */
     #renderPlans(currentPlan: string): void {
-        const container = this._element.querySelector('[data-plans]');
-        if (!container) return;
-        container.innerHTML = '';
-
-        const cards: PlanCardData[] = this.#plans
-            .filter((p) => p.name === 'pro' || p.name === 'max')
-            .map((p) => ({
-                name: p.name,
-                title: p.name === 'pro' ? 'Pro' : 'Max',
-                priceKopeks: p.price_kopeks,
-                features: PLAN_FEATURES[p.name] ?? []
-            }));
-
-        for (const card of cards) {
-            const isCurrent = card.name === currentPlan;
-            const div = document.createElement('div');
-            div.className = `subscription-section__plan-card${isCurrent ? ' subscription-section__plan-card--current' : ''}`;
-            div.innerHTML = `
-                <h4 class="subscription-section__plan-card-title">${escapeHtml(card.title)}</h4>
-                <div>
-                    <div class="subscription-section__plan-card-price">${formatRubles(card.priceKopeks)} ₽</div>
-                    <div class="subscription-section__plan-card-period">в месяц</div>
-                </div>
-                <ul class="subscription-section__plan-card-features">
-                    ${card.features.map((f) => `<li>• ${escapeHtml(f)}</li>`).join('')}
-                </ul>
-                <button type="button" class="subscription-section__plan-card-button"
-                        data-buy="${escapeHtml(card.name)}" ${isCurrent ? 'disabled' : ''}>
-                    ${isCurrent ? 'Текущий план' : 'Оплатить'}
-                </button>
-            `;
-            container.appendChild(div);
+        if (this.#table) {
+            this.#table.refresh(currentPlan);
+            return;
         }
-
-        const buttons = this._element.querySelectorAll('[data-buy]');
-        buttons.forEach((btn) => {
-            this._addListener(btn, 'click', () => {
-                const plan = (btn as HTMLElement).dataset.buy;
-                if (plan === 'pro' || plan === 'max') {
-                    void this.#startPayment(plan);
-                }
-            });
+        const container = nn(this._element.querySelector<HTMLElement>('[data-plans]'));
+        container.innerHTML = '';
+        this.#table = new PricingTable(container, {
+            mode: 'authenticated',
+            currentPlan,
+            onSelectPlan: (plan: PlanId): void => {
+                if (plan === 'starter') return;
+                void this.#startPayment(plan);
+            }
         });
+        this.#table.mount();
     }
 
     /**
      * Стартует процесс оплаты: создаёт платёж на бэке, загружает (если ещё
      * нет) скрипт ЮKassa, монтирует виджет и запускает поллинг статуса.
-     * @param plan - выбранный план ('pro' | 'max')
+     * @param plan - выбранный план ('developer' | 'professional')
      */
-    async #startPayment(plan: 'pro' | 'max'): Promise<void> {
+    async #startPayment(plan: 'developer' | 'professional'): Promise<void> {
         this.#showStatus('info', 'Создаём платёж...');
         try {
             const created = await this.#api.createSubscriptionPayment(plan);
