@@ -260,12 +260,8 @@ export class PricingTable extends BaseComponent {
             const classes = ['pricing-table__col-head'];
             if (plan.highlight) classes.push('pricing-table__col-head--highlight');
             if (current === plan.id) classes.push('pricing-table__col-head--current');
-            const badge = plan.highlight
-                ? '<span class="pricing-table__col-badge">Популярный</span>'
-                : '';
             return `
                 <th scope="col" class="${classes.join(' ')}">
-                    ${badge}
                     <div class="pricing-table__col-inner">
                         <span class="pricing-table__col-title">${escapeHtml(plan.title)}</span>
                         <span class="pricing-table__col-price">${escapeHtml(plan.priceLabel)}</span>
