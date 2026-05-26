@@ -1,6 +1,6 @@
 /**
- * Рендерит сайдбар notebook'а: 4 кнопки переключения панелей (search/toc/files/resources)
- * и сами панели (find&replace, оглавление, файлы, ресурсы контейнера со sparklines).
+ * Рендерит сайдбар notebook'а: кнопки переключения панелей (search/resources/ai-chat)
+ * и сами панели (find&replace, ресурсы контейнера со sparklines, чат с ИИ).
  * @returns HTML-разметка для innerHTML
  */
 export function NotebookSidebarTemplate(): string {
@@ -9,17 +9,6 @@ export function NotebookSidebarTemplate(): string {
         <button class="notebook-sidebar__icon-btn" data-panel="search" title="Найти и заменить">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-        </button>
-        <button class="notebook-sidebar__icon-btn" data-panel="toc" title="Содержание">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-        </button>
-        <button class="notebook-sidebar__icon-btn" data-panel="files" title="Файлы">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
             </svg>
         </button>
         <button class="notebook-sidebar__icon-btn" data-panel="resources" title="Ресурсы">
@@ -52,18 +41,6 @@ export function NotebookSidebarTemplate(): string {
                 <button class="notebook-sidebar__link-btn" data-action="replace">Заменить</button>
                 <button class="notebook-sidebar__link-btn" data-action="replace-all">Заменить все</button>
             </div>
-        </div>
-    </div>
-    <div class="notebook-sidebar__panel notebook-sidebar__panel--toc" data-panel-name="toc">
-        <h3 class="notebook-sidebar__panel-title">Содержание</h3>
-        <div class="notebook-sidebar__panel-content">
-            <p class="notebook-sidebar__placeholder">Нет заголовков</p>
-        </div>
-    </div>
-    <div class="notebook-sidebar__panel notebook-sidebar__panel--files" data-panel-name="files">
-        <h3 class="notebook-sidebar__panel-title">Файлы</h3>
-        <div class="notebook-sidebar__panel-content">
-            <p class="notebook-sidebar__placeholder">Нет файлов</p>
         </div>
     </div>
     <div class="notebook-sidebar__panel notebook-sidebar__panel--ai-chat" data-panel-name="ai-chat">
