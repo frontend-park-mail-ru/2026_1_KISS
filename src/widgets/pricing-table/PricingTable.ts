@@ -266,9 +266,11 @@ export class PricingTable extends BaseComponent {
             return `
                 <th scope="col" class="${classes.join(' ')}">
                     ${badge}
-                    <span class="pricing-table__col-title">${escapeHtml(plan.title)}</span>
-                    <span class="pricing-table__col-price">${escapeHtml(plan.priceLabel)}</span>
-                    <span class="pricing-table__col-period">${escapeHtml(plan.period)}</span>
+                    <div class="pricing-table__col-inner">
+                        <span class="pricing-table__col-title">${escapeHtml(plan.title)}</span>
+                        <span class="pricing-table__col-price">${escapeHtml(plan.priceLabel)}</span>
+                        <span class="pricing-table__col-period">${escapeHtml(plan.period)}</span>
+                    </div>
                 </th>
             `;
         }).join('');
