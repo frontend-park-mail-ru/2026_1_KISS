@@ -93,18 +93,99 @@ export function stripTracebackDashes(text: string): string {
 }
 
 /**
- * Эмулирует поведение терминала с символами возврата каретки (\\r):
- * для каждой строки оставляет только содержимое после последнего \\r.
- * Нужно для корректного отображения прогресс-баров (tqdm и подобных).
- * @param text - текст возможно содержащий \\r
- * @returns текст без \\r, с правильно обрезанными строками
+ * Парсит начало CSI-последовательности (\x1b[...) на месте `start` в тексте.
+ * Возвращает финальный байт, параметр-строку и индекс позиции сразу после
+ * последовательности. Если последовательность некорректна — возвращает null.
+ * @param text - исходный текст
+ * @param start - индекс символа `\x1b` (предполагается что text[start+1] === `[`)
+ * @returns разобранная последовательность или null
  */
-export function handleCarriageReturns(text: string): string {
-    return text
-        .split('\n')
-        .map((line) => {
-            const parts = line.split('\r');
-            return parts[parts.length - 1];
-        })
-        .join('\n');
+function parseCSI(
+    text: string,
+    start: number
+): { finalByte: string; param: string; next: number } | null {
+    let j = start + 2;
+    const paramStart = j;
+    if (text[j] === '?') j++;
+    while (j < text.length && /[0-9;]/.test(text[j] ?? '')) j++;
+    if (j >= text.length) return null;
+    return { finalByte: text[j], param: text.slice(paramStart, j), next: j + 1 };
+}
+
+/**
+ * Применяет одну CSI-последовательность к буферу строк. Поддерживает:
+ * SGR (m) — добавляется в текущую строку как есть для ansiToHtml;
+ * cursor up/down (A/B) — двигает курсор по lines;
+ * erase line (K) — очищает текущую строку;
+ * erase display (J) — обрезает буфер до курсора. Прочие коды игнорирует.
+ * @param lines - буфер строк (мутируется)
+ * @param cursor - текущий индекс строки
+ * @param rawSeq - сырая CSI-последовательность для случая SGR
+ * @param csi - результат parseCSI
+ * @returns новый индекс курсора
+ */
+function applyCSI(
+    lines: string[],
+    cursor: number,
+    rawSeq: string,
+    csi: { finalByte: string; param: string }
+): number {
+    const { finalByte, param } = csi;
+    if (finalByte === 'm') {
+        lines[cursor] += rawSeq;
+        return cursor;
+    }
+    if (finalByte === 'A' || finalByte === 'B') {
+        const parsed = parseInt(param, 10);
+        const n = Number.isNaN(parsed) || parsed === 0 ? 1 : parsed;
+        if (finalByte === 'A') return Math.max(0, cursor - n);
+        const next = cursor + n;
+        while (next >= lines.length) lines.push('');
+        return next;
+    }
+    if (finalByte === 'K') {
+        lines[cursor] = '';
+    } else if (finalByte === 'J') {
+        lines.length = cursor + 1;
+        lines[cursor] = '';
+    }
+    return cursor;
+}
+
+/**
+ * Эмулирует терминальный буфер: обрабатывает CSI-последовательности курсора
+ * (cursor up/down, erase line/display), `\r` (возврат каретки) и `\n` (новая строка).
+ * SGR-коды (цвет/стиль) сохраняются в выводе как есть для последующей передачи в ansiToHtml.
+ * Прочие управляющие последовательности (например `\x1b[?25l` скрытия курсора) удаляются.
+ * Нужно для корректного отображения прогресс-баров pip/tqdm, перерисовывающих строки.
+ * @param text - сырой stdout/stderr с управляющими последовательностями
+ * @returns многострочный текст без курсорных управляющих последовательностей, со сжатыми перерисовками
+ */
+export function normalizeTerminalControl(text: string): string {
+    const lines: string[] = [''];
+    let cursor = 0;
+    let i = 0;
+    while (i < text.length) {
+        const ch = text[i];
+        if (ch === '\n') {
+            cursor++;
+            if (cursor >= lines.length) lines.push('');
+            i++;
+        } else if (ch === '\r') {
+            lines[cursor] = '';
+            i++;
+        } else if (ch === '\x1b' && text[i + 1] === '[') {
+            const csi = parseCSI(text, i);
+            if (csi === null) {
+                i++;
+            } else {
+                cursor = applyCSI(lines, cursor, text.slice(i, csi.next), csi);
+                i = csi.next;
+            }
+        } else {
+            lines[cursor] += ch;
+            i++;
+        }
+    }
+    return lines.join('\n');
 }
