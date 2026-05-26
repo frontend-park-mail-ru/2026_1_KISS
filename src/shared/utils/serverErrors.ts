@@ -23,7 +23,28 @@ const ERROR_MAP: Record<string, string> = {
     invalid_request: 'Некорректный ответ OAuth-провайдера. Попробуйте ещё раз.',
     unknown_provider: 'Этот OAuth-провайдер не поддерживается.',
     internal: 'Внутренняя ошибка OAuth-входа. Попробуйте позже.',
-    'invalid input': 'Ссылка для сброса пароля недействительна или истекла.'
+    'invalid input': 'Ссылка для сброса пароля недействительна или истекла.',
+    'service unavailable': 'Сервис временно недоступен. Попробуйте через минуту.',
+    'runner service unavailable':
+        'Сервис выполнения кода временно недоступен. Попробуйте через минуту.',
+    'disk full':
+        'Закончилось место на диске. Освободите файлы в разделе «Мои файлы» или повысьте тариф.',
+    'container out of memory':
+        'Контейнеру не хватило памяти. Уменьшите объём данных или повысьте тариф.',
+    'container cpu limit exceeded': 'Превышен лимит CPU. Оптимизируйте код или повысьте тариф.',
+    'execution timeout':
+        'Код выполнялся слишком долго и был остановлен. Разбейте его на меньшие шаги или повысьте тариф.'
+};
+
+/**
+ * HTTP-статусы, для которых есть осмысленный fallback-текст когда серверная
+ * строка ошибки не совпала ни с одной записью в ERROR_MAP. Используется когда
+ * сервер вернул нестандартный текст, но статус достаточно информативен сам по себе.
+ */
+const STATUS_FALLBACKS: Record<number, string> = {
+    503: 'Сервис временно недоступен. Попробуйте через минуту.',
+    504: 'Код выполнялся слишком долго и был остановлен.',
+    507: 'Закончилось место на диске. Освободите файлы или повысьте тариф.'
 };
 
 /**
@@ -35,4 +56,27 @@ const ERROR_MAP: Record<string, string> = {
  */
 export function translateError(error: string): string {
     return ERROR_MAP[error] ?? 'Произошла ошибка, попробуйте позже';
+}
+
+/**
+ * Расширенный маппинг: сначала пытается сопоставить точную строку ошибки,
+ * затем пробует подстроку (для wrapped-ошибок вида "disk full: create container ...").
+ * Если ни одно совпадение не найдено — использует fallback по HTTP-статусу,
+ * иначе возвращает универсальный текст.
+ * @param error - строка ошибки от сервера (может быть пустой)
+ * @param status - HTTP-статус ответа (для fallback'а 503/504/507)
+ * @returns локализованное сообщение для UI
+ */
+export function mapServerError(error: string, status?: number): string {
+    if (error.length > 0) {
+        if (error in ERROR_MAP) return ERROR_MAP[error];
+        const lowered = error.toLowerCase();
+        for (const key of Object.keys(ERROR_MAP)) {
+            if (lowered.includes(key)) return ERROR_MAP[key];
+        }
+    }
+    if (status !== undefined && status in STATUS_FALLBACKS) {
+        return STATUS_FALLBACKS[status];
+    }
+    return 'Произошла ошибка, попробуйте позже';
 }
