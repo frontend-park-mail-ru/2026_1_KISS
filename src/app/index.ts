@@ -9,6 +9,7 @@ import { ProfilePage } from '../pages/profile/ProfilePage.js';
 import { AdminPage } from '../pages/admin/AdminPage.js';
 import { SharedFilePage } from '../pages/shared-file/SharedFilePage.js';
 import { UsernameSetupPage } from '../pages/username-setup/UsernameSetupPage.js';
+import { PricingPage } from '../pages/pricing/PricingPage.js';
 import { Router } from '../shared/router/Router.js';
 import { HttpClient } from '../shared/http_client/HttpClient.js';
 import { Heartbeat } from '../shared/heartbeat/Heartbeat.js';
@@ -32,6 +33,7 @@ router.addRoute('/profile', ProfilePage, { guard: 'authOnly' });
 router.addRoute('/admin', AdminPage, { guard: 'authOnly' });
 router.addRoute('/username-setup', UsernameSetupPage, { guard: 'authOnly' });
 router.addRoute('/shared/files/:token', SharedFilePage);
+router.addRoute('/pricing', PricingPage);
 
 /**
  * Опрашивает /auth/me и обновляет snapshot авторизации внутри HttpClient.
