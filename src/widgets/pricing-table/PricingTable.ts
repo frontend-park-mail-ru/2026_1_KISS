@@ -29,7 +29,7 @@ export interface PricingTableConfig {
 }
 
 /**
- * Описание одной колонки тарифа: визуальные строки и метки.
+ * Описание тарифа в заголовке колонки.
  */
 interface PlanDefinition {
     /** Идентификатор тарифа */
@@ -42,63 +42,125 @@ interface PlanDefinition {
     period: string;
     /** Подсветить как «популярный» */
     highlight: boolean;
-    /** Тексты значений для каждой строки сравнения, ключ — id строки */
-    values: Record<string, string>;
 }
 
 /**
- * Описание одной строки в таблице сравнения.
+ * Тип значения ячейки в строке фич. Скаляр — конкретная подпись,
+ * boolean — флаг доступности (V/X).
+ */
+type CellValue = string | boolean;
+
+/**
+ * Строка с фичей: лейбл + значения для трёх тарифов.
  */
 interface FeatureRow {
-    /** Идентификатор строки (используется как ключ в PlanDefinition.values) */
-    key: string;
-    /** Подпись строки слева */
+    /** Тип строки — обычная строка с данными */
+    kind: 'feature';
+    /** Подпись фичи в левой колонке */
+    label: string;
+    /** Значения по тарифам (порядок: starter, developer, professional) */
+    values: [CellValue, CellValue, CellValue];
+}
+
+/**
+ * Строка-разделитель: подсвечивает категорию (например «LLM-чат»).
+ */
+interface GroupRow {
+    /** Тип строки — заголовок группы */
+    kind: 'group';
+    /** Подпись группы */
     label: string;
 }
 
-const PLAN_DEFINITIONS: PlanDefinition[] = [
+/**
+ * Объединённый тип для одной строки таблицы — либо фича со значениями,
+ * либо заголовок группы.
+ */
+type TableRow = FeatureRow | GroupRow;
+
+const PLAN_DEFINITIONS: [PlanDefinition, PlanDefinition, PlanDefinition] = [
     {
         id: 'starter',
         title: 'Starter',
         priceLabel: 'Бесплатно',
         period: 'навсегда',
-        highlight: false,
-        values: {
-            activeTime: '3 часа активного времени',
-            execQuota: 'Базовая квота запусков кода',
-            llmModels: 'gpt-oss базовый'
-        }
+        highlight: false
     },
     {
         id: 'developer',
         title: 'Developer',
         priceLabel: '999 ₽',
         period: 'в месяц',
-        highlight: true,
-        values: {
-            activeTime: 'Неограниченное время',
-            execQuota: 'Расширенная квота запусков',
-            llmModels: 'gpt-oss базовый + улучшенные модели'
-        }
+        highlight: true
     },
     {
         id: 'professional',
         title: 'Professional',
         priceLabel: '1 999 ₽',
         period: 'в месяц',
-        highlight: false,
-        values: {
-            activeTime: 'Неограниченное время',
-            execQuota: 'Максимальная квота запусков',
-            llmModels: 'Полный доступ ко всем моделям'
-        }
+        highlight: false
     }
 ];
 
-const FEATURE_ROWS: FeatureRow[] = [
-    { key: 'activeTime', label: 'Лимит активного времени' },
-    { key: 'execQuota', label: 'Квота запусков кода' },
-    { key: 'llmModels', label: 'Доступные LLM-модели' }
+const FEATURE_ROWS: TableRow[] = [
+    { kind: 'group', label: 'Ресурсы' },
+    {
+        kind: 'feature',
+        label: 'Хранилище файлов',
+        values: ['128 МБ', '256 МБ', '512 МБ']
+    },
+    {
+        kind: 'feature',
+        label: 'Лимит активного времени',
+        values: ['3 часа', 'Безлимит', 'Безлимит']
+    },
+    {
+        kind: 'feature',
+        label: 'Запусков кода в месяц',
+        values: ['Базовая квота', '100 000', '999 999']
+    },
+    { kind: 'group', label: 'LLM-чат' },
+    {
+        kind: 'feature',
+        label: 'Запросов в день',
+        values: ['20', '200', '1 000']
+    },
+    {
+        kind: 'feature',
+        label: 'Токенов в день',
+        values: ['5 000', '100 000', '1 000 000']
+    },
+    {
+        kind: 'feature',
+        label: 'GPT-4o mini',
+        values: [true, true, true]
+    },
+    {
+        kind: 'feature',
+        label: 'Claude 3.5 Haiku',
+        values: [false, true, true]
+    },
+    {
+        kind: 'feature',
+        label: 'DeepSeek Chat',
+        values: [false, false, true]
+    },
+    {
+        kind: 'feature',
+        label: 'Llama 3.1 70B',
+        values: [false, false, true]
+    },
+    { kind: 'group', label: 'Поддержка' },
+    {
+        kind: 'feature',
+        label: 'Приоритет в очереди исполнения',
+        values: [false, true, true]
+    },
+    {
+        kind: 'feature',
+        label: 'Email-поддержка',
+        values: [false, false, true]
+    }
 ];
 
 const PLAN_ALIASES: Record<string, PlanId> = {
@@ -123,15 +185,16 @@ function normalizePlan(plan: string | undefined): PlanId | undefined {
 }
 
 /**
- * Виджет сравнения тарифов: рендерит три колонки (Starter, Developer,
- * Professional) и таблицу с фичами под ними. Работает в двух режимах:
- * public (для лендинга и страницы /pricing для гостей) и authenticated
- * (для встраивания в SubscriptionSection в профиле). Подсветка «популярного»
- * тарифа и определение текущего плана пользователя — на стороне виджета.
+ * Виджет сравнения тарифов: рендерит одну таблицу с тремя колонками тарифов
+ * и строками фич. Скалярные значения (хранилище, лимиты) показаны как числа,
+ * boolean-фичи (доступ к конкретной LLM-модели) — как галочка V или крест X.
+ * Работает в двух режимах: public (для лендинга и /pricing для гостей) и
+ * authenticated (для встраивания в SubscriptionSection в профиле). Текущий
+ * план пользователя подсвечивается и отключает свою CTA-кнопку.
  *
  * Виджет не загружает данные сам — все цены и фичи статичны (декларативные
- * PLAN_DEFINITIONS), потому что отображаемые надписи это маркетинговые
- * подписи, не runtime-конфиг. Реальные цены проверяются бэкендом при оплате.
+ * PLAN_DEFINITIONS / FEATURE_ROWS), потому что отображаемые надписи это
+ * маркетинговые подписи, не runtime-конфиг. Реальные лимиты enforced бэкендом.
  */
 export class PricingTable extends BaseComponent {
     #config: PricingTableConfig;
@@ -148,12 +211,11 @@ export class PricingTable extends BaseComponent {
     }
 
     /**
-     * Монтирует таблицу в родителя и рисует колонки/строки.
+     * Монтирует таблицу в родителя и рисует thead/tbody/tfoot.
      */
     public override mount(): void {
         super.mount();
-        this.#renderColumns();
-        this.#renderRows();
+        this.#renderTable();
     }
 
     /**
@@ -164,7 +226,7 @@ export class PricingTable extends BaseComponent {
     public refresh(currentPlan: string | undefined): void {
         this.#config = { ...this.#config, currentPlan };
         this._clearListeners();
-        this.#renderColumns();
+        this.#renderTable();
     }
 
     /**
@@ -177,38 +239,93 @@ export class PricingTable extends BaseComponent {
     }
 
     /**
-     * Рисует три карточки тарифов с ценами и CTA-кнопками. Подсвечивает
-     * текущий план (если задан) и «популярный» столбец.
+     * Рендерит все три части таблицы: thead с тарифами и ценой, tbody со
+     * строками фич, tfoot с CTA-кнопками.
      */
-    #renderColumns(): void {
-        const container = nn(this._element.querySelector<HTMLElement>('[data-columns]'));
-        container.innerHTML = '';
-
+    #renderTable(): void {
         const current = normalizePlan(this.#config.currentPlan);
+        this.#renderHead(current);
+        this.#renderBody();
+        this.#renderFoot(current);
+    }
 
-        for (const plan of PLAN_DEFINITIONS) {
-            const card = document.createElement('div');
-            const classes = ['pricing-table__column'];
-            if (plan.highlight) classes.push('pricing-table__column--highlight');
-            if (current === plan.id) classes.push('pricing-table__column--current');
-            card.className = classes.join(' ');
-
-            const ctaLabel = this.#ctaLabelFor(plan.id, current);
-            const ctaDisabled = current === plan.id;
-
-            card.innerHTML = `
-                ${plan.highlight ? '<span class="pricing-table__badge">Популярный</span>' : ''}
-                <h3 class="pricing-table__column-title">${escapeHtml(plan.title)}</h3>
-                <div>
-                    <div class="pricing-table__column-price">${escapeHtml(plan.priceLabel)}</div>
-                    <div class="pricing-table__column-period">${escapeHtml(plan.period)}</div>
-                </div>
-                <button type="button" class="pricing-table__column-cta" data-plan="${escapeHtml(plan.id)}"${ctaDisabled ? ' disabled' : ''}>
-                    ${escapeHtml(ctaLabel)}
-                </button>
+    /**
+     * Рисует строку заголовка таблицы: пустую первую ячейку и три колонки
+     * тарифов с названием, ценой, периодом и (для popular) бейджем.
+     * @param current - канонический id текущего плана пользователя
+     */
+    #renderHead(current: PlanId | undefined): void {
+        const thead = nn(this._element.querySelector<HTMLElement>('[data-thead]'));
+        const cols = PLAN_DEFINITIONS.map((plan) => {
+            const classes = ['pricing-table__col-head'];
+            if (plan.highlight) classes.push('pricing-table__col-head--highlight');
+            if (current === plan.id) classes.push('pricing-table__col-head--current');
+            const badge = plan.highlight
+                ? '<span class="pricing-table__col-badge">Популярный</span>'
+                : '';
+            return `
+                <th scope="col" class="${classes.join(' ')}">
+                    ${badge}
+                    <span class="pricing-table__col-title">${escapeHtml(plan.title)}</span>
+                    <span class="pricing-table__col-price">${escapeHtml(plan.priceLabel)}</span>
+                    <span class="pricing-table__col-period">${escapeHtml(plan.period)}</span>
+                </th>
             `;
-            container.appendChild(card);
+        }).join('');
+        thead.innerHTML = `<tr><th scope="col"></th>${cols}</tr>`;
+    }
+
+    /**
+     * Рисует строки фич в tbody. Группы выводятся как одна объединённая ячейка
+     * на всю ширину. У boolean-значений рендерится V или X.
+     */
+    #renderBody(): void {
+        const tbody = nn(this._element.querySelector<HTMLElement>('[data-tbody]'));
+        const html = FEATURE_ROWS.map((row) => {
+            if (row.kind === 'group') {
+                return `<tr class="pricing-table__group-row"><td colspan="4">${escapeHtml(row.label)}</td></tr>`;
+            }
+            const cells = row.values.map((v) => this.#renderCell(v)).join('');
+            return `<tr><td>${escapeHtml(row.label)}</td>${cells}</tr>`;
+        }).join('');
+        tbody.innerHTML = html;
+    }
+
+    /**
+     * Рендерит одну ячейку строки фич: для строки — текстовое значение,
+     * для true — галочка V, для false — крестик X.
+     * @param value - скалярное или булево значение фичи
+     * @returns HTML-фрагмент <td>...</td>
+     */
+    #renderCell(value: CellValue): string {
+        if (typeof value === 'boolean') {
+            return value
+                ? '<td class="pricing-table__cell-yes" aria-label="Доступно">V</td>'
+                : '<td class="pricing-table__cell-no" aria-label="Недоступно">X</td>';
         }
+        return `<td class="pricing-table__cell-value">${escapeHtml(value)}</td>`;
+    }
+
+    /**
+     * Рисует tfoot с CTA-кнопками для каждой колонки. Делегирует обработчик
+     * клика конфигу: onPublicCta в public-режиме, onSelectPlan в authenticated.
+     * Кнопка под колонкой текущего плана disabled.
+     * @param current - канонический id текущего плана пользователя
+     */
+    #renderFoot(current: PlanId | undefined): void {
+        const tfoot = nn(this._element.querySelector<HTMLElement>('[data-tfoot]'));
+        const cells = PLAN_DEFINITIONS.map((plan) => {
+            const isCurrent = current === plan.id;
+            const label = this.#ctaLabelFor(plan.id, current);
+            return `
+                <td>
+                    <button type="button" class="pricing-table__cta" data-plan="${escapeHtml(plan.id)}"${isCurrent ? ' disabled' : ''}>
+                        ${escapeHtml(label)}
+                    </button>
+                </td>
+            `;
+        }).join('');
+        tfoot.innerHTML = `<tr><td></td>${cells}</tr>`;
 
         const buttons = this._element.querySelectorAll<HTMLButtonElement>('[data-plan]');
         buttons.forEach((btn) => {
@@ -216,31 +333,6 @@ export class PricingTable extends BaseComponent {
                 this.#handleCta(btn.dataset.plan);
             });
         });
-    }
-
-    /**
-     * Рисует таблицу сравнения фич: одна строка на FeatureRow,
-     * первый столбец — лейбл, остальные три — значения для каждого тарифа.
-     */
-    #renderRows(): void {
-        const container = nn(this._element.querySelector<HTMLElement>('[data-rows]'));
-        container.innerHTML = '';
-
-        for (const row of FEATURE_ROWS) {
-            const div = document.createElement('div');
-            div.className = 'pricing-table__row';
-            const values = PLAN_DEFINITIONS.map((p) => {
-                const cls = p.highlight
-                    ? 'pricing-table__row-value pricing-table__row-value--highlight'
-                    : 'pricing-table__row-value';
-                return `<div class="${cls}">${escapeHtml(p.values[row.key] ?? '')}</div>`;
-            }).join('');
-            div.innerHTML = `
-                <div class="pricing-table__row-label">${escapeHtml(row.label)}</div>
-                ${values}
-            `;
-            container.appendChild(div);
-        }
     }
 
     /**
