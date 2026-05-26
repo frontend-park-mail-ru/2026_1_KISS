@@ -48,13 +48,15 @@ export class PaymentApi {
     /**
      * Создаёт платёж в ЮKassa за выбранную подписку. Бэк регистрирует
      * платёж в БД и возвращает confirmation_token для рендера виджета.
-     * POST /payments/subscription.
-     * @param plan - имя плана ('pro' или 'max')
+     * POST /payments/subscription. Принимает канонические имена тарифов;
+     * legacy-значения ('pro'/'max') бэкенд нормализует через
+     * domain.NormalizePlan.
+     * @param plan - имя плана ('developer' или 'professional')
      * @param returnURL - URL возврата после оплаты (для виджета)
      * @returns промис с параметрами созданного платежа
      */
     public async createSubscriptionPayment(
-        plan: 'pro' | 'max',
+        plan: 'developer' | 'professional',
         returnURL?: string
     ): Promise<CreatePaymentResponse> {
         const response = await this.#http.post('/payments/subscription', {
