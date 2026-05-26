@@ -187,5 +187,8 @@ export function normalizeTerminalControl(text: string): string {
             i++;
         }
     }
-    return lines.join('\n');
+    return lines
+        .join('\n')
+        .replace(/\n{2,}/g, '\n')
+        .replace(/^\n+|\n+$/g, '');
 }
