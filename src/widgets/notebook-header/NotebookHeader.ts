@@ -45,12 +45,6 @@ interface NotebookHeaderConfig {
     onAddText?: (() => void) | null;
     /** Callback клика "Выполнить все" */
     onRunAll?: (() => void) | null;
-    /** Callback клика "Перезапустить контейнер" */
-    onRestart?: (() => void) | null;
-    /** Callback клика "Очистить все выводы" */
-    onClearOutputs?: (() => void) | null;
-    /** Callback клика "Остановить выполнение" */
-    onInterrupt?: (() => void) | null;
     /** Callback тоггла видимости панели комментариев */
     onToggleComments?: ((visible: boolean) => void) | null;
     /** Начальное состояние чекбокса комментариев */
@@ -349,10 +343,7 @@ export class NotebookHeader extends BaseComponent {
             open: c.onOpen,
             'add-code': c.onAddCode,
             'add-text': c.onAddText,
-            'run-all': c.onRunAll,
-            restart: c.onRestart,
-            'clear-outputs': c.onClearOutputs,
-            interrupt: c.onInterrupt
+            'run-all': c.onRunAll
         };
     }
 

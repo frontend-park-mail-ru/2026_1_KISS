@@ -200,13 +200,6 @@ export class BlocksPage {
             onAddText: (): Promise<void> => this.#createBlock('text'),
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onRunAll: (): Promise<void> => this.#runAllBlocks(),
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onRestart: (): Promise<void> => this.#restartContainer(),
-            onClearOutputs: (): void => {
-                this.#clearAllOutputs();
-            },
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onInterrupt: (): Promise<void> => this.#interruptExecution(),
             commentsVisible,
             onToggleComments: (visible: boolean): void => {
                 this.#cellList?.toggleComments(visible);
@@ -633,39 +626,6 @@ export class BlocksPage {
                 c.setRunning(false);
             });
         }
-    }
-
-    /**
-     * Перезапускает runner-контейнер для текущего notebook'а. Закрывает
-     * активную сессию через runnerApi.stopSession — при следующем executeBlock
-     * пул выделит свежий контейнер.
-     * @returns промис, резолвится после отправки stop-запроса
-     */
-    async #restartContainer(): Promise<void> {
-        if (this.#notebookId === '') return;
-        await this.#runnerApi.stopSession(this.#notebookId);
-    }
-
-    /**
-     * Очищает output у всех code-ячеек локально (DOM + сохранённое состояние).
-     * Не делает сетевого запроса — следующий save запишет пустые outputs на сервер.
-     */
-    #clearAllOutputs(): void {
-        const codeCells = this.#cellList?.getCodeCellsInOrder() ?? [];
-        codeCells.forEach((c) => {
-            c.setOutput({});
-            this.#execState.discard(c.getBlockId());
-        });
-    }
-
-    /**
-     * Прерывает текущее выполнение, останавливая сессию runner'а. Серверный
-     * контейнер будет убит/освобождён, следующий запуск создаст новый.
-     * @returns промис, резолвится после stop-запроса
-     */
-    async #interruptExecution(): Promise<void> {
-        if (this.#notebookId === '') return;
-        await this.#runnerApi.stopSession(this.#notebookId);
     }
 
     /**
