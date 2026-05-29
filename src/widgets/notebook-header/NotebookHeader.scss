@@ -137,8 +137,22 @@
     user-select: none;
 }
 
+.notebook-header__toggle:hover {
+    background: var(--light-grey);
+    border-radius: 6px;
+}
+
 .notebook-header__toggle-input {
     cursor: pointer;
+}
+
+.notebook-header__toggle-label {
+    display: inline-flex;
+    align-items: center;
+}
+
+.notebook-header__toggle-input:checked + .notebook-header__toggle-label {
+    color: var(--teal-green);
 }
 
 .notebook-header__actions {

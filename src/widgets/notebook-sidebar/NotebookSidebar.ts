@@ -165,6 +165,7 @@ export class NotebookSidebar extends BaseComponent {
         if (!this._isMounted) return;
         this.#stopStatsWS();
         this.#cleanupResize();
+        document.body.classList.remove('notebook-sidebar--panel-open');
         super.unmount();
     }
 
@@ -345,6 +346,7 @@ export class NotebookSidebar extends BaseComponent {
         if (btn) btn.classList.add('notebook-sidebar__icon-btn--active');
         const panel = this._element.querySelector(`.notebook-sidebar__panel--${panelName}`);
         if (panel) panel.classList.add('notebook-sidebar__panel--visible');
+        document.body.classList.add('notebook-sidebar--panel-open');
 
         if (panelName === 'resources') {
             this.#startStatsWS();
@@ -489,6 +491,7 @@ export class NotebookSidebar extends BaseComponent {
         if (btn) btn.classList.remove('notebook-sidebar__icon-btn--active');
         const panel = this._element.querySelector(`.notebook-sidebar__panel--${this.#activePanel}`);
         if (panel) panel.classList.remove('notebook-sidebar__panel--visible');
+        document.body.classList.remove('notebook-sidebar--panel-open');
         this.#activePanel = null;
     }
 

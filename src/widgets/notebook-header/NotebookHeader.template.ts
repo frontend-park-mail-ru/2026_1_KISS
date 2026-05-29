@@ -98,9 +98,11 @@ export function NotebookHeaderTemplate(ctx: NotebookHeaderTemplateCtx): string {
                 <button class="notebook-header__dropdown-item" data-action="add-text">Добавить текст</button>
             </div>
         </div>
-        <label class="notebook-header__toggle" data-action="toggle-comments">
+        <label class="notebook-header__toggle" data-action="toggle-comments" title="Комментарии">
             <input type="checkbox" class="notebook-header__toggle-input" aria-label="Показать комментарии">
-            <span class="notebook-header__toggle-label">Комментарии</span>
+            <span class="notebook-header__toggle-label" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2h9A2.5 2.5 0 0 1 15 4.5v5a2.5 2.5 0 0 1-2.5 2.5H6l-3 3v-3a2.5 2.5 0 0 1-2-2.5V4.5A2.5 2.5 0 0 1 3.5 2z"/></svg>
+            </span>
         </label>
         <div class="notebook-header__actions">
             <button class="notebook-header__action-btn notebook-header__action-btn--run" data-action="run-all" title="Выполнить все">

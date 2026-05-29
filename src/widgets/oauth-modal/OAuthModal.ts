@@ -16,13 +16,17 @@ const PROVIDERS: OAuthProviderName[] = ['google', 'yandex', 'vkid'];
 export class OAuthModal extends BaseComponent {
     #buttons: OAuthButton[] = [];
     #onEscape: ((e: KeyboardEvent) => void) | null = null;
+    #onClose: (() => void) | null;
 
     /**
      * Создаёт элемент модалки и монтирует её в document.body. Список провайдеров
      * добавляется в OAuthButton'ах сразу же, чтобы первый показ был без задержки.
+     * @param onClose - колбэк, вызываемый при закрытии модалки (чтобы владелец
+     * мог обнулить ссылку и позволить открыть модалку повторно)
      */
-    public constructor() {
+    public constructor(onClose?: () => void) {
         super(null, document.body);
+        this.#onClose = onClose ?? null;
         const temp = document.createElement('div');
         temp.innerHTML = OAuthModalTemplate();
         this._element = temp.firstElementChild as HTMLElement;
@@ -73,5 +77,8 @@ export class OAuthModal extends BaseComponent {
             this.#onEscape = null;
         }
         super.unmount();
+        if (this.#onClose !== null) {
+            this.#onClose();
+        }
     }
 }

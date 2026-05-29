@@ -195,9 +195,7 @@ export class NotebookHeader extends BaseComponent {
         if (toggle && toggleInput) {
             toggleInput.checked = this.#config.commentsVisible ?? false;
             if (onToggleComments) {
-                this._addListener(toggle, 'click', (e: Event) => {
-                    e.preventDefault();
-                    toggleInput.checked = !toggleInput.checked;
+                this._addListener(toggleInput, 'change', () => {
                     onToggleComments(toggleInput.checked);
                 });
             }
