@@ -36,4 +36,13 @@
     .blocks-page__main {
         padding: 0 16px;
     }
+
+    body.notebook-sidebar--panel-open .blocks-page__sidebar {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    body.notebook-sidebar--panel-open .blocks-page__main {
+        display: none;
+    }
 }

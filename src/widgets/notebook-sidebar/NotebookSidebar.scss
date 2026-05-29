@@ -11,6 +11,7 @@
     gap: 4px;
     padding: 12px 8px;
     width: 48px;
+    flex-shrink: 0;
     background: var(--light-grey);
     border-right: 1px solid var(--cell-border);
     box-sizing: border-box;
@@ -42,13 +43,17 @@
 .notebook-sidebar__panel {
     display: none;
     flex-direction: column;
-    width: 250px;
+    width: 360px;
     background: var(--white);
     border-right: 1px solid var(--cell-border);
     overflow-y: auto;
     position: relative;
     min-width: 220px;
     max-width: 800px;
+}
+
+body.notebook-sidebar--panel-open {
+    overflow-x: hidden;
 }
 
 .notebook-sidebar__resize-handle {
@@ -212,4 +217,16 @@ mark.find-match--current {
     min-height: 0;
     display: flex;
     flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    body.notebook-sidebar--panel-open .notebook-sidebar {
+        width: 100%;
+    }
+
+    body.notebook-sidebar--panel-open .notebook-sidebar__panel--visible {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+    }
 }

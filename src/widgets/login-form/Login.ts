@@ -80,7 +80,9 @@ export class Login extends BaseComponent {
      */
     #openOAuthModal(): void {
         if (this.#oauthModal !== null) return;
-        const modal = new OAuthModal();
+        const modal = new OAuthModal(() => {
+            this.#oauthModal = null;
+        });
         this.#oauthModal = modal;
         modal.mount();
     }
