@@ -15,3 +15,25 @@ services:
       - /var/www/certbot:/var/www/certbot:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
+    networks:
+      - swagger-network
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: swagger-ui
+    ports:
+      - "8081:8080"
+    environment:
+      - SWAGGER_JSON=/specs/swagger.json
+      - BASE_URL=/docs
+      - WITH_CREDENTIALS=true
+    volumes:
+      - ./swagger-specs:/specs:ro
+    restart: unless-stopped
+    networks:
+      - swagger-network
+
+networks:
+  swagger-network:
+    name: kiss_swagger-network
+    driver: bridge
